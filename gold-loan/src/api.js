@@ -25,7 +25,6 @@ export const submitData = async (data) => {
 
 export const submitDocument = async (data) => {
     try {
-        console.log(data);
 
         const response = await fetch(API_URL + data.path, {
             method: data.method,

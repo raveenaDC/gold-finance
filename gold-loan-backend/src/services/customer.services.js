@@ -117,9 +117,9 @@ export async function createCustomer(req, res, next) {
             aadhar,
             gst,
             email, } = req.body;
-        console.log(req.body);
+
         let { image, signature } = req.files;
-        console.log(req.files);
+
 
         const existCustomer = await models.customerModel.findOne({ email: email })
         if (existCustomer) {
