@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import Webcam from 'react-webcam';
 import {
     Box,
     Button,
@@ -17,7 +18,11 @@ export default function CustomerForm() {
     const [fileImage, setFileImage] = useState({
         image: null,
         signature: null,
+        capture: null,
     }); // State to store the uploaded image and signature
+
+    const [usingWebcam, setUsingWebcam] = useState(false); // Toggle between file upload and webcam
+    const webcamRef = useRef(null); // Ref to access the webcam
 
     const [formData, setFormData] = useState({
         firstName: '',
@@ -34,6 +39,8 @@ export default function CustomerForm() {
         email: '', // Add email field
 
     });
+
+
 
     // Function to handle file changes for both image and signature
     // const handleFileChange = (e) => {
@@ -67,6 +74,13 @@ export default function CustomerForm() {
         setFileImage({ ...fileImage, [name]: files[0] });
     };
 
+    // Handle webcam capture
+    const captureImage = () => {
+        const imageSrc = webcamRef.current.getScreenshot(); // Capture image from webcam
+        setFileImage({ ...fileImage, capture: imageSrc });
+        setUsingWebcam(false); // Hide the webcam after capture
+    };
+
     //handle from input change
     const handleChange = (e) => {
         setFormData({
@@ -94,6 +108,12 @@ export default function CustomerForm() {
         data.append('email', formData.email);
         data.append('image', fileImage.image);
         data.append('signature', fileImage.signature);
+
+        // Add captured image if available
+        if (fileImage.capture) {
+            data.append('capture', fileImage.capture);
+        }
+
 
 
 
@@ -140,6 +160,7 @@ export default function CustomerForm() {
             setFileImage({
                 image: null,
                 signature: null,
+                capture: null,
             }); // Clear uploaded image
             // setFileSignature(null); // Clear uploaded signature
 
@@ -379,12 +400,49 @@ export default function CustomerForm() {
                                             />
                                         </Button>
 
+                                        <Button
+                                            variant="contained"
+                                            color="secondary"
+                                            onClick={() => setUsingWebcam(!usingWebcam)}
+                                            sx={{ ml: 2 }}
+                                        >
+                                            {usingWebcam ? 'Cancel' : 'Use Webcam'}
+                                        </Button>
+
                                         {/* Display uploaded image */}
                                         {fileImage.image && (
                                             <Box mt={2}>
                                                 <img src={URL.createObjectURL(fileImage.image)} alt="Uploaded Image" style={{ width: '100px' }} />
                                             </Box>
                                         )}
+
+                                        {fileImage.capture && (
+                                            <Box mt={2}>
+                                                <img src={fileImage.capture} alt="Captured Image" style={{ width: '100px' }} />
+                                            </Box>
+                                        )}
+
+                                        {/* Webcam Component */}
+                                        {usingWebcam && (
+                                            <Box mt={2}>
+                                                <Webcam
+                                                    audio={false}
+                                                    ref={webcamRef}
+                                                    screenshotFormat="image/jpeg"
+                                                    width="100%"
+                                                />
+                                                <Button
+                                                    variant="contained"
+                                                    color="primary"
+                                                    onClick={captureImage}
+                                                    sx={{ mt: 2 }}
+                                                >
+                                                    Capture Image
+                                                </Button>
+                                            </Box>
+                                        )}
+
+
                                     </Box>
                                 </Grid>
 
