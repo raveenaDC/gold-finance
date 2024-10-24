@@ -15,15 +15,9 @@ import { submitDocument } from '../api';
 
 export default function CustomerForm() {
     const [open, setOpen] = useState(false); // Modal state
-    const [fileImage, setFileImage] = useState({
-        image: null,
-        signature: null,
-        capture: null,
-    }); // State to store the uploaded image and signature
-
+    const [usingSigncam, setUsingSigncam] = useState(false); // Toggle between file upload and webcam
     const [usingWebcam, setUsingWebcam] = useState(false); // Toggle between file upload and webcam
-    const webcamRef = useRef(null); // Ref to access the webcam
-
+    const [fileImage, setFileImage] = useState({ image: null, signature: null, capture: null, }); // State to store the uploaded image and signature
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -39,41 +33,8 @@ export default function CustomerForm() {
         email: '', // Add email field
 
     });
-    const base64ToBlob = (base64Data, contentType = '') => {
-        const byteCharacters = atob(base64Data.split(',')[1]); // Decode Base64 string
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        return new Blob([byteArray], { type: contentType });
-    };
-
-
-
-
-    // Function to handle file changes for both image and signature
-    // const handleFileChange = (e) => {
-    //     const { name } = e.target; // 'image' or 'signature'
-    //     const file = e.target.files[0]; // Get the selected file
-
-    //     if (file) {
-    //         const fileURL = URL.createObjectURL(file); // Create a preview URL for the image or signature
-
-    //         // Update the form data and the respective preview
-    //         if (name === "image") {
-    //             setFileImage(fileURL); // Update image preview
-    //         } else if (name === "signature") {
-    //             setFileSignature(fileURL); // Update signature preview
-    //         }
-
-    //         // Update the formData with the actual file (not URL)
-    //         setFormData((prevData) => ({
-    //             ...prevData,
-    //             [name]: file, // Store the file in the form data
-    //         }));
-    //     }
-    // };
+    const [errors, setErrors] = useState({});
+    const webcamRef = useRef(null); // Ref to access the webcam
 
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
@@ -85,18 +46,18 @@ export default function CustomerForm() {
         setUsingWebcam(false); // Hide the webcam after capture
     }, [webcamRef, fileImage]);
 
+    // Handle Signaturecam capture
+    const captureSign = useCallback(() => {
+        const imageSrc = webcamRef.current.getScreenshot(); // Capture image from webcam as Base64
+        setFileImage({ ...fileImage, capture: imageSrc });  // Set Base64 image
+        setUsingWebcam(false); // Hide the webcam after capture
+    }, [webcamRef, fileImage]);
+
     // handle image change
     const handleimagechange = (e) => {
         const { name, files } = e.target;
         setFileImage({ ...fileImage, [name]: files[0] });
     };
-
-    // // Handle webcam capture
-    // const captureImage = useCallback(() => {
-    //     const imageSrc = webcamRef.current.getScreenshot(); // Capture image from webcam
-    //     setFileImage({ ...fileImage, capture: imageSrc });
-    //     setUsingWebcam(false); // Hide the webcam after capture
-    // }, [webcamRef]);
 
     //handle from input change
     const handleChange = (e) => {
@@ -106,7 +67,17 @@ export default function CustomerForm() {
         });
     };
 
-    // handle for submiossion
+    const base64ToBlob = (base64Data, contentType = '') => {
+        const byteCharacters = atob(base64Data.split(',')[1]); // Decode Base64 string
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        return new Blob([byteArray], { type: contentType });
+    };
+
+    // handle for submission
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -126,27 +97,25 @@ export default function CustomerForm() {
         data.append('image', fileImage.image);
         data.append('signature', fileImage.signature);
 
-        // // Add captured image if available
-        // if (fileImage.capture) {
-        //     data.append('capture', fileImage.capture);
-        // }
-
         // Add captured image if available (convert Base64 to Blob and append)
         if (fileImage.capture) {
-            // Convert Base64 to Blob
-            let blob = base64ToBlob(fileImage.capture, 'image/jpeg');
-
+            let blob = base64ToBlob(fileImage.capture, 'image/jpeg'); // Convert Base64 to Blob
             // Generate a unique filename using current date and time
             const timestamp = new Date().toISOString().replace(/[-:.]/g, ''); // Removes characters not allowed in filenames
             const filename = `webcam_image_${timestamp}.jpg`; // e.g., 'webcam_image_20241018T123456.jpg'
-
-            // Create a new File from the Blob to include the filename
-            const fileWithFileName = new File([blob], filename, { type: 'image/jpeg' });
-
-            // Assign it to fileImage.image
-            fileImage.image = fileWithFileName;
-
+            const fileWithFileName = new File([blob], filename, { type: 'image/jpeg' });// Create a new File from the Blob to include the filename
+            fileImage.image = fileWithFileName; // Assign it to fileImage.image
             data.append('image', fileImage.image); // Append Blob with a file name
+        }
+
+        // Handle captured signature (convert Base64 to Blob)
+        if (fileImage.sCapture) {
+            let blob = base64ToBlob(fileImage.sCapture, 'image/jpeg');
+            const timestamp = new Date().toISOString().replace(/[-:.]/g, '');
+            const filename = `webcam_signature_${timestamp}.jpg`;
+            const fileWithFileName = new File([blob], filename, { type: 'image/jpeg' });
+            fileImage.signature = fileWithFileName; // Assign it to fileImage.image
+            data.append('signature', fileWithFileName); // Append the signature file
         }
 
 
@@ -193,6 +162,7 @@ export default function CustomerForm() {
                 image: null,
                 signature: null,
                 capture: null,
+                sCapture: null,
             }); // Clear uploaded image
             // setFileSignature(null); // Clear uploaded signature
 
@@ -495,10 +465,45 @@ export default function CustomerForm() {
                                             />
                                         </Button>
 
+                                        <Button
+                                            variant="contained"
+                                            color="secondary"
+                                            onClick={() => setUsingSigncam(!usingSigncam)}
+                                            sx={{ ml: 2 }}
+                                        >
+                                            {usingSigncam ? 'Cancel' : 'Use Webcam'}
+                                        </Button>
+
                                         {/* Display uploaded signature */}
                                         {fileImage.signature && (
                                             <Box mt={2}>
                                                 <img src={URL.createObjectURL(fileImage.signature)} alt="Uploaded Signature" style={{ width: '100px' }} />
+                                            </Box>
+                                        )}
+
+                                        {fileImage.sCapture && (
+                                            <Box mt={2}>
+                                                <img src={fileImage.sCapture} alt="Captured Image" style={{ width: '100px' }} />
+                                            </Box>
+                                        )}
+
+                                        {/* Webcam Component */}
+                                        {usingSigncam && (
+                                            <Box mt={2}>
+                                                <Webcam
+                                                    audio={false}
+                                                    ref={webcamRef}
+                                                    screenshotFormat="image/jpeg"
+                                                    width="100%"
+                                                />
+                                                <Button
+                                                    variant="contained"
+                                                    color="primary"
+                                                    onClick={captureSign}
+                                                    sx={{ mt: 2 }}
+                                                >
+                                                    Capture Image
+                                                </Button>
                                             </Box>
                                         )}
                                     </Box>
