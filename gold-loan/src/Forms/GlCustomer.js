@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import Webcam from 'react-webcam';
 import {
     Box,
@@ -39,6 +39,16 @@ export default function CustomerForm() {
         email: '', // Add email field
 
     });
+    const base64ToBlob = (base64Data, contentType = '') => {
+        const byteCharacters = atob(base64Data.split(',')[1]); // Decode Base64 string
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        return new Blob([byteArray], { type: contentType });
+    };
+
 
 
 
@@ -68,18 +78,25 @@ export default function CustomerForm() {
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
 
+    // Handle webcam capture
+    const captureImage = useCallback(() => {
+        const imageSrc = webcamRef.current.getScreenshot(); // Capture image from webcam as Base64
+        setFileImage({ ...fileImage, capture: imageSrc });  // Set Base64 image
+        setUsingWebcam(false); // Hide the webcam after capture
+    }, [webcamRef, fileImage]);
+
     // handle image change
     const handleimagechange = (e) => {
         const { name, files } = e.target;
         setFileImage({ ...fileImage, [name]: files[0] });
     };
 
-    // Handle webcam capture
-    const captureImage = () => {
-        const imageSrc = webcamRef.current.getScreenshot(); // Capture image from webcam
-        setFileImage({ ...fileImage, capture: imageSrc });
-        setUsingWebcam(false); // Hide the webcam after capture
-    };
+    // // Handle webcam capture
+    // const captureImage = useCallback(() => {
+    //     const imageSrc = webcamRef.current.getScreenshot(); // Capture image from webcam
+    //     setFileImage({ ...fileImage, capture: imageSrc });
+    //     setUsingWebcam(false); // Hide the webcam after capture
+    // }, [webcamRef]);
 
     //handle from input change
     const handleChange = (e) => {
@@ -109,13 +126,28 @@ export default function CustomerForm() {
         data.append('image', fileImage.image);
         data.append('signature', fileImage.signature);
 
-        // Add captured image if available
+        // // Add captured image if available
+        // if (fileImage.capture) {
+        //     data.append('capture', fileImage.capture);
+        // }
+
+        // Add captured image if available (convert Base64 to Blob and append)
         if (fileImage.capture) {
-            data.append('capture', fileImage.capture);
+            // Convert Base64 to Blob
+            let blob = base64ToBlob(fileImage.capture, 'image/jpeg');
+
+            // Generate a unique filename using current date and time
+            const timestamp = new Date().toISOString().replace(/[-:.]/g, ''); // Removes characters not allowed in filenames
+            const filename = `webcam_image_${timestamp}.jpg`; // e.g., 'webcam_image_20241018T123456.jpg'
+
+            // Create a new File from the Blob to include the filename
+            const fileWithFileName = new File([blob], filename, { type: 'image/jpeg' });
+
+            // Assign it to fileImage.image
+            fileImage.image = fileWithFileName;
+
+            data.append('image', fileImage.image); // Append Blob with a file name
         }
-
-
-
 
 
         // Validate required fields
@@ -128,9 +160,9 @@ export default function CustomerForm() {
         }
 
         try {
-            // console.log(formData)
-            // console.log("File Data (Image):", fileImage.image);
-            // console.log("File Data (Image):", fileImage.signature);
+            console.log(formData)
+            console.log("File Data (Image):", fileImage.image);
+            console.log("File Data (sign):", fileImage.signature);
             const customerData = {
                 info: data,
                 method: 'post',
@@ -257,7 +289,6 @@ export default function CustomerForm() {
                                         onChange={handleChange}
                                     />
                                 </Grid>
-
                                 {/* Location/City */}
                                 <Grid item xs={12} sm={6}>
                                     <TextField
