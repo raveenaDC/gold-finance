@@ -133,21 +133,21 @@ export default function CustomerForm() {
 
         // Add captured image if available (convert Base64 to Blob and append)
         if (fileImage.capture) {
-            const blob = base64ToBlob(fileImage.capture, 'image/jpeg'); // Convert Base64 to Blob
+            // Convert Base64 to Blob
+            let blob = base64ToBlob(fileImage.capture, 'image/jpeg');
+
             // Generate a unique filename using current date and time
             const timestamp = new Date().toISOString().replace(/[-:.]/g, ''); // Removes characters not allowed in filenames
             const filename = `webcam_image_${timestamp}.jpg`; // e.g., 'webcam_image_20241018T123456.jpg'
 
-            fileImage.image = {
-                blob: blob,               // Blob data
-                filename: filename        // Dynamically generated filename
-            };
+            // Create a new File from the Blob to include the filename
+            const fileWithFileName = new File([blob], filename, { type: 'image/jpeg' });
+
+            // Assign it to fileImage.image
+            fileImage.image = fileWithFileName;
 
             data.append('image', fileImage.image); // Append Blob with a file name
         }
-
-
-
 
 
         // Validate required fields
@@ -160,9 +160,9 @@ export default function CustomerForm() {
         }
 
         try {
-            // console.log(formData)
-            // console.log("File Data (Image):", fileImage.image);
-            // console.log("File Data (Image):", fileImage.signature);
+            console.log(formData)
+            console.log("File Data (Image):", fileImage.image);
+            console.log("File Data (sign):", fileImage.signature);
             const customerData = {
                 info: data,
                 method: 'post',
