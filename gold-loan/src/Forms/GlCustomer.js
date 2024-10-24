@@ -68,18 +68,25 @@ export default function CustomerForm() {
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
 
+    // Handle webcam capture
+    const captureImage = useCallback(() => {
+        const imageSrc = webcamRef.current.getScreenshot(); // Capture image from webcam as Base64
+        setFileImage({ ...fileImage, capture: imageSrc });  // Set Base64 image
+        setUsingWebcam(false); // Hide the webcam after capture
+    }, [webcamRef, fileImage]);
+
     // handle image change
     const handleimagechange = (e) => {
         const { name, files } = e.target;
         setFileImage({ ...fileImage, [name]: files[0] });
     };
 
-    // Handle webcam capture
-    const captureImage = useCallback(() => {
-        const imageSrc = webcamRef.current.getScreenshot(); // Capture image from webcam
-        setFileImage({ ...fileImage, capture: imageSrc });
-        setUsingWebcam(false); // Hide the webcam after capture
-    }, [webcamRef]);
+    // // Handle webcam capture
+    // const captureImage = useCallback(() => {
+    //     const imageSrc = webcamRef.current.getScreenshot(); // Capture image from webcam
+    //     setFileImage({ ...fileImage, capture: imageSrc });
+    //     setUsingWebcam(false); // Hide the webcam after capture
+    // }, [webcamRef]);
 
     //handle from input change
     const handleChange = (e) => {
@@ -109,9 +116,15 @@ export default function CustomerForm() {
         data.append('image', fileImage.image);
         data.append('signature', fileImage.signature);
 
-        // Add captured image if available
+        // // Add captured image if available
+        // if (fileImage.capture) {
+        //     data.append('capture', fileImage.capture);
+        // }
+
+        // Add captured image if available (convert Base64 to Blob and append)
         if (fileImage.capture) {
-            data.append('capture', fileImage.capture);
+            const blob = base64ToBlob(fileImage.capture, 'image/jpeg'); // Convert Base64 to Blob
+            data.append('capture', blob, 'webcam_image.jpg'); // Append Blob with a file name
         }
 
 
