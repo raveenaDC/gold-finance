@@ -4,6 +4,7 @@ import cors from 'cors';
 import * as dotenv from 'dotenv';
 import initializeRoutes from './routes/index.js';
 import path from 'path'
+import { mongoUrl } from './config/db.config.js';
 import { getCurrentWorkingFolder } from './utils/get-current-working-folder.helper.js';
 
 dotenv.config();
@@ -15,7 +16,7 @@ const dirname = getCurrentWorkingFolder(import.meta.url);
 
 app.use(cors({ origin: '*' }));
 
-mongoose.connect('mongodb://127.0.0.1:27017/cisoGoldLoan').then(() => {
+mongoose.connect(mongoUrl).then(() => {
     console.log("Mongodb connected successfully");
 }).catch((err) => {
     console.log(err, "Not connected to the mongodb");
