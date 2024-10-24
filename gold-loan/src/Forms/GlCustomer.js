@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import Webcam from 'react-webcam';
 import {
     Box,
@@ -75,11 +75,11 @@ export default function CustomerForm() {
     };
 
     // Handle webcam capture
-    const captureImage = () => {
+    const captureImage = useCallback(() => {
         const imageSrc = webcamRef.current.getScreenshot(); // Capture image from webcam
         setFileImage({ ...fileImage, capture: imageSrc });
         setUsingWebcam(false); // Hide the webcam after capture
-    };
+    }, [webcamRef]);
 
     //handle from input change
     const handleChange = (e) => {
