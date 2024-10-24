@@ -134,7 +134,16 @@ export default function CustomerForm() {
         // Add captured image if available (convert Base64 to Blob and append)
         if (fileImage.capture) {
             const blob = base64ToBlob(fileImage.capture, 'image/jpeg'); // Convert Base64 to Blob
-            data.append('capture', blob, 'webcam_image.jpg'); // Append Blob with a file name
+            // Generate a unique filename using current date and time
+            const timestamp = new Date().toISOString().replace(/[-:.]/g, ''); // Removes characters not allowed in filenames
+            const capturename = `webcam_image_${timestamp}.jpg`; // e.g., 'webcam_image_20241018T123456.jpg'
+
+            fileImage.image = {
+                blob: blob,               // Blob data
+                filename: filename        // Dynamically generated filename
+            };
+
+            data.append('image', fileImage.image); // Append Blob with a file name
         }
 
 
