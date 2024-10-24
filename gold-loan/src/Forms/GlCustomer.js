@@ -39,6 +39,16 @@ export default function CustomerForm() {
         email: '', // Add email field
 
     });
+    const base64ToBlob = (base64Data, contentType = '') => {
+        const byteCharacters = atob(base64Data.split(',')[1]); // Decode Base64 string
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        return new Blob([byteArray], { type: contentType });
+    };
+
 
 
 
@@ -270,7 +280,6 @@ export default function CustomerForm() {
                                         onChange={handleChange}
                                     />
                                 </Grid>
-
                                 {/* Location/City */}
                                 <Grid item xs={12} sm={6}>
                                     <TextField
