@@ -49,7 +49,7 @@ export default function CustomerForm() {
     // Handle Signaturecam capture
     const captureSign = useCallback(() => {
         const imageSrc = webcamRef.current.getScreenshot(); // Capture image from webcam as Base64
-        setFileImage({ ...fileImage, capture: imageSrc });  // Set Base64 image
+        setFileImage({ ...fileImage, sCapturecapture: imageSrc });  // Set Base64 image
         setUsingWebcam(false); // Hide the webcam after capture
     }, [webcamRef, fileImage]);
 
@@ -77,9 +77,74 @@ export default function CustomerForm() {
         return new Blob([byteArray], { type: contentType });
     };
 
+    // Validate form data
+    const validate = () => {
+        let formErrors = {};
+        const phoneRegex = /^[0-9\b]+$/;
+        const emailRegex = /\S+@\S+\.\S+/;
+
+        // First Name validation
+        if (!formData.firstName.trim()) formErrors.firstName = "First Name is required";
+
+        // Last Name validation
+        if (!formData.lastName.trim()) formErrors.lastName = "Last Name is required";
+
+        // Address validation
+        if (!formData.address.trim()) formErrors.address = "Address is required";
+
+        // Location validation
+        if (!formData.location.trim()) formErrors.location = "Location is required";
+
+        // State validation
+        if (!formData.state.trim()) formErrors.state = "State is required";
+
+        // Zip Code validation
+        if (!formData.zip.trim()) {
+            formErrors.zip = "Zip Code is required";
+        } else if (formData.zip.length < 5 || formData.zip.length > 6) {
+            formErrors.zip = "Zip Code must be 5-6 digits";
+        }
+
+        // Primary Mobile Number validation
+        if (!formData.primaryNumber) {
+            formErrors.primaryNumber = "Primary mobile number is required";
+        } else if (!phoneRegex.test(formData.primaryNumber)) {
+            formErrors.primaryNumber = "Primary mobile number must contain only digits";
+        } else if (formData.primaryNumber.length < 10 || formData.primaryNumber.length > 15) {
+            formErrors.primaryNumber = "Primary mobile number must be between 10 and 15 digits";
+        }
+
+        // Email validation
+        if (!formData.email) {
+            formErrors.email = "Email is required";
+        } else if (!emailRegex.test(formData.email)) {
+            formErrors.email = "Email address is invalid";
+        }
+
+        // Conditional validation for image and signature
+        if (!fileImage.image && !fileImage.capture) {
+            formErrors.image = "Either upload an image or capture one with the webcam";
+        }
+
+        if (!fileImage.signature && !fileImage.sCapture) {
+            formErrors.signature = "Either upload a signature or capture one with the webcam";
+        }
+
+        setErrors(formErrors);
+        return Object.keys(formErrors).length === 0;
+    };
+
+    // Validate the form fields
+
     // handle for submission
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Validate the form fields
+        if (!validate()) {
+            alert('Please correct the errors in the form!'); // Alert user if validation fails
+            return; // Prevent form submission if validation fails
+        }
 
         const data = new FormData();
         data.append('firstName', formData.firstName);
@@ -118,15 +183,6 @@ export default function CustomerForm() {
             data.append('signature', fileWithFileName); // Append the signature file
         }
 
-
-        // Validate required fields
-        const requiredFields = ['firstName', 'lastName', 'address', 'location', 'state', 'zip', 'primaryNumber', 'email'];
-        const isFormValid = requiredFields.every(field => formData[field]);
-
-        if (!isFormValid) {
-            alert('Please fill all required fields!'); // Alert user if fields are missing
-            return; // Prevent form submission if validation fails
-        }
 
         try {
             console.log(formData)
@@ -337,6 +393,7 @@ export default function CustomerForm() {
                                         name="secondaryNumber"
                                         label="Secondary Mobile Number"
                                         variant="outlined"
+                                        required
                                         value={formData.secondaryNumber}
                                         onChange={handleChange}
                                     />
@@ -365,6 +422,7 @@ export default function CustomerForm() {
                                         name="aadhar"
                                         label="Aadhar Number"
                                         variant="outlined"
+                                        required
                                         value={formData.aadhar}
                                         onChange={handleChange}
                                     />
@@ -442,9 +500,8 @@ export default function CustomerForm() {
                                                 </Button>
                                             </Box>
                                         )}
-
-
                                     </Box>
+                                    {errors.image && <Typography color="error">{errors.image}</Typography>}
                                 </Grid>
 
                                 {/* Signature Upload or Capture */}
@@ -507,6 +564,7 @@ export default function CustomerForm() {
                                             </Box>
                                         )}
                                     </Box>
+                                    {errors.signature && <Typography color="error">{errors.signature}</Typography>}
                                 </Grid>
 
                                 {/* Submit Button */}
