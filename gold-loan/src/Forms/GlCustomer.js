@@ -42,7 +42,7 @@ export default function CustomerForm() {
     // Handle webcam capture
     const captureImage = useCallback(() => {
         const imageSrc = webcamRef.current.getScreenshot(); // Capture image from webcam as Base64
-        setFileImage({ ...fileImage, capture: imageSrc });  // Set Base64 image
+        setFileImage(prev => ({ ...prev, sCapture: imageSrc }));  // Use functional state update
         setUsingWebcam(false); // Hide the webcam after capture
     }, [webcamRef, fileImage]);
 
@@ -469,7 +469,7 @@ export default function CustomerForm() {
                                         </Button>
 
                                         {/* Display uploaded image */}
-                                        {fileImage.image && (
+                                        {fileImage.image && !fileImage.capture && (
                                             <Box mt={2}>
                                                 <img src={URL.createObjectURL(fileImage.image)} alt="Uploaded Image" style={{ width: '100px' }} />
                                             </Box>
@@ -517,7 +517,7 @@ export default function CustomerForm() {
                                                 name="signature"
                                                 hidden
                                                 accept="image/*"
-                                                capture="environment" // Enables capture from the camera
+                                                // Enables capture from the camera
                                                 onChange={handleimagechange} // Attach the file change handler
                                             />
                                         </Button>
@@ -532,7 +532,7 @@ export default function CustomerForm() {
                                         </Button>
 
                                         {/* Display uploaded signature */}
-                                        {fileImage.signature && (
+                                        {fileImage.signature && !fileImage.sCapture && (
                                             <Box mt={2}>
                                                 <img src={URL.createObjectURL(fileImage.signature)} alt="Uploaded Signature" style={{ width: '100px' }} />
                                             </Box>
