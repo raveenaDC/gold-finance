@@ -42,7 +42,7 @@ export default function CustomerForm() {
     // Handle webcam capture
     const captureImage = useCallback(() => {
         const imageSrc = webcamRef.current.getScreenshot(); // Capture image from webcam as Base64
-        setFileImage(prev => ({ ...prev, sCapture: imageSrc }));  // Use functional state update
+        setFileImage({ ...fileImage, capture: imageSrc });  // Set Base64 image
         setUsingWebcam(false); // Hide the webcam after capture
     }, [webcamRef, fileImage]);
 
