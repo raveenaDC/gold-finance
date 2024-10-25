@@ -259,19 +259,19 @@ export async function customerViewById(req, res) {
     try {
         const { memberId } = req.params
         const member = await models.memberModel.findById(memberId).select(
-            'name email memberImage role address aadhar phone pin city landMark loginDetails isAccess state'
+            'firstName lastName  address place state  pin nearBy  primaryNumber careOf secondaryNumber aadhar email image signature createdAt'
         );
         if (!member) {
             return responseHelper(
                 res, httpStatus.NOT_FOUND,
                 true,
-                'Member not found',
+                'Customer not found',
             )
         }
         return responseHelper(
             res, httpStatus.OK,
             false,
-            'Member details',
+            'Customer details',
             member
         )
 
