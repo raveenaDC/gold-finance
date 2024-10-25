@@ -50,7 +50,7 @@ export default function CustomerForm() {
     const captureSign = useCallback(() => {
         const imageSrc = webcamRef.current.getScreenshot(); // Capture image from webcam as Base64
         setFileImage({ ...fileImage, sCapture: imageSrc });  // Set Base64 image
-        setUsingWebcam(false); // Hide the webcam after capture
+        setUsingSigncam(false); // Hide the webcam after capture
     }, [webcamRef, fileImage]);
 
     // handle image change
