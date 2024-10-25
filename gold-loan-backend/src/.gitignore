@@ -1,3 +1,4 @@
 /node_modules
 .env
-/public/uploads/images/*
+# Ignore the images directory inside public/uploads
+/public/uploads/images/
