@@ -17,7 +17,7 @@ export default function CustomerForm() {
     const [open, setOpen] = useState(false); // Modal state
     const [usingSigncam, setUsingSigncam] = useState(false); // Toggle between file upload and webcam
     const [usingWebcam, setUsingWebcam] = useState(false); // Toggle between file upload and webcam
-    const [fileImage, setFileImage] = useState({ image: null, signature: null, capture: null, }); // State to store the uploaded image and signature
+    const [fileImage, setFileImage] = useState({ image: null, signature: null, capture: null, sCapture: null }); // State to store the uploaded image and signature
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -49,7 +49,7 @@ export default function CustomerForm() {
     // Handle Signaturecam capture
     const captureSign = useCallback(() => {
         const imageSrc = webcamRef.current.getScreenshot(); // Capture image from webcam as Base64
-        setFileImage({ ...fileImage, sCapturecapture: imageSrc });  // Set Base64 image
+        setFileImage({ ...fileImage, sCapture: imageSrc });  // Set Base64 image
         setUsingWebcam(false); // Hide the webcam after capture
     }, [webcamRef, fileImage]);
 
