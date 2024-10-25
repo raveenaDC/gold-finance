@@ -104,6 +104,9 @@ export default function CustomerForm() {
         // Address validation
         if (!formData.address.trim()) formErrors.address = "Address is required";
 
+        // Near by validation
+        if (!formData.nearBy.trim()) formErrors.nearBy = "Near By location  is required";
+
         // Care of validation
         if (!formData.careOf.trim()) formErrors.careOf = "CareOf is required";
 
@@ -405,6 +408,8 @@ export default function CustomerForm() {
                                         variant="outlined"
                                         value={formData.nearBy}
                                         onChange={handleChange}
+                                        error={!!errors.nearBy} // Add error prop
+                                        helperText={errors.nearBy} // Display error message
                                     />
                                 </Grid>
 
