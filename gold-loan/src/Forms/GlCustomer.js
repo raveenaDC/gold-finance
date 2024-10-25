@@ -22,7 +22,8 @@ export default function CustomerForm() {
         firstName: '',
         lastName: '',
         address: '',
-        location: '',
+        careOf: '',
+        place: '',
         state: '',
         zip: '',
         aadhar: '',
@@ -80,20 +81,34 @@ export default function CustomerForm() {
     // Validate form data
     const validate = () => {
         let formErrors = {};
-        const phoneRegex = /^[0-9\b]+$/;
-        const emailRegex = /\S+@\S+\.\S+/;
+        const emailRegex = /^[\w-]+(?:\.[\w-]+)*@(?:[\w-]+\.)+[a-zA-Z]{2,}$/;
 
         // First Name validation
-        if (!formData.firstName.trim()) formErrors.firstName = "First Name is required";
+        if (!formData.firstName.trim()) {
+            formErrors.firstName = "First Name is required";
+        } else if (formData.firstName.length < 3 || formData.firstName.length > 30) {
+            formErrors.firstName = "First name must be between 3 and 30 characters";
+        } else if (!/^[a-zA-Z\s.]+$/.test(formData.firstName)) {
+            formErrors.firstName = "First name is invalid";
+        }
 
         // Last Name validation
-        if (!formData.lastName.trim()) formErrors.lastName = "Last Name is required";
+        if (!formData.lastName.trim()) {
+            formErrors.lastName = "Last Name is required";
+        } else if (formData.lastName.length < 1 || formData.lastName.length > 30) {
+            formErrors.lastName = "Last name must be between 1 and 30 characters";
+        } else if (!/^[a-zA-Z\s.]+$/.test(formData.lastName)) {
+            formErrors.lastName = "Last name is invalid";
+        }
 
         // Address validation
         if (!formData.address.trim()) formErrors.address = "Address is required";
 
-        // Location validation
-        if (!formData.location.trim()) formErrors.location = "Location is required";
+        // Care of validation
+        if (!formData.careOf.trim()) formErrors.careOf = "CareOf is required";
+
+        // place validation
+        if (!formData.place.trim()) formErrors.place = "Place is required";
 
         // State validation
         if (!formData.state.trim()) formErrors.state = "State is required";
@@ -101,17 +116,27 @@ export default function CustomerForm() {
         // Zip Code validation
         if (!formData.zip.trim()) {
             formErrors.zip = "Zip Code is required";
-        } else if (formData.zip.length < 5 || formData.zip.length > 6) {
-            formErrors.zip = "Zip Code must be 5-6 digits";
+        } else if (!/^\d{6}$/.test(formData.zip)) {
+            formErrors.zip = "Zip Code must be 6 digits";
+        }
+
+        // Aadhar Number verification
+        if (!formData.aadhar) {
+            formErrors.aadhar = "Aadhar number is required";
+        } else if (!/^\d{12}$/.test(formData.aadhar)) {
+            formErrors.aadhar = "Aadhar number must be exactly 12 digits";
         }
 
         // Primary Mobile Number validation
         if (!formData.primaryNumber) {
             formErrors.primaryNumber = "Primary mobile number is required";
-        } else if (!phoneRegex.test(formData.primaryNumber)) {
-            formErrors.primaryNumber = "Primary mobile number must contain only digits";
-        } else if (formData.primaryNumber.length < 10 || formData.primaryNumber.length > 15) {
-            formErrors.primaryNumber = "Primary mobile number must be between 10 and 15 digits";
+        } else if (!/^\d{10}$/.test(formData.primaryNumber)) {
+            formErrors.primaryNumber = "Primary mobile number must be exactly 10 digits";
+        }
+
+        // Validate if secondary number is provided and correctly formatted
+        if (formData.secondaryNumber !== "" && !/^\d{10}$/.test(formData.secondaryNumber)) {
+            formErrors.secondaryNumber = "Secondary mobile number must be exactly 10 digits";
         }
 
         // Email validation
@@ -142,7 +167,7 @@ export default function CustomerForm() {
 
         // Validate the form fields
         if (!validate()) {
-            alert('Please correct the errors in the form!'); // Alert user if validation fails
+            //  alert('Please correct the errors in the form!'); // Alert user if validation fails
             return; // Prevent form submission if validation fails
         }
 
@@ -150,7 +175,8 @@ export default function CustomerForm() {
         data.append('firstName', formData.firstName);
         data.append('lastName', formData.lastName);
         data.append('address', formData.address);
-        data.append('location', formData.location);
+        data.append('careOf', formData.careOf);
+        data.append('place', formData.place);
         data.append('state', formData.state);
         data.append('nearBy', formData.nearBy);
         data.append('aadhar', formData.aadhar);
@@ -204,7 +230,8 @@ export default function CustomerForm() {
                 firstName: '',
                 lastName: '',
                 address: '',
-                location: '',
+                careOf: '',
+                place: '',
                 state: '',
                 zip: '',
                 aadhar: '',
@@ -301,6 +328,8 @@ export default function CustomerForm() {
                                         required
                                         value={formData.lastName}
                                         onChange={handleChange}
+                                        error={!!errors.lastName} // Add error prop
+                                        helperText={errors.lastName} // Display error message
                                     />
                                 </Grid>
 
@@ -315,19 +344,38 @@ export default function CustomerForm() {
                                         required
                                         value={formData.address}
                                         onChange={handleChange}
+                                        error={!!errors.address} // Add error prop
+                                        helperText={errors.address} // Display error message
                                     />
                                 </Grid>
-                                {/* Location/City */}
+                                {/* care Of */}
+                                <Grid item xs={12}>
+                                    <TextField
+                                        fullWidth
+                                        id="careOf"
+                                        name="careOf"
+                                        label="CareOf"
+                                        variant="outlined"
+                                        required
+                                        value={formData.careOf}
+                                        onChange={handleChange}
+                                        error={!!errors.careOf} // Add error prop
+                                        helperText={errors.careOf} // Display error message
+                                    />
+                                </Grid>
+                                {/* place/City */}
                                 <Grid item xs={12} sm={6}>
                                     <TextField
                                         fullWidth
-                                        id="location"
-                                        name="location"
-                                        label="Location (City)"
+                                        id="place"
+                                        name="place"
+                                        label="place (City)"
                                         variant="outlined"
                                         required
-                                        value={formData.location}
+                                        value={formData.place}
                                         onChange={handleChange}
+                                        error={!!errors.place} // Add error prop
+                                        helperText={errors.place} // Display error message
                                     />
                                 </Grid>
 
@@ -342,18 +390,19 @@ export default function CustomerForm() {
                                         required
                                         value={formData.state}
                                         onChange={handleChange}
+                                        error={!!errors.state} // Add error prop
+                                        helperText={errors.state} // Display error message
                                     />
                                 </Grid>
 
-                                {/* Near By Place */}
+                                {/* Near By location */}
                                 <Grid item xs={12} sm={6}>
                                     <TextField
                                         fullWidth
                                         id="nearBy"
                                         name="nearBy"
-                                        label="Near By Place"
+                                        label="Near By location"
                                         variant="outlined"
-                                        required
                                         value={formData.nearBy}
                                         onChange={handleChange}
                                     />
@@ -370,6 +419,8 @@ export default function CustomerForm() {
                                         required
                                         value={formData.zip}
                                         onChange={handleChange}
+                                        error={!!errors.zip} // Add error prop
+                                        helperText={errors.zip} // Display error message
                                     />
                                 </Grid>
 
@@ -384,6 +435,8 @@ export default function CustomerForm() {
                                         required
                                         value={formData.primaryNumber}
                                         onChange={handleChange}
+                                        error={!!errors.primaryNumber} // Add error prop
+                                        helperText={errors.primaryNumber} // Display error message
                                     />
                                 </Grid>
 
@@ -395,9 +448,10 @@ export default function CustomerForm() {
                                         name="secondaryNumber"
                                         label="Secondary Mobile Number"
                                         variant="outlined"
-                                        required
                                         value={formData.secondaryNumber}
                                         onChange={handleChange}
+                                        error={!!errors.secondaryNumber} // Add error prop
+                                        helperText={errors.secondaryNumber} // Display error message
                                     />
                                 </Grid>
 
@@ -413,6 +467,8 @@ export default function CustomerForm() {
                                         type="email"
                                         value={formData.email}
                                         onChange={handleChange}
+                                        error={!!errors.email} // Add error prop
+                                        helperText={errors.email} // Display error message
                                     />
                                 </Grid>
 
@@ -427,6 +483,8 @@ export default function CustomerForm() {
                                         required
                                         value={formData.aadhar}
                                         onChange={handleChange}
+                                        error={!!errors.aadhar} // Add error prop
+                                        helperText={errors.aadhar} // Display error message
                                     />
                                 </Grid>
 
