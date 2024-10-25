@@ -285,6 +285,8 @@ export default function CustomerForm() {
                                         required
                                         value={formData.firstName}
                                         onChange={handleChange}
+                                        error={!!errors.firstName} // Add error prop
+                                        helperText={errors.firstName} // Display error message
                                     />
                                 </Grid>
 
