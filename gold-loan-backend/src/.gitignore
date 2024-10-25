@@ -1,4 +1,4 @@
 /node_modules
 .env
-# Ignore the images directory inside public/uploads
-/public/uploads/images/
+/public/uploads/images/*
+!.gitkeep
