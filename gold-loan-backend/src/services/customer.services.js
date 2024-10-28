@@ -165,45 +165,67 @@ export async function createCustomer(req, res, next) {
 
 export async function updateCustomer(req, res) {
     try {
-        let { name,
-            role,
+        let { firstName,
+            lastName,
             address,
-            aadhar,
-            phone,
+            place,
+            state,
             pin,
-            city,
-            landMark } = req.body;
-        let { memberImage } = req.files;
-        const { memberId } = req.params;
-        let images = {};
+            nearBy,
+            primaryNumber,
+            careOf,
+            secondaryNumber,
+            aadhar,
+            gst,
+            email, } = req.body;
 
-        const member = await models.memberModel.findById(memberId);
-        if (!member) {
-            return responseHelper(res, httpStatus.NOT_FOUND, true, 'Member not found');
+        let { image, signature } = req.files;
+
+        const { customerId } = req.params;
+        let images = {}, sign = {};
+
+        const customer = await models.customerModel.findById(customerId);
+        if (!customer) {
+            return responseHelper(res, httpStatus.NOT_FOUND, true, 'Customer not found');
         }
 
 
         if (
-            (memberImage && memberImage[0])
+            (image && image[0])
         ) {
             images = {
-                item: req.files.memberImage
-                    ? transFormImageUploadResponseArray(memberImage)[0]
-                    : member.memberImage,
+                item: req.files.image
+                    ? transFormImageUploadResponseArray(image)[0]
+                    : customer.image,
+            };
+        }
+        if (
+            (signature && signature[0])
+        ) {
+            sign = {
+                item: req.files.signature
+                    ? transFormImageUploadResponseArray(signature)[0]
+                    : customer.signature,
             };
         }
 
-        const updateItem = await models.memberModel.findByIdAndUpdate(
-            memberId,
+        const updateItem = await models.customerModel.findByIdAndUpdate(
+            customerId,
             {
-                name,
-                role,
+                firstName,
+                lastName,
                 address,
-                aadhar,
-                phone,
+                place,
+                state,
                 pin,
-                city,
-                landMark, memberImage: images.item
+                nearBy,
+                primaryNumber,
+                careOf,
+                secondaryNumber,
+                aadhar,
+                gst,
+                email, image: images.item,
+                signature: sign.item
             },
             {
                 new: true,
@@ -213,7 +235,7 @@ export async function updateCustomer(req, res) {
             res,
             httpStatus.OK,
             false,
-            'Member is updated successfully',
+            'Customer is updated successfully',
             { item: updateItem }
         );
     } catch (error) {
@@ -253,11 +275,11 @@ export async function updateCustomer(req, res) {
 
 export async function customerViewById(req, res) {
     try {
-        const { memberId } = req.params
-        const member = await models.memberModel.findById(memberId).select(
+        const { customerId } = req.params
+        const customer = await models.customerModel.findById(customerId).select(
             'firstName lastName  address place state  pin nearBy  primaryNumber careOf secondaryNumber aadhar email image signature createdAt'
         );
-        if (!member) {
+        if (!customer) {
             return responseHelper(
                 res, httpStatus.NOT_FOUND,
                 true,
@@ -268,7 +290,7 @@ export async function customerViewById(req, res) {
             res, httpStatus.OK,
             false,
             'Customer details',
-            member
+            customer
         )
 
     } catch {
