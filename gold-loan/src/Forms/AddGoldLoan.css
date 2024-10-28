@@ -1,0 +1,119 @@
+.interest-calculator {
+    position: absolute;
+    right: 0;
+    padding: 20px;
+    width: 300px;
+    border-radius: 10px;
+    background-color: white;
+
+    /* Gradient Border with Animation */
+    border: 3px solid;
+    border-width: 3px;
+    border-image-slice: 1;
+    border-image-source: linear-gradient(to right, #4facfe, #00f2fe);
+    animation: gradient-rotate 3s linear infinite;
+    /* Add animation */
+
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    /* Optional for better visibility */
+}
+
+@keyframes gradient-rotate {
+    0% {
+        border-image-source: linear-gradient(90deg, #4facfe, #00f2fe);
+    }
+
+    25% {
+        border-image-source: linear-gradient(180deg, #4facfe, #00f2fe);
+    }
+
+    50% {
+        border-image-source: linear-gradient(270deg, #4facfe, #00f2fe);
+    }
+
+    75% {
+        border-image-source: linear-gradient(360deg, #4facfe, #00f2fe);
+    }
+
+    100% {
+        border-image-source: linear-gradient(450deg, #4facfe, #00f2fe);
+    }
+}
+
+/* Button Group Styling */
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.toggle-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #f0f0f0;
+    color: #333;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.toggle-button:hover {
+    background-color: #e0e0e0;
+}
+
+.toggle-button.active {
+    background-color: #4facfe;
+    color: white;
+}
+
+.mode-section {
+    margin-top: 15px;
+}
+
+/* General styles for the container div */
+.mode-section {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #f5f5f5;
+    /* Light background color */
+    border-radius: 8px;
+    /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    /* Soft shadow */
+}
+
+/* Header styling */
+.mode-section h3 {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+/* Styling for the select element */
+.mode-section select {
+    width: 100%;
+    /* Full width */
+    padding: 10px;
+    /* Padding for more space inside */
+    font-size: 16px;
+    /* Larger font size */
+    color: #333;
+    /* Text color */
+    background-color: #fff;
+    /* White background */
+    border: 1px solid #ccc;
+    /* Border around the select box */
+    border-radius: 4px;
+    /* Slightly rounded corners */
+    outline: none;
+    /* Remove the outline */
+    cursor: pointer;
+    /* Pointer cursor */
+}
+
+/* Add some styling for the options (optional) */
+.mode-section select option {
+    padding: 10px;
+    /* Add padding inside options */
+}
