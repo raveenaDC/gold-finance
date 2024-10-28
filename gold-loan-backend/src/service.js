@@ -17,7 +17,6 @@ async function main() {
         app.use(express.json());
         app.use(express.urlencoded({ extended: true }));
 
-
         app.use(cors({ origin: '*' }));
 
         mongoose.connect(mongoUrl).then(() => {
@@ -26,8 +25,10 @@ async function main() {
             console.log(err, "Not connected to the mongodb");
         })
 
+        //   Initialize  express.static(path.join(dirname, '../', 'public')) before the app.all('*', ...)  (initializeRoutes(app);)
+
+        app.use('/cdn', express.static(path.join(dirname, '../', 'public')));
         initializeRoutes(app);
-        app.use('/cdn', express.static(path.join(dirname, '../', 'public'))); //static assets
 
         app.listen(port, (err) => {
             if (!err) { console.log(port, "Port listening successfully") }

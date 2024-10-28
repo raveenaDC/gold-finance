@@ -2,10 +2,6 @@ import * as models from '../models/index.js'
 import httpStatus from 'http-status';
 import { responseHelper } from '../utils/response.helper.js';
 import { paginateData } from '../utils/pagination-data.js';
-import { generatePasswordHash } from '../utils/encryption.helper.js';
-import { generateRandomPassword } from '../utils/generate-random-password.helper.js';
-import { sendMail } from '../utils/mail.helper.js';
-import { createAccountTemplate } from '../registry/mail-templates/create-account.template.js';
 
 const defaultPageLimit = process.env.PAGE_LIMIT;
 
