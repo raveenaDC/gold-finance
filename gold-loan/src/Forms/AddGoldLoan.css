@@ -8,35 +8,34 @@
 
     /* Gradient Border with Animation */
     border: 3px solid;
-    border-width: 3px;
     border-image-slice: 1;
-    border-image-source: linear-gradient(to right, #4facfe, #00f2fe);
+    border-image-source: linear-gradient(90deg, #ff69b4, #8a2be2, #00008b);
+    /* Pink, Violet, Dark Blue */
     animation: gradient-rotate 3s linear infinite;
-    /* Add animation */
 
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    /* Optional for better visibility */
+    /* Optional shadow for visibility */
 }
 
 @keyframes gradient-rotate {
     0% {
-        border-image-source: linear-gradient(90deg, #4facfe, #00f2fe);
+        border-image-source: linear-gradient(90deg, #ff69b4, #8a2be2, #00008b);
     }
 
     25% {
-        border-image-source: linear-gradient(180deg, #4facfe, #00f2fe);
+        border-image-source: linear-gradient(180deg, #ff69b4, #8a2be2, #00008b);
     }
 
     50% {
-        border-image-source: linear-gradient(270deg, #4facfe, #00f2fe);
+        border-image-source: linear-gradient(270deg, #ff69b4, #8a2be2, #00008b);
     }
 
     75% {
-        border-image-source: linear-gradient(360deg, #4facfe, #00f2fe);
+        border-image-source: linear-gradient(360deg, #ff69b4, #8a2be2, #00008b);
     }
 
     100% {
-        border-image-source: linear-gradient(450deg, #4facfe, #00f2fe);
+        border-image-source: linear-gradient(450deg, #ff69b4, #8a2be2, #00008b);
     }
 }
 
