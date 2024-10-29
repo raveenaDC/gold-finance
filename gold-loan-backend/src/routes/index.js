@@ -1,6 +1,7 @@
 import goldItemsRouter from './gold-items.router.js';
 import membersRouter from './members.router.js';
 import customerRouter from './customer.router.js';
+import goldLoanRouter from './gold-loan.router.js'
 
 import httpStatus from 'http-status';
 import { responseHelper } from '../utils/response.helper.js';
@@ -15,6 +16,9 @@ export default function initializeRoutes(app) {
 
     // CUSTOMER ROUTE 
     app.use('/customer', customerRouter);
+
+    //GOLD LOAN ROUTER
+    app.use('/customer/gold', goldLoanRouter);
 
     app.use(errorHandleMiddleware);
     //index route
