@@ -6,9 +6,11 @@ export default function GlMaster() {
 
     return (
         <div>
-            <GlCustomer />
-            <AddGoldLoan />
+            <div>
+                <GlCustomer />
+                <AddGoldLoan />
 
-        </div>
+            </div>
+        </div >
     );
 }

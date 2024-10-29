@@ -24,10 +24,34 @@ const DrawerHeader = styled('div')(({ theme }) => ({
     justifyContent: 'flex-end',
 }));
 
+// Custom Drawer with scrollbar styling
+const StyledDrawer = styled(Drawer)(({ theme }) => ({
+    width: '100%',
+    '& .MuiDrawer-paper': {
+        width: '100%',
+        boxSizing: 'border-box',
+        overflowY: 'auto', // Enable vertical scrolling
+        // Scrollbar styling
+        '&::-webkit-scrollbar': {
+            width: '8px',
+        },
+        '&::-webkit-scrollbar-track': {
+            backgroundColor: theme.palette.background.default,
+        },
+        '&::-webkit-scrollbar-thumb': {
+            backgroundColor: '#757575',
+            borderRadius: '4px',
+        },
+        '&::-webkit-scrollbar-thumb:hover': {
+            backgroundColor: '#616161',
+        },
+    },
+}));
+
 
 export default function Sidebar({ open, handleDrawerClose, theme, drawerWidth }) {
     return (
-        <Drawer
+        <StyledDrawer
             sx={{
                 width: drawerWidth,
                 flexShrink: 0,
@@ -117,6 +141,6 @@ export default function Sidebar({ open, handleDrawerClose, theme, drawerWidth })
             </List>
 
             <Divider />
-        </Drawer>
+        </StyledDrawer>
     );
 }

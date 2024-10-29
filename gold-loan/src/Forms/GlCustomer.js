@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { submitDocument } from '../api';
+import { DEFAULT_MARGINS } from '@mui/x-charts';
 
 export default function CustomerForm() {
     const [open, setOpen] = useState(false); // Modal state
@@ -273,19 +274,40 @@ export default function CustomerForm() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    // backgroundColor: 'rgba(0, 0, 0, 0.1)', // Semi-transparent overlay
+
                 }}
             >
-                <Container maxWidth="md">
+                <Container maxWidth="md" >
                     <Box
                         sx={{
                             width: '100%',
                             maxHeight: '80vh', // Set a maximum height for the modal
-                            bgcolor: 'background.paper',
+                            backgroundColor: 'hsla(0, 0%, 90%, 0.75)',
                             borderRadius: 2,
                             p: 3,
                             boxShadow: 24,
                             position: 'relative',
+                            marginTop: '5vh',
+
                             overflowY: 'auto', // Enable vertical scrolling if content overflows
+
+                            // opacity: 0.6, // Slight transparency on the modal content itself
+                            // Custom scrollbar styles
+                            '&::-webkit-scrollbar': {
+                                width: '8px', // Width of the scrollbar
+                            },
+                            '&::-webkit-scrollbar-thumb': {
+                                backgroundColor: '#888', // Color of the scrollbar thumb
+                                borderRadius: '4px', // Rounded corners on the thumb
+                            },
+                            '&::-webkit-scrollbar-thumb:hover': {
+                                backgroundColor: '#555', // Color when hovering over the scrollbar thumb
+                            },
+                            '&::-webkit-scrollbar-track': {
+                                backgroundColor: '#f1f1f1', // Background color of the scrollbar track
+                                borderRadius: '4px', // Rounded corners on the track
+                            },
                         }}
                     >
                         {/* Close Button */}
@@ -642,7 +664,7 @@ export default function CustomerForm() {
                         </form>
                     </Box>
                 </Container>
-            </Modal>
+            </Modal >
         </>
     );
 }

@@ -53,7 +53,7 @@ export default function App() {
         <Navbar handleDrawerOpen={handleDrawerOpen} open={open} />
         <DrawerLeft open={open} handleDrawerClose={handleDrawerClose} theme={theme} drawerWidth={drawerWidth} />
         <Main open={open}>
-          <Typography sx={{ marginTop: 6 }}>
+          <Typography sx={{ marginTop: 6, }}>
 
             <Routes>
               <Route path="/" element={<MainPage />} />

@@ -6,7 +6,7 @@ import GlCustomer from "../Forms/GlCustomer";
 
 export default function MainPage() {
     return (
-        <div>
+        <div >
 
             <BarChart
                 xAxis={[{ scaleType: 'band', data: ['group A', 'group B', 'group C'] }]}
