@@ -375,96 +375,12 @@ const GoldLoanForm = () => {
             </Box>
             {/* Interest Calculator Section */}
             <Box sx={{ flex: 1 }}>
-                <Typography variant="h5" sx={{ mb: 2 }}>Interest Calculation</Typography>
 
-                <ToggleButtonGroup
-                    color="primary"
-                    value={interestType}
-                    exclusive
-                    onChange={handleInterestChange}
-                    aria-label="Interest Type"
-                >
-                    <ToggleButton value="simple">Simple</ToggleButton>
-                    <ToggleButton value="multiple">Multiple</ToggleButton>
-                </ToggleButtonGroup>
 
-                {interestType === 'multiple' && (
-                    <Box sx={{ mt: 3 }}>
-                        <Typography variant="subtitle1">Mode</Typography>
-                        <FormControl fullWidth>
-                            <InputLabel>Select Mode</InputLabel>
-                            <Select name="mode" value={form.mode} onChange={handleChange}>
-                                <MenuItem value="days">Days</MenuItem>
-                                <MenuItem value="weekly">Weekly</MenuItem>
-                                <MenuItem value="monthly">Monthly</MenuItem>
-                                <MenuItem value="quarterly">Quarterly</MenuItem>
-                                <MenuItem value="halfyearly">Half-Yearly</MenuItem>
-                            </Select>
-                        </FormControl>
-                    </Box>
-                )}
 
-                {/* Image Upload and Capture */}
-                <Box sx={{ mt: 3 }}>
-                    <Typography variant="h6">Upload or Capture Image</Typography>
-                    <input
-                        accept="image/*"
-                        type="file"
-                        onChange={handleImageUpload}
-                        style={{ display: 'block', marginTop: '10px' }}
-                    />
-                    <Button
-                        variant="outlined"
-                        color="primary"
-                        sx={{ mt: 2 }}
-                        onClick={() => setShowWebcam(!showWebcam)}
-                    >
-                        {showWebcam ? 'Close Camera' : 'Open Camera'}
-                    </Button>
 
-                    {showWebcam && (
-                        <Box mt={2}>
-                            <Webcam
-                                audio={false}
-                                ref={webcamRef}
-                                screenshotFormat="image/jpeg"
-                                width="100%"
-                            />
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                onClick={capture}
-                                sx={{ mt: 2 }}
-                            >
-                                Capture Image
-                            </Button>
-                        </Box>
-                    )}
 
-                    {image && (
-                        <Box sx={{ mt: 2, position: 'relative' }}>
-                            <Typography variant="subtitle1">Captured/Uploaded Image:</Typography>
-                            <Box
-                                component="img"
-                                src={image}
-                                alt="Captured"
-                                sx={{ mt: 1, width: '100%', height: 'auto', borderRadius: 1 }}
-                            />
-                            <Button
-                                variant="contained"
-                                color="secondary"
-                                onClick={handleCloseImage}
-                                sx={{
-                                    position: 'absolute',
-                                    top: 10,
-                                    right: 10,
-                                }}
-                            >
-                                Close
-                            </Button>
-                        </Box>
-                    )}
-                </Box>
+
             </Box>
         </Box>
     );
