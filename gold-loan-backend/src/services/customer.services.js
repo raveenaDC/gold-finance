@@ -72,7 +72,7 @@ export async function customerView(req, res) {
             };
             customerList.sort((a, b) => calculateRelevance(b) - calculateRelevance(a));
         }
-        if (!customerList) {
+        if (!customerList.length == 0) {
             return responseHelper(
                 res,
                 httpStatus.NOT_FOUND,

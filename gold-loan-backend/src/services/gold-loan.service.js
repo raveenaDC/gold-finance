@@ -24,8 +24,10 @@ export async function viewGoldLoan(req, res) {
         const page = parseInt(req.query.page) || 1;
         order = order == 'asc' ? 1 : -1;
         let sort = {};
-        const query = {};
-        const existCustomer = await models.customerModel.findById({ _id: customerId })
+        const query = { customerId: req.params.customerId }; // Search by customerId
+        const existCustomer = await models.customerModel.findById({ _id: customerId }).select(
+            'firstName lastName  address place state  pin nearBy  primaryNumber careOf secondaryNumber aadhar email image signature createdAt'
+        );
         if (!existCustomer) {
             return responseHelper(
                 res,
@@ -42,55 +44,55 @@ export async function viewGoldLoan(req, res) {
                 // { purchaseDate: { $regex: new RegExp(search, 'i') } }
             ];
         }
-        let customerList = await models.goldLoanModel.find({ customerId })
-        // let customerList = await models.customerModel.find(query).select(
-        //     'glNo purchaseDate goldRate companyGoldRate netWeight grossWeight stoneWeight interestRate interestMode itemId customerId memberId nomineeId insurance  processingFee packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt'
-        // ).collation({ locale: 'en', strength: 2 });
 
-        // if (orderBy === 'firstName') {
-        //     customerList.sort((a, b) => a.firstName.localeCompare(b.firstName) * order);
-        // } else if (orderBy === 'lastName') {
-        //     customerList.sort((a, b) => a.lastName.localeCompare(b.lastName) * order);
-        // } else if (orderBy === 'date') {
-        //     customerList.sort((a, b) => a.createdAt.localeCompare(b.createdAt) * order);
-        // } else {
-        //     customerList.sort((a, b) => (a.createdAt - b.createdAt) * order); // Default sorting by createdAt
-        // }
+        let loanList = await models.goldLoanModel.find(query).select(
+            'glNo purchaseDate goldRate companyGoldRate netWeight grossWeight stoneWeight interestRate interestMode itemId customerId memberId nomineeId insurance  processingFee packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt'
+        ).collation({ locale: 'en', strength: 2 });
 
-        // if (search) {
-        //     // Define a function to calculate relevance score
-        //     const calculateRelevance = (memberSet) => {
-        //         const fields = ['firstName lastName email'];
-        //         let relevance = 0;
-        //         fields.forEach((field) => {
-        //             if (
-        //                 memberSet[field] &&
-        //                 memberSet[field].toLowerCase().startsWith(search.toLowerCase())
-        //             ) {
-        //                 relevance++;
-        //             }
-        //         });
-        //         return relevance;
-        //     };
-        //     customerList.sort((a, b) => calculateRelevance(b) - calculateRelevance(a));
-        // }
-        if (!customerList) {
+        if (orderBy === 'glNo') {
+            loanList.sort((a, b) => a.glNo.localeCompare(b.glNo) * order);
+        } else if (orderBy === 'date') {
+            loanList.sort((a, b) => a.purchaseDate.localeCompare(b.purchaseDate) * order);
+        } else {
+            loanList.sort((a, b) => (a.createdAt - b.createdAt) * order); // Default sorting by createdAt
+        }
+
+        if (search) {
+            // Define a function to calculate relevance score
+            const calculateRelevance = (loanSet) => {
+                const fields = ['glNo'];
+                let relevance = 0;
+                fields.forEach((field) => {
+                    if (
+                        loanSet[field] &&
+                        loanSet[field].toLowerCase().startsWith(search.toLowerCase())
+                    ) {
+                        relevance++;
+                    }
+                });
+                return relevance;
+            };
+            loanList.sort((a, b) => calculateRelevance(b) - calculateRelevance(a));
+        }
+        if (loanList.length == 0) {
             return responseHelper(
                 res,
                 httpStatus.NOT_FOUND,
                 true,
-                'customer(s) not found'
+                'Gold loan details are empty'
             );
         }
         // console.log(customerList);
 
-        // const paginationResult = await paginateData(customerList, page, pageLimit);
-        // //apply orderBy and order
-        // paginationResult.pagination.orderBy = orderBy;
-        // paginationResult.pagination.order = order;
+        const paginationResult = await paginateData(loanList, page, pageLimit);
+        //apply orderBy and order
+        paginationResult.pagination.orderBy = orderBy;
+        paginationResult.pagination.order = order;
 
-        return responseHelper(res, httpStatus.OK, false, 'Customer list', {
-            items: customerList,
+        return responseHelper(res, httpStatus.OK, false, 'Gold loan list', {
+            customerDetails: existCustomer,
+            loanDetails: paginationResult.data,
+            pagination: paginationResult.pagination,
         });
 
     } catch {

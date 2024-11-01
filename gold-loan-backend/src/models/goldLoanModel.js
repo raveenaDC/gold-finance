@@ -83,7 +83,9 @@ const goldLoanSchema = new Schema(
     {
         timestamps: true,
         toJSON: { getters: true },
-        toObject: { getters: true }
+        toObject: { getters: true },
+        id: false // Disable the `id` virtual field
+
     }
 );
 
