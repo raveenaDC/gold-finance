@@ -302,22 +302,22 @@ export async function updateGoldLoanById(req, res) {
 
 export async function viewGoldLoanById(req, res) {
     try {
-        const { customerId } = req.params
-        const customer = await models.customerModel.findById(customerId).select(
-            'firstName lastName  address place state  pin nearBy  primaryNumber careOf secondaryNumber aadhar email image signature createdAt'
+        const { loanId } = req.params
+        const loan = await models.customerModel.findById(loanId).select(
+            'glNo purchaseDate goldRate companyGoldRate netWeight grossWeight stoneWeight interestRate interestMode itemId customerId memberId nomineeId insurance  processingFee packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt'
         );
-        if (!customer) {
+        if (!loan) {
             return responseHelper(
                 res, httpStatus.NOT_FOUND,
                 true,
-                'Customer not found',
+                'Gold loan not found',
             )
         }
         return responseHelper(
             res, httpStatus.OK,
             false,
-            'Customer details',
-            customer
+            'loan details',
+            loan
         )
 
     } catch {
