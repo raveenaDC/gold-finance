@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
+import signatureIcon from '../assets/signatureIcon.png';
 import Webcam from 'react-webcam';
 import {
     Box,
@@ -13,6 +14,12 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import { submitDocument } from '../api';
 import { DEFAULT_MARGINS } from '@mui/x-charts';
+import ImageIcon from '@mui/icons-material/Image';
+import PhotoCamera from '@mui/icons-material/PhotoCamera';
+import BorderColorIcon from '@mui/icons-material/BorderColor';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+
+
 
 export default function CustomerForm() {
     const [open, setOpen] = useState(false); // Modal state
@@ -78,6 +85,19 @@ export default function CustomerForm() {
         const byteArray = new Uint8Array(byteNumbers);
         return new Blob([byteArray], { type: contentType });
     };
+
+    const commonTextFieldSx = {
+        '& .MuiInputBase-root': {
+            // height: 40, // Adjust to the desired height
+
+        },
+        '& .MuiInputLabel-root': {
+            fontSize: 13.5,
+
+        },
+
+    };
+
 
     // Validate form data
     const validate = () => {
@@ -281,14 +301,15 @@ export default function CustomerForm() {
                 <Container maxWidth="md" >
                     <Box
                         sx={{
-                            width: '100%',
-                            maxHeight: '80vh', // Set a maximum height for the modal
-                            backgroundColor: 'hsla(0, 0%, 90%, 0.75)',
+                            width: '49%',
+                            maxHeight: '88vh', // Set a maximum height for the modal
+                            backgroundColor: 'hsla(0, 0%, 90%, 1)',
                             borderRadius: 2,
                             p: 3,
                             boxShadow: 24,
                             position: 'relative',
-                            marginTop: '5vh',
+                            left: '20%',
+                            marginTop: '10vh',
 
                             overflowY: 'auto', // Enable vertical scrolling if content overflows
 
@@ -325,9 +346,9 @@ export default function CustomerForm() {
 
                         {/* Form Content */}
                         <form noValidate autoComplete="off" onSubmit={handleSubmit}>
-                            <Grid container spacing={2}>
+                            <Grid container spacing={1}>
                                 {/* First Name */}
-                                <Grid item xs={12} sm={6}>
+                                <Grid item xs={12} sm={7}>
                                     <TextField
                                         fullWidth
                                         id="firstName"
@@ -339,11 +360,13 @@ export default function CustomerForm() {
                                         onChange={handleChange}
                                         error={!!errors.firstName} // Add error prop
                                         helperText={errors.firstName} // Display error message
+                                        sx={commonTextFieldSx} // Apply common style
+                                        size="small"
                                     />
                                 </Grid>
 
                                 {/* Last Name */}
-                                <Grid item xs={12} sm={6}>
+                                <Grid item xs={12} sm={5}>
                                     <TextField
                                         fullWidth
                                         id="lastName"
@@ -355,11 +378,13 @@ export default function CustomerForm() {
                                         onChange={handleChange}
                                         error={!!errors.lastName} // Add error prop
                                         helperText={errors.lastName} // Display error message
+                                        sx={commonTextFieldSx} // Apply common style
+                                        size="small"
                                     />
                                 </Grid>
 
                                 {/* Address */}
-                                <Grid item xs={12}>
+                                <Grid item xs={12} sm={7}>
                                     <TextField
                                         fullWidth
                                         id="address"
@@ -371,10 +396,12 @@ export default function CustomerForm() {
                                         onChange={handleChange}
                                         error={!!errors.address} // Add error prop
                                         helperText={errors.address} // Display error message
+                                        sx={commonTextFieldSx} // Apply common style
+                                        size="small"
                                     />
                                 </Grid>
                                 {/* care Of */}
-                                <Grid item xs={12}>
+                                <Grid item xs={12} sm={5}>
                                     <TextField
                                         fullWidth
                                         id="careOf"
@@ -386,10 +413,12 @@ export default function CustomerForm() {
                                         onChange={handleChange}
                                         error={!!errors.careOf} // Add error prop
                                         helperText={errors.careOf} // Display error message
+                                        sx={commonTextFieldSx} // Apply common style
+                                        size="small"
                                     />
                                 </Grid>
                                 {/* place/City */}
-                                <Grid item xs={12} sm={6}>
+                                <Grid item xs={12} sm={5}>
                                     <TextField
                                         fullWidth
                                         id="place"
@@ -401,11 +430,13 @@ export default function CustomerForm() {
                                         onChange={handleChange}
                                         error={!!errors.place} // Add error prop
                                         helperText={errors.place} // Display error message
+                                        sx={commonTextFieldSx} // Apply common style
+                                        size="small"
                                     />
                                 </Grid>
 
                                 {/* State */}
-                                <Grid item xs={12} sm={6}>
+                                <Grid item xs={12} sm={4}>
                                     <TextField
                                         fullWidth
                                         id="state"
@@ -417,6 +448,25 @@ export default function CustomerForm() {
                                         onChange={handleChange}
                                         error={!!errors.state} // Add error prop
                                         helperText={errors.state} // Display error message
+                                        sx={commonTextFieldSx} // Apply common style
+                                        size="small"
+                                    />
+                                </Grid>
+                                {/* Zip Code */}
+                                <Grid item xs={12} sm={3}>
+                                    <TextField
+                                        fullWidth
+                                        id="zip"
+                                        name="zip"
+                                        label="Zip Code"
+                                        variant="outlined"
+                                        required
+                                        value={formData.zip}
+                                        onChange={handleChange}
+                                        error={!!errors.zip} // Add error prop
+                                        helperText={errors.zip} // Display error message
+                                        sx={commonTextFieldSx} // Apply common style
+                                        size="small"
                                     />
                                 </Grid>
 
@@ -432,24 +482,12 @@ export default function CustomerForm() {
                                         onChange={handleChange}
                                         error={!!errors.nearBy} // Add error prop
                                         helperText={errors.nearBy} // Display error message
+                                        sx={commonTextFieldSx} // Apply common style
+                                        size="small"
                                     />
                                 </Grid>
 
-                                {/* Zip Code */}
-                                <Grid item xs={12} sm={6}>
-                                    <TextField
-                                        fullWidth
-                                        id="zip"
-                                        name="zip"
-                                        label="Zip Code"
-                                        variant="outlined"
-                                        required
-                                        value={formData.zip}
-                                        onChange={handleChange}
-                                        error={!!errors.zip} // Add error prop
-                                        helperText={errors.zip} // Display error message
-                                    />
-                                </Grid>
+
 
                                 {/* Primary Mobile Number */}
                                 <Grid item xs={12} sm={6}>
@@ -462,8 +500,30 @@ export default function CustomerForm() {
                                         required
                                         value={formData.primaryNumber}
                                         onChange={handleChange}
-                                        error={!!errors.primaryNumber} // Add error prop
-                                        helperText={errors.primaryNumber} // Display error message
+                                        error={!!errors.primaryNumber}
+                                        helperText={errors.primaryNumber}
+                                        sx={commonTextFieldSx} // Apply common style
+                                        size="small"
+                                    />
+                                </Grid>
+
+
+                                {/* Email */}
+                                <Grid item xs={12} sm={6}>
+                                    <TextField
+                                        fullWidth
+                                        id="email"
+                                        name="email"
+                                        label="Email"
+                                        variant="outlined"
+                                        required
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        error={!!errors.email} // Add error prop
+                                        helperText={errors.email} // Display error message
+                                        sx={commonTextFieldSx} // Apply common style
+                                        size="small"
                                     />
                                 </Grid>
 
@@ -479,23 +539,8 @@ export default function CustomerForm() {
                                         onChange={handleChange}
                                         error={!!errors.secondaryNumber} // Add error prop
                                         helperText={errors.secondaryNumber} // Display error message
-                                    />
-                                </Grid>
-
-                                {/* Email */}
-                                <Grid item xs={12}>
-                                    <TextField
-                                        fullWidth
-                                        id="email"
-                                        name="email"
-                                        label="Email"
-                                        variant="outlined"
-                                        required
-                                        type="email"
-                                        value={formData.email}
-                                        onChange={handleChange}
-                                        error={!!errors.email} // Add error prop
-                                        helperText={errors.email} // Display error message
+                                        sx={commonTextFieldSx} // Apply common style
+                                        size="small"
                                     />
                                 </Grid>
 
@@ -512,6 +557,8 @@ export default function CustomerForm() {
                                         onChange={handleChange}
                                         error={!!errors.aadhar} // Add error prop
                                         helperText={errors.aadhar} // Display error message
+                                        sx={commonTextFieldSx} // Apply common style
+                                        size="small"
                                     />
                                 </Grid>
 
@@ -525,6 +572,8 @@ export default function CustomerForm() {
                                         variant="outlined"
                                         value={formData.gst}
                                         onChange={handleChange}
+                                        sx={commonTextFieldSx} // Apply common style
+                                        size="small"
                                     />
                                 </Grid>
 
@@ -534,8 +583,8 @@ export default function CustomerForm() {
                                         <Button
                                             variant="contained"
                                             component="label"
+                                            startIcon={<AccountCircleIcon />} // Adds the PhotoCamera icon
                                         >
-                                            Upload Image
                                             <input
                                                 type="file"
                                                 name="image"
@@ -545,16 +594,15 @@ export default function CustomerForm() {
                                                 onChange={handleimagechange} // Attach the file change handler
                                             />
                                         </Button>
-
                                         <Button
                                             variant="contained"
                                             color="secondary"
                                             onClick={() => setUsingWebcam(!usingWebcam)}
+                                            startIcon={!usingWebcam && <PhotoCamera />} // Adds the Image icon only when not using the webcam
                                             sx={{ ml: 2 }}
                                         >
-                                            {usingWebcam ? 'Cancel' : 'Use Webcam'}
+                                            {usingWebcam ? 'Cancel' : null}
                                         </Button>
-
                                         {/* Display uploaded image */}
                                         {fileImage.image && !fileImage.capture && (
                                             <Box mt={2}>
@@ -597,14 +645,14 @@ export default function CustomerForm() {
                                         <Button
                                             variant="contained"
                                             component="label"
+                                            startIcon={<img src={signatureIcon} alt="Signature Icon" style={{ width: 24, height: 24 }} />} // Display the image as icon
                                         >
-                                            Upload Signature
+
                                             <input
                                                 type="file"
                                                 name="signature"
                                                 hidden
                                                 accept="image/*"
-                                                // Enables capture from the camera
                                                 onChange={handleimagechange} // Attach the file change handler
                                             />
                                         </Button>
@@ -613,9 +661,10 @@ export default function CustomerForm() {
                                             variant="contained"
                                             color="secondary"
                                             onClick={() => setUsingSigncam(!usingSigncam)}
+                                            startIcon={!usingSigncam && <PhotoCamera />} // Adds the PhotoCamera icon
                                             sx={{ ml: 2 }}
                                         >
-                                            {usingSigncam ? 'Cancel' : 'Use Webcam'}
+                                            {usingSigncam ? 'Cancel' : null}
                                         </Button>
 
                                         {/* Display uploaded signature */}

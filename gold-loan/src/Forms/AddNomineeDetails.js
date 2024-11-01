@@ -32,6 +32,8 @@ const AddNomineeDetails = () => {
         handleNomineeModalClose(); // Close the modal
     };
 
+
+
     return (
         <Grid container spacing={2}>
             {/* Add or Display Nominee Button */}
@@ -55,8 +57,8 @@ const AddNomineeDetails = () => {
                         borderRadius: 2,
                         maxWidth: 400,
                         margin: 'auto',
-                        mt: '9%',
-                        maxHeight: '78vh',    // Set maximum height for scrollable area
+                        mt: '7%',
+                        maxHeight: '88vh',    // Set maximum height for scrollable area
                         overflowY: 'auto',     // Enable vertical scrolling
                         '::-webkit-scrollbar': { display: 'none' },  // Hide scrollbar in Webkit browsers
                         msOverflowStyle: 'none',  // Hide scrollbar in IE and Edge
@@ -72,7 +74,8 @@ const AddNomineeDetails = () => {
                         value={nomineeDetails.firstName}
                         onChange={handleNomineeChange}
                         fullWidth
-                        sx={{ mt: 2 }}
+                        size="small"
+                        sx={{ mt: 1 }}
                     />
                     <TextField
                         label="Last Name"
@@ -80,7 +83,8 @@ const AddNomineeDetails = () => {
                         value={nomineeDetails.lastName}
                         onChange={handleNomineeChange}
                         fullWidth
-                        sx={{ mt: 2 }}
+                        size="small"
+                        sx={{ mt: 1 }}
                     />
                     <TextField
                         label="Address"
@@ -88,7 +92,8 @@ const AddNomineeDetails = () => {
                         value={nomineeDetails.address}
                         onChange={handleNomineeChange}
                         fullWidth
-                        sx={{ mt: 2 }}
+                        size="small"
+                        sx={{ mt: 1 }}
                     />
                     <TextField
                         label="Place"
@@ -96,7 +101,8 @@ const AddNomineeDetails = () => {
                         value={nomineeDetails.place}
                         onChange={handleNomineeChange}
                         fullWidth
-                        sx={{ mt: 2 }}
+                        size="small"
+                        sx={{ mt: 1 }}
                     />
                     <TextField
                         label="State"
@@ -104,7 +110,8 @@ const AddNomineeDetails = () => {
                         value={nomineeDetails.state}
                         onChange={handleNomineeChange}
                         fullWidth
-                        sx={{ mt: 2 }}
+                        size="small"
+                        sx={{ mt: 1 }}
                     />
                     <TextField
                         label="Near By Location"
@@ -112,7 +119,8 @@ const AddNomineeDetails = () => {
                         value={nomineeDetails.nearByLocation}
                         onChange={handleNomineeChange}
                         fullWidth
-                        sx={{ mt: 2 }}
+                        size="small"
+                        sx={{ mt: 1 }}
                     />
                     <TextField
                         label="Aadhar"
@@ -120,7 +128,8 @@ const AddNomineeDetails = () => {
                         value={nomineeDetails.aadhar}
                         onChange={handleNomineeChange}
                         fullWidth
-                        sx={{ mt: 2 }}
+                        size="small"
+                        sx={{ mt: 1 }}
                     />
                     <TextField
                         label="Relationship"
@@ -128,7 +137,8 @@ const AddNomineeDetails = () => {
                         value={nomineeDetails.relationship}
                         onChange={handleNomineeChange}
                         fullWidth
-                        sx={{ mt: 2 }}
+                        size="small"
+                        sx={{ mt: 1 }}
                     />
                     <TextField
                         label="Contact"
@@ -136,7 +146,8 @@ const AddNomineeDetails = () => {
                         value={nomineeDetails.contact}
                         onChange={handleNomineeChange}
                         fullWidth
-                        sx={{ mt: 2 }}
+                        size="small"
+                        sx={{ mt: 1 }}
                     />
                     <Button variant="contained" color="primary" onClick={handleSaveNomineeDetails} fullWidth sx={{ mt: 3 }}>
                         Save Nominee Details

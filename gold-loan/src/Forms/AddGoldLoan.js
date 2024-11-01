@@ -25,7 +25,7 @@ const GoldLoanForm = () => {
         grossWeight: '',
         stoneWeight: '',
         itemDetails: '',
-        insurance: false,
+        insurance: '',
         processingFee: '',
         packingFee: '',
     });
@@ -97,7 +97,7 @@ const GoldLoanForm = () => {
         <Box sx={{ display: 'flex', gap: 4, overflowY: 'auto', maxHeight: '90vh' }}>
             {/* Gold Loan Form Section */}
             <Grid container component="form" onSubmit={handleSubmit} spacing={2} sx={{ flex: 1 }}>
-                <Typography variant="h5" sx={{ mb: 0.2, mt: 2 }}> .. Gold Loan Form</Typography>
+                <Typography variant="h5" sx={{ mb: 0.1, mt: 2 }}> .. Gold Loan Form</Typography>
 
                 <Grid item xs={12}>
                     <AddNomineeDetails />
@@ -113,6 +113,8 @@ const GoldLoanForm = () => {
                         fullWidth
                         error={!!errors.goldRate}
                         helperText={errors.goldRate}
+                        size="small"
+
                     />
                 </Grid>
 
@@ -126,6 +128,7 @@ const GoldLoanForm = () => {
                         fullWidth
                         error={!!errors.companyGoldRate}
                         helperText={errors.companyGoldRate}
+                        size="small"
                     />
                 </Grid>
 
@@ -139,6 +142,7 @@ const GoldLoanForm = () => {
                         fullWidth
                         error={!!errors.netWeight}
                         helperText={errors.netWeight}
+                        size="small"
                     />
                 </Grid>
 
@@ -152,6 +156,7 @@ const GoldLoanForm = () => {
                         fullWidth
                         error={!!errors.grossWeight}
                         helperText={errors.grossWeight}
+                        size="small"
                     />
                 </Grid>
 
@@ -163,12 +168,19 @@ const GoldLoanForm = () => {
                         value={form.stoneWeight}
                         onChange={handleChange}
                         fullWidth
+                        size="small"
+                        InputLabelProps={{
+                            sx: {
+                                fontSize: '0.875rem'  // Adjust font size as needed
+                            }
+                        }}
+
                     />
                 </Grid>
 
                 <Grid item xs={12}>
-                    <FormControl fullWidth>
-                        <InputLabel>Item Details</InputLabel>
+                    <FormControl fullWidth size="small">
+                        <InputLabel >Item Details</InputLabel>
                         <Select
                             name="itemDetails"
                             value={form.itemDetails}
@@ -192,6 +204,7 @@ const GoldLoanForm = () => {
                         value={form.processingFee}
                         onChange={handleChange}
                         fullWidth
+                        size="small"
                     />
                 </Grid>
 
@@ -203,17 +216,24 @@ const GoldLoanForm = () => {
                         value={form.packingFee}
                         onChange={handleChange}
                         fullWidth
+                        size="small"
                     />
                 </Grid>
 
                 <Grid item xs={6}>
                     <TextField
                         label="Insurance"
-                        name="processingFee"
+                        name="insurance"
                         type="number"
-                        value={form.processingFee}
+                        value={form.insurance}
                         onChange={handleChange}
                         fullWidth
+                        size="small"
+                        InputLabelProps={{
+                            sx: {
+                                fontSize: '0.875rem'  // Adjust font size as needed
+                            }
+                        }}
                     />
                 </Grid>
 
@@ -225,6 +245,7 @@ const GoldLoanForm = () => {
                         value={form.packingFee}
                         onChange={handleChange}
                         fullWidth
+                        size="small"
                     />
                 </Grid>
 
@@ -236,6 +257,7 @@ const GoldLoanForm = () => {
                         value={form.processingFee}
                         onChange={handleChange}
                         fullWidth
+                        size="small"
                     />
                 </Grid>
 
@@ -247,6 +269,7 @@ const GoldLoanForm = () => {
                         value={form.packingFee}
                         onChange={handleChange}
                         fullWidth
+                        size="small"
                     />
                 </Grid>
 
@@ -257,6 +280,99 @@ const GoldLoanForm = () => {
                 </Grid>
             </Grid>
 
+            {/* Interest Calculator Section */}
+            <Box sx={{ flex: 1 }}>
+                <Typography variant="h5" sx={{ mb: 2 }}>Interest Calculation</Typography>
+
+                <ToggleButtonGroup
+                    color="primary"
+                    value={interestType}
+                    exclusive
+                    onChange={handleInterestChange}
+                    aria-label="Interest Type"
+                >
+                    <ToggleButton value="simple">Simple</ToggleButton>
+                    <ToggleButton value="multiple">Multiple</ToggleButton>
+                </ToggleButtonGroup>
+
+                {interestType === 'multiple' && (
+                    <Box sx={{ mt: 3 }}>
+                        <Typography variant="subtitle1">Mode</Typography>
+                        <FormControl fullWidth>
+                            <InputLabel>Select Mode</InputLabel>
+                            <Select name="mode" value={form.mode} onChange={handleChange}>
+                                <MenuItem value="days">Days</MenuItem>
+                                <MenuItem value="weekly">Weekly</MenuItem>
+                                <MenuItem value="monthly">Monthly</MenuItem>
+                                <MenuItem value="quarterly">Quarterly</MenuItem>
+                                <MenuItem value="halfyearly">Half-Yearly</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </Box>
+                )}
+
+                {/* Image Upload and Capture */}
+                <Box sx={{ mt: 3 }}>
+                    <Typography variant="h6">Upload or Capture Image</Typography>
+                    <input
+                        accept="image/*"
+                        type="file"
+                        onChange={handleImageUpload}
+                        style={{ display: 'block', marginTop: '10px' }}
+                    />
+                    <Button
+                        variant="outlined"
+                        color="primary"
+                        sx={{ mt: 2 }}
+                        onClick={() => setShowWebcam(!showWebcam)}
+                    >
+                        {showWebcam ? 'Close Camera' : 'Open Camera'}
+                    </Button>
+
+                    {showWebcam && (
+                        <Box mt={2}>
+                            <Webcam
+                                audio={false}
+                                ref={webcamRef}
+                                screenshotFormat="image/jpeg"
+                                width="100%"
+                            />
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={capture}
+                                sx={{ mt: 2 }}
+                            >
+                                Capture Image
+                            </Button>
+                        </Box>
+                    )}
+
+                    {image && (
+                        <Box sx={{ mt: 2, position: 'relative' }}>
+                            <Typography variant="subtitle1">Captured/Uploaded Image:</Typography>
+                            <Box
+                                component="img"
+                                src={image}
+                                alt="Captured"
+                                sx={{ mt: 1, width: '100%', height: 'auto', borderRadius: 1 }}
+                            />
+                            <Button
+                                variant="contained"
+                                color="secondary"
+                                onClick={handleCloseImage}
+                                sx={{
+                                    position: 'absolute',
+                                    top: 10,
+                                    right: 10,
+                                }}
+                            >
+                                Close
+                            </Button>
+                        </Box>
+                    )}
+                </Box>
+            </Box>
             {/* Interest Calculator Section */}
             <Box sx={{ flex: 1 }}>
                 <Typography variant="h5" sx={{ mb: 2 }}>Interest Calculation</Typography>
