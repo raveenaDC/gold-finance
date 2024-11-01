@@ -48,6 +48,26 @@ export default function CustomerForm({ onCustomerAdded }) {
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
 
+    // Function to handle closing the image
+    const handleCloseImage = () => {
+        setFileImage({ ...fileImage, image: null }); // Clear the uploaded image
+    };
+
+    const handleCloseCapture = () => {
+        setFileImage({ ...fileImage, capture: null }); // Clear the captured image
+    };
+
+    // Function to handle closing the signature image
+    const handleCloseSignature = () => {
+        setFileImage({ ...fileImage, signature: null }); // Clear the uploaded signature
+    };
+
+    const handleCloseSCapture = () => {
+        setFileImage({ ...fileImage, sCapture: null }); // Clear the captured signature
+    };
+
+
+
     // Handle webcam capture
     const captureImage = useCallback(() => {
         const imageSrc = webcamRef.current.getScreenshot(); // Capture image from webcam as Base64
@@ -605,14 +625,26 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         </Button>
                                         {/* Display uploaded image */}
                                         {fileImage.image && !fileImage.capture && (
-                                            <Box mt={2}>
+                                            <Box mt={2} position="relative">
                                                 <img src={URL.createObjectURL(fileImage.image)} alt="Uploaded Image" style={{ width: '100px' }} />
+                                                <IconButton
+                                                    onClick={handleCloseImage}
+                                                    style={{ position: 'absolute', top: 0, right: 0, padding: '0' }}
+                                                >
+                                                    <CloseIcon />
+                                                </IconButton>
                                             </Box>
                                         )}
 
                                         {fileImage.capture && (
-                                            <Box mt={2}>
+                                            <Box mt={2} position="relative">
                                                 <img src={fileImage.capture} alt="Captured Image" style={{ width: '100px' }} />
+                                                <IconButton
+                                                    onClick={handleCloseCapture}
+                                                    style={{ position: 'absolute', top: 0, right: 0, padding: '0' }}
+                                                >
+                                                    <CloseIcon />
+                                                </IconButton>
                                             </Box>
                                         )}
 
@@ -669,14 +701,26 @@ export default function CustomerForm({ onCustomerAdded }) {
 
                                         {/* Display uploaded signature */}
                                         {fileImage.signature && !fileImage.sCapture && (
-                                            <Box mt={2}>
+                                            <Box mt={2} position="relative">
                                                 <img src={URL.createObjectURL(fileImage.signature)} alt="Uploaded Signature" style={{ width: '100px' }} />
+                                                <IconButton
+                                                    onClick={handleCloseSignature}
+                                                    style={{ position: 'absolute', top: 0, right: 0, padding: '0' }}
+                                                >
+                                                    <CloseIcon />
+                                                </IconButton>
                                             </Box>
                                         )}
 
                                         {fileImage.sCapture && (
-                                            <Box mt={2}>
-                                                <img src={fileImage.sCapture} alt="Captured Image" style={{ width: '100px' }} />
+                                            <Box mt={2} position="relative">
+                                                <img src={fileImage.sCapture} alt="Captured Signature" style={{ width: '100px' }} />
+                                                <IconButton
+                                                    onClick={handleCloseSCapture}
+                                                    style={{ position: 'absolute', top: 0, right: 0, padding: '0' }}
+                                                >
+                                                    <CloseIcon />
+                                                </IconButton>
                                             </Box>
                                         )}
 

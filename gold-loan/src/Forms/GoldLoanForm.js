@@ -13,6 +13,7 @@ import {
     Typography,
     ToggleButton,
     ToggleButtonGroup,
+    Divider,
 } from '@mui/material';
 import Webcam from 'react-webcam';
 
@@ -130,15 +131,14 @@ const GoldLoanForm = () => {
 
     return (
         <Box sx={{ display: 'flex', gap: 4, overflowY: 'auto', maxHeight: '90vh' }}>
-            {/* Gold Loan Form Section */}
             <Grid container component="form" onSubmit={handleSubmit} spacing={2} sx={{ flex: 1 }}>
-                <Typography variant="h5" sx={{ mb: 0.1, mt: 2 }}> .. Gold Loan Form</Typography>
+                <Typography variant="h5" sx={{ mb: 0.1, mt: 2 }}>.. Gold Loan Form</Typography>
 
                 <Grid item xs={12}>
                     <AddNomineeDetails />
                 </Grid>
 
-                <Grid item xs={6}>
+                <Grid item xs={12} sm={6}>
                     <TextField
                         label="Gold Rate"
                         name="goldRate"
@@ -149,11 +149,10 @@ const GoldLoanForm = () => {
                         error={!!errors.goldRate}
                         helperText={errors.goldRate}
                         size="small"
-
                     />
                 </Grid>
 
-                <Grid item xs={6}>
+                <Grid item xs={12} sm={6}>
                     <TextField
                         label="Company Gold Rate"
                         name="companyGoldRate"
@@ -167,7 +166,7 @@ const GoldLoanForm = () => {
                     />
                 </Grid>
 
-                <Grid item xs={4}>
+                <Grid item xs={12} sm={4}>
                     <TextField
                         label="Net Weight (grams)"
                         name="netWeight"
@@ -181,7 +180,7 @@ const GoldLoanForm = () => {
                     />
                 </Grid>
 
-                <Grid item xs={4}>
+                <Grid item xs={12} sm={4}>
                     <TextField
                         label="Gross Weight (grams)"
                         name="grossWeight"
@@ -195,7 +194,7 @@ const GoldLoanForm = () => {
                     />
                 </Grid>
 
-                <Grid item xs={4}>
+                <Grid item xs={12} sm={4}>
                     <TextField
                         label="Stone Weight (grams)"
                         name="stoneWeight"
@@ -209,13 +208,12 @@ const GoldLoanForm = () => {
                                 fontSize: '0.875rem'  // Adjust font size as needed
                             }
                         }}
-
                     />
                 </Grid>
 
                 <Grid item xs={12}>
                     <FormControl fullWidth size="small">
-                        <InputLabel >Item Details</InputLabel>
+                        <InputLabel>Item Details</InputLabel>
                         <Select
                             name="itemDetails"
                             value={form.itemDetails}
@@ -231,31 +229,32 @@ const GoldLoanForm = () => {
                         </Select>
                     </FormControl>
                 </Grid>
-                <Grid item xs={6}>
+
+                <Grid item xs={12} sm={6}>
                     <TextField
                         label="Interest Rate"
-                        name="processingFee"
+                        name="interestRate"
                         type="number"
-                        value={form.processingFee}
+                        value={form.interestRate}
                         onChange={handleChange}
                         fullWidth
                         size="small"
                     />
                 </Grid>
 
-                <Grid item xs={6}>
+                <Grid item xs={12} sm={6}>
                     <TextField
-                        label="Principal amount"
-                        name="packingFee"
+                        label="Principal Amount"
+                        name="principalAmount"
                         type="number"
-                        value={form.packingFee}
+                        value={form.principalAmount}
                         onChange={handleChange}
                         fullWidth
                         size="small"
                     />
                 </Grid>
 
-                <Grid item xs={6}>
+                <Grid item xs={12} sm={6}>
                     <TextField
                         label="Insurance"
                         name="insurance"
@@ -264,27 +263,22 @@ const GoldLoanForm = () => {
                         onChange={handleChange}
                         fullWidth
                         size="small"
-                        InputLabelProps={{
-                            sx: {
-                                fontSize: '0.875rem'  // Adjust font size as needed
-                            }
-                        }}
                     />
                 </Grid>
 
-                <Grid item xs={6}>
+                <Grid item xs={12} sm={6}>
                     <TextField
-                        label="Apprecial"
-                        name="packingFee"
+                        label="Appreciation"
+                        name="appreciation"
                         type="number"
-                        value={form.packingFee}
+                        value={form.appreciation}
                         onChange={handleChange}
                         fullWidth
                         size="small"
                     />
                 </Grid>
 
-                <Grid item xs={6}>
+                <Grid item xs={12} sm={6}>
                     <TextField
                         label="Processing Fee"
                         name="processingFee"
@@ -296,7 +290,7 @@ const GoldLoanForm = () => {
                     />
                 </Grid>
 
-                <Grid item xs={6}>
+                <Grid item xs={12} sm={6}>
                     <TextField
                         label="Packing Fee"
                         name="packingFee"
@@ -313,6 +307,11 @@ const GoldLoanForm = () => {
                         Submit
                     </Button>
                 </Grid>
+            </Grid>
+
+            {/* Divider */}
+            <Grid item xs={1}>
+                <Divider orientation="vertical" flexItem sx={{ height: '100%', bgcolor: 'primary.main' }} />
             </Grid>
 
             {/* Interest Calculator Section */}
@@ -352,16 +351,37 @@ const GoldLoanForm = () => {
                     <input
                         accept="image/*"
                         type="file"
-                        onChange={handleImageUpload}
-                        style={{ display: 'block', marginTop: '10px' }}
+                        onChange={(e) => {
+                            handleImageUpload(e);
+                            setShowWebcam(false); // Close webcam if an image is uploaded
+                        }}
+                        style={{ display: 'none' }} // Hide the default input
+                        id="file-input" // Add an ID for accessibility
                     />
+                    <label htmlFor="file-input">
+                        <Button
+                            variant="outlined"
+                            color="primary"
+                            component="span" // This makes the label behave like a button
+                            sx={{ mr: 2 }} // Margin right for spacing
+                        >
+                            Choose File
+                        </Button>
+                    </label>
+
                     <Button
                         variant="outlined"
                         color="primary"
-                        sx={{ mt: 2 }}
-                        onClick={() => setShowWebcam(!showWebcam)}
+                        sx={{
+                            mt: 0, // Remove margin top
+                            padding: '6px 12px', // Reduce size of the button
+                        }}
+                        onClick={() => {
+                            setShowWebcam(!showWebcam);
+                            setImage(null); // Clear any existing image when opening webcam
+                        }}
                     >
-                        {showWebcam ? 'Close Camera' : 'Open Camera'}
+                        {showWebcam ? 'Close ' : 'Open Camera'}
                     </Button>
 
                     {showWebcam && (
@@ -395,7 +415,10 @@ const GoldLoanForm = () => {
                             <Button
                                 variant="contained"
                                 color="secondary"
-                                onClick={handleCloseImage}
+                                onClick={() => {
+                                    handleCloseImage();
+                                    setShowWebcam(false); // Optionally close webcam if image is closed
+                                }}
                                 sx={{
                                     position: 'absolute',
                                     top: 10,
@@ -408,6 +431,10 @@ const GoldLoanForm = () => {
                     )}
                 </Box>
             </Box>
+            <Grid item xs={1}>
+                <Divider orientation="vertical" flexItem sx={{ height: '100%', bgcolor: 'primary.main' }} />
+            </Grid>
+
             {/* Interest Calculator Section */}
             <Box sx={{ flex: 1 }}>
                 <div>
