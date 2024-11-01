@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom'; // Import useParams
 import AddNomineeDetails from './AddNomineeDetails';
 import {
     Box,
@@ -30,11 +31,34 @@ const GoldLoanForm = () => {
         packingFee: '',
     });
 
+    const { customerId } = useParams(); // Retrieve customer ID from URL
+    const [customerData, setCustomerData] = useState(null);
+    const [loading, setLoading] = useState(true);
     const [errors, setErrors] = useState({});
     const [interestType, setInterestType] = useState('simple');
     const [image, setImage] = useState(null);
     const [showWebcam, setShowWebcam] = useState(false);
     const webcamRef = React.useRef(null);
+
+    const fetchCustomerDetails = async () => {
+        try {
+            const response = await fetch(`http://localhost:4000/customer/details/${customerId}`); // Adjust the endpoint as needed
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            setCustomerData(data);
+            setLoading(false);
+        } catch (error) {
+            console.error('Error fetching customer details:', error);
+            setErrors({ fetch: error.message }); // Set error state
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchCustomerDetails();
+    }, [customerId]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -64,9 +88,20 @@ const GoldLoanForm = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (validateForm()) {
+
+        // Validate the form first
+        const validationSuccess = validateForm(); // Assuming validateForm() returns true/false
+
+        // Check if customerData is provided
+        if (!customerData) {
+            setErrors({ form: 'Customer data is required.' });
+            return;
+        }
+
+        // If validation passes, log the form data or proceed with submission
+        if (validationSuccess) {
             console.log('Form data:', form);
-            // Proceed with form submission
+            // Proceed with form submission logic here
         } else {
             console.log('Validation errors:', errors);
         }
@@ -375,6 +410,40 @@ const GoldLoanForm = () => {
             </Box>
             {/* Interest Calculator Section */}
             <Box sx={{ flex: 1 }}>
+                <div>
+                    <Typography variant="h5" sx={{ mb: 2 }}>Customer details</Typography>
+
+                    <p>Customer ID: {customerId}</p>
+                    {errors.fetch && <p style={{ color: 'red' }}>Error: {errors.fetch}</p>}
+                    {errors.form && <p style={{ color: 'red' }}>Error: {errors.form}</p>}
+                    {customerData && (
+                        <form onSubmit={handleSubmit}>
+                            <h2>Customer Details</h2>
+                            <p>First Name: {customerData.firstName}</p>
+                            <p>Last Name: {customerData.lastName}</p>
+                            <p>Address: {customerData.address}</p>
+                            <p>Mobile: {customerData.primaryNumber}</p>
+                            <p>Aadhar: {customerData.aadhar}</p>
+                            {/* Example field for interest type selection */}
+                            <label>
+                                Interest Type:
+                                <select value={interestType} onChange={(e) => setInterestType(e.target.value)}>
+                                    <option value="simple">Simple</option>
+                                    <option value="compound">Compound</option>
+                                </select>
+                            </label>
+                            {/* Example field for image upload */}
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => setImage(e.target.files[0])}
+                            />
+                            <button type="submit">Submit</button>
+                        </form>
+                    )}
+                    {/* Additional UI for webcam display can be handled here */}
+                    {showWebcam && <div>Webcam Component Placeholder</div>}
+                </div>
 
 
 

@@ -10,6 +10,7 @@ import MainPage from './Dashboard/MainPage';
 import GlMaster from './Forms/GlMaster';
 import Typography from '@mui/material/Typography';
 import { submitCustomerData } from './api'; // Import your API function
+import GoldLoanForm from './Forms/GoldLoanForm';
 
 
 
@@ -58,6 +59,7 @@ export default function App() {
             <Routes>
               <Route path="/" element={<MainPage />} />
               <Route path="/gl-master" element={<GlMaster />} />
+              <Route path="/gold-loan/:customerId" element={<GoldLoanForm />} /> {/* Add the customerId param */}
             </Routes>
           </Typography>
         </Main>
