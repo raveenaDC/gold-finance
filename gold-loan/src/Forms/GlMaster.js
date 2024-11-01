@@ -9,18 +9,27 @@ export default function GlMaster() {
     const [loading, setLoading] = useState(true);
 
     // Fetch customer data from the API
+
+    const fetchCustomers = async () => {
+        try {
+            const response = await fetch('http://localhost:4000/customer/details/view');
+            const data = await response.json();
+
+            // Map data to add unique `id` if not present
+            const itemsWithId = data.data.items.map((item, index) => ({
+                ...item,
+                customId: item._id,
+                id: index + 1, // Use `_id` if available, otherwise use the index as a fallback
+            }));
+
+            setCustomers(itemsWithId);
+            setLoading(false);
+        } catch (error) {
+            console.error("Error fetching customer data:", error);
+            setLoading(false);
+        }
+    };
     useEffect(() => {
-        const fetchCustomers = async () => {
-            try {
-                const response = await fetch('https://api.example.com/customers'); // Replace with your actual API endpoint
-                const data = await response.json();
-                setCustomers(data);
-                setLoading(false);
-            } catch (error) {
-                console.error("Error fetching customer data:", error);
-                setLoading(false);
-            }
-        };
         fetchCustomers();
     }, []);
 
@@ -44,7 +53,7 @@ export default function GlMaster() {
                         color: '#000',
                         '&:hover': { backgroundColor: '#FFC107' },
                     }}
-                    onClick={() => handleGoldLoan(params.row.id)}
+                    onClick={() => handleGoldLoan(params.row.customId)}
                 >
                     Gold Loan
                 </Button>
@@ -64,17 +73,12 @@ export default function GlMaster() {
 
     return (
         <Box sx={{ padding: { xs: 1, sm: 2, md: 3 } }}>
-            <Grid
-                container
-                justifyContent="space-between"
-                alignItems="center"
-                sx={{ mb: 2, flexDirection: { xs: 'column', sm: 'row' } }}
-            >
+            <Grid container justifyContent="space-between" alignItems="center" sx={{ mb: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
                 <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '2rem' } }}>
                     Customer List
                 </Typography>
                 <Box sx={{ mt: { xs: 1, sm: 0 } }}>
-                    <GlCustomer />
+                    <GlCustomer onCustomerAdded={fetchCustomers} />
                 </Box>
             </Grid>
 
@@ -93,11 +97,13 @@ export default function GlMaster() {
                     pageSize={5}
                     rowsPerPageOptions={[5]}
                     checkboxSelection={false}
+                    getRowId={(row) => row.id} // Specify the unique row identifier
                     sx={{
                         '& .MuiDataGrid-cell': { fontSize: { xs: '0.8rem', sm: '1rem' } },
                         '& .MuiDataGrid-columnHeaders': { fontSize: { xs: '0.9rem', sm: '1rem' } },
                     }}
                 />
+
             </Box>
         </Box>
     );

@@ -4,12 +4,12 @@ const API_URL = 'http://localhost:4000/'; // Replace with your actual API endpoi
 
 export const submitData = async (data) => {
     try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
+        const response = await fetch(API_URL + data.path, {
+            method: data.method,
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(data),
+            body: JSON.stringify(data.info),
         });
 
         if (!response.ok) {

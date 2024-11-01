@@ -21,7 +21,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 
 
-export default function CustomerForm() {
+export default function CustomerForm({ onCustomerAdded }) {
     const [open, setOpen] = useState(false); // Modal state
     const [usingSigncam, setUsingSigncam] = useState(false); // Toggle between file upload and webcam
     const [usingWebcam, setUsingWebcam] = useState(false); // Toggle between file upload and webcam
@@ -235,9 +235,7 @@ export default function CustomerForm() {
 
 
         try {
-            console.log(formData)
-            console.log("File Data (Image):", fileImage.image);
-            console.log("File Data (sign):", fileImage.signature);
+
             const customerData = {
                 info: data,
                 method: 'post',
@@ -272,7 +270,9 @@ export default function CustomerForm() {
                 sCapture: null,
             }); // Clear uploaded image
             // setFileSignature(null); // Clear uploaded signature
-
+            if (onCustomerAdded) {
+                onCustomerAdded();
+            }
             handleClose(); // Close the form after submission
         } catch (error) {
             alert('Failed to upload data. Please try again.');
