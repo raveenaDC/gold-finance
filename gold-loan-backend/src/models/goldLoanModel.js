@@ -2,27 +2,77 @@ import { Schema, model, Types } from 'mongoose';
 
 const goldLoanSchema = new Schema(
     {
-        GlNo: String,
+        glNo: String,
         purchaseDate: Date,
-        goldRate: Types.Decimal128,
-        companyGoldRate: Types.Decimal128,
-        netWeight: Types.Decimal128,
-        grossWeight: Types.Decimal128,
-        stoneWeight: Types.Decimal128,
-        interestRate: Types.Decimal128,
+        goldRate: {
+            type: Types.Decimal128,
+            get: v => v ? parseFloat(v.toString()) : null
+        },
+        companyGoldRate: {
+            type: Types.Decimal128,
+            get: v => v ? parseFloat(v.toString()) : null
+        },
+        netWeight: {
+            type: Types.Decimal128,
+            get: v => v ? parseFloat(v.toString()) : null
+        },
+        grossWeight: {
+            type: Types.Decimal128,
+            get: v => v ? parseFloat(v.toString()) : null
+        },
+        stoneWeight: {
+            type: Types.Decimal128,
+            get: v => v ? parseFloat(v.toString()) : null
+        },
+        interestRate: {
+            type: Types.Decimal128,
+            get: v => v ? parseFloat(v.toString()) : null
+        },
+        interestMode: String,
         itemId: { type: Schema.Types.ObjectId, ref: 'goldItem' },
         customerId: { type: Schema.Types.ObjectId, ref: 'customer' },
         memberId: { type: Schema.Types.ObjectId, ref: 'member' },
         nomineeId: { type: Schema.Types.ObjectId, ref: 'customer' },
-        insurance: Types.Decimal128,
-        processingFee: Types.Decimal128,
-        packingFee: Types.Decimal128,
-        appraiser: Types.Decimal128,
-        principleAmount: Types.Decimal128,
-        amountPaid: Types.Decimal128,
-        balanceAmount: Types.Decimal128,
-        currentGoldValue: Types.Decimal128,
-        profitOrLoss: Types.Decimal128,
+        insurance: {
+            type: Types.Decimal128,
+            get: v => v ? parseFloat(v.toString()) : null
+        },
+        processingFee: {
+            type: Types.Decimal128,
+            get: v => v ? parseFloat(v.toString()) : null
+        },
+        packingFee: {
+            type: Types.Decimal128,
+            get: v => v ? parseFloat(v.toString()) : null
+        },
+        appraiser: {
+            type: Types.Decimal128,
+            get: v => v ? parseFloat(v.toString()) : null
+        },
+        principleAmount: {
+            type: Types.Decimal128,
+            get: v => v ? parseFloat(v.toString()) : null
+        },
+        amountPaid: {
+            type: Types.Decimal128,
+            default: 0,
+            get: v => v ? parseFloat(v.toString()) : 0
+        },
+        balanceAmount: {
+            type: Types.Decimal128,
+            default: 0,
+            get: v => v ? parseFloat(v.toString()) : 0
+        },
+        currentGoldValue: {
+            type: Types.Decimal128,
+            default: 0,
+            get: v => v ? parseFloat(v.toString()) : 0
+        },
+        profitOrLoss: {
+            type: Types.Decimal128,
+            default: 0,
+            get: v => v ? parseFloat(v.toString()) : 0
+        },
         goldImage: {
             name: String,
             fileName: String,
@@ -30,7 +80,13 @@ const goldLoanSchema = new Schema(
             uploadedDate: Date,
         },
     },
-    { timestamps: true }
+    {
+        timestamps: true,
+        toJSON: { getters: true },
+        toObject: { getters: true },
+        id: false // Disable the `id` virtual field
+
+    }
 );
 
 export default model('goldLoan', goldLoanSchema);

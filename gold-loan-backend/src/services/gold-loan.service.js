@@ -14,81 +14,84 @@ const transFormImageUploadResponseArray = (imageResponseArray) => {
     }));
 };
 
-export async function customerView(req, res) {
+export async function viewGoldLoan(req, res) {
     try {
 
         let { pageLimit, orderBy = 'createdAt', search = null, order } = req.query;
+        let { customerId } = req.params;
+
         pageLimit = parseInt(pageLimit || defaultPageLimit);
         const page = parseInt(req.query.page) || 1;
         order = order == 'asc' ? 1 : -1;
         let sort = {};
-        const query = {};
+        const query = { customerId: req.params.customerId }; // Search by customerId
+        const existCustomer = await models.customerModel.findById({ _id: customerId }).select(
+            'firstName lastName  address place state  pin nearBy  primaryNumber careOf secondaryNumber aadhar email image signature createdAt'
+        );
+        if (!existCustomer) {
+            return responseHelper(
+                res,
+                httpStatus.CONFLICT,
+                true,
+                'Customer not exist.',
+
+            );
+        }
+
         if (search) {
             query.$or = [
-                { firstName: { $regex: new RegExp(search, 'i') } },
-                {
-                    $expr: {
-                        $regexMatch: {
-                            input: { $concat: ['$firstName', ' ', '$lastName'] },
-                            regex: new RegExp(search, 'i'),
-                        },
-                    },
-                },
-                { lastName: { $regex: new RegExp(search, 'i') } },
-                { email: { $regex: new RegExp(search, 'i') } },
-                { primaryNumber: { $regex: new RegExp(search, 'i') } },
-                { secondaryNumber: { $regex: new RegExp(search, 'i') } }
+                { glNo: { $regex: new RegExp(search, 'i') } },
+                // { purchaseDate: { $regex: new RegExp(search, 'i') } }
             ];
         }
 
-        let customerList = await models.customerModel.find(query).select(
-            'firstName lastName  address place state  pin nearBy  primaryNumber careOf secondaryNumber aadhar email image signature createdAt'
+        let loanList = await models.goldLoanModel.find(query).select(
+            'glNo purchaseDate goldRate companyGoldRate netWeight grossWeight stoneWeight interestRate interestMode itemId customerId memberId nomineeId insurance  processingFee packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt'
         ).collation({ locale: 'en', strength: 2 });
 
-        if (orderBy === 'firstName') {
-            customerList.sort((a, b) => a.firstName.localeCompare(b.firstName) * order);
-        } else if (orderBy === 'lastName') {
-            customerList.sort((a, b) => a.lastName.localeCompare(b.lastName) * order);
+        if (orderBy === 'glNo') {
+            loanList.sort((a, b) => a.glNo.localeCompare(b.glNo) * order);
         } else if (orderBy === 'date') {
-            customerList.sort((a, b) => a.createdAt.localeCompare(b.createdAt) * order);
+            loanList.sort((a, b) => a.purchaseDate.localeCompare(b.purchaseDate) * order);
         } else {
-            customerList.sort((a, b) => (a.createdAt - b.createdAt) * order); // Default sorting by createdAt
+            loanList.sort((a, b) => (a.createdAt - b.createdAt) * order); // Default sorting by createdAt
         }
 
         if (search) {
             // Define a function to calculate relevance score
-            const calculateRelevance = (memberSet) => {
-                const fields = ['firstName lastName email'];
+            const calculateRelevance = (loanSet) => {
+                const fields = ['glNo'];
                 let relevance = 0;
                 fields.forEach((field) => {
                     if (
-                        memberSet[field] &&
-                        memberSet[field].toLowerCase().startsWith(search.toLowerCase())
+                        loanSet[field] &&
+                        loanSet[field].toLowerCase().startsWith(search.toLowerCase())
                     ) {
                         relevance++;
                     }
                 });
                 return relevance;
             };
-            customerList.sort((a, b) => calculateRelevance(b) - calculateRelevance(a));
+            loanList.sort((a, b) => calculateRelevance(b) - calculateRelevance(a));
         }
-        if (!customerList.length == 0) {
+        if (loanList.length == 0) {
             return responseHelper(
                 res,
                 httpStatus.NOT_FOUND,
                 true,
-                'customer(s) not found'
+                'Gold loan details are empty'
             );
         }
         // console.log(customerList);
 
-        const paginationResult = await paginateData(customerList, page, pageLimit);
+        const paginationResult = await paginateData(loanList, page, pageLimit);
         //apply orderBy and order
         paginationResult.pagination.orderBy = orderBy;
         paginationResult.pagination.order = order;
 
-        return responseHelper(res, httpStatus.OK, false, 'Customer list', {
-            items: paginationResult.data,
+        return responseHelper(res, httpStatus.OK, false, 'Gold loan list', {
+            customerDetails: existCustomer,
+            loanDetails: paginationResult.data,
             pagination: paginationResult.pagination,
         });
 
@@ -98,64 +101,88 @@ export async function customerView(req, res) {
 
 }
 
-export async function createCustomer(req, res, next) {
+export async function addGoldLoan(req, res, next) {
     try {
-        let { firstName,
-            lastName,
-            address,
-            place,
-            state,
-            pin,
-            nearBy,
-            primaryNumber,
-            careOf,
-            secondaryNumber,
-            aadhar,
-            gst,
-            email, } = req.body;
+        let {
+            goldRate,
+            companyGoldRate,
+            netWeight,
+            grossWeight,
+            stoneWeight,
+            interestRate,
+            interestMode,
+            itemId,
+            customerId,
+            nomineeId,
+            insurance,
+            processingFee,
+            packingFee,
+            appraiser,
+            memberId,//need to remove
+            principleAmount,
+            //amountPaid,
+            // balanceAmount,
+            currentGoldValue,
+            // profitOrLoss
+        } = req.body;
 
-        let { image, signature } = req.files;
+        let { goldImage } = req.files;
+        // let { memberId } = req.user
 
-
-        const existCustomer = await models.customerModel.findOne({ email: email })
-        if (existCustomer) {
+        const existCustomer = await models.customerModel.findById({ _id: customerId })
+        if (!existCustomer) {
             return responseHelper(
                 res,
                 httpStatus.CONFLICT,
                 true,
-                'This email already exist.',
+                'Customer not exist.',
 
             );
         }
-        const member = await models.customerModel.create({
-            firstName,
-            lastName,
-            address,
-            place,
-            state,
-            pin,
-            nearBy,
-            primaryNumber,
-            careOf,
-            gst,
-            secondaryNumber,
-            aadhar,
-            email,
+
+        if (memberId == customerId) {
+            return responseHelper(
+                res,
+                httpStatus.CONFLICT,
+                true,
+                "Cannot choose the same customer as the nominee."
+            );
+        }
+        const loan = await models.goldLoanModel.create({
+            glNo: 234,
+            purchaseDate: Date.now(),
+            goldRate,
+            companyGoldRate,
+            netWeight,
+            grossWeight,
+            stoneWeight,
+            interestRate,
+            interestMode,
+            itemId,
+            customerId,
+            memberId,
+            nomineeId,
+            insurance,
+            processingFee,
+            packingFee,
+            appraiser,
+            principleAmount,
+            //amountPaid,
+            // balanceAmount,
+            currentGoldValue,
+            // profitOrLoss
         });
 
-        if (signature && signature.length > 0) {
-            member.signature = transFormImageUploadResponseArray(signature)[0];
-        } if (image && image.length > 0) {
-            member.image = transFormImageUploadResponseArray(image)[0];
+        if (goldImage && goldImage.length > 0) {
+            loan.goldImage = transFormImageUploadResponseArray(goldImage)[0];
         }
-
-        await member.save();
+        await loan.save();
         return responseHelper(
             res,
             httpStatus.CREATED,
             false,
-            'customer added successfully',
-            member
+            'Customer gold loan added successfully',
+            loan
         );
     } catch (error) {
         return next(new Error(error));
@@ -163,7 +190,7 @@ export async function createCustomer(req, res, next) {
 
 }
 
-export async function updateCustomer(req, res) {
+export async function updateGoldLoanById(req, res) {
     try {
         let { firstName,
             lastName,
@@ -273,24 +300,24 @@ export async function updateCustomer(req, res) {
 //     }
 // }
 
-export async function customerViewById(req, res) {
+export async function viewGoldLoanById(req, res) {
     try {
-        const { customerId } = req.params
-        const customer = await models.customerModel.findById(customerId).select(
-            'firstName lastName  address place state  pin nearBy  primaryNumber careOf secondaryNumber aadhar email image signature createdAt'
+        const { loanId } = req.params
+        const loan = await models.customerModel.findById(loanId).select(
+            'glNo purchaseDate goldRate companyGoldRate netWeight grossWeight stoneWeight interestRate interestMode itemId customerId memberId nomineeId insurance  processingFee packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt'
         );
-        if (!customer) {
+        if (!loan) {
             return responseHelper(
                 res, httpStatus.NOT_FOUND,
                 true,
-                'Customer not found',
+                'Gold loan not found',
             )
         }
         return responseHelper(
             res, httpStatus.OK,
             false,
-            'Customer details',
-            customer
+            'loan details',
+            loan
         )
 
     } catch {

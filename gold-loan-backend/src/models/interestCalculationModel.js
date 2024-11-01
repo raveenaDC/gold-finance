@@ -12,13 +12,26 @@ const interestCalculationSchema = new Schema(
             default: 'yearly',
             enum: ['monthly', 'weekly', 'daily', 'annual', 'quarterly'],
         },
-        interestRate: Types.Decimal128,
+        interestRate: {
+            type: Types.Decimal128,
+            get: v => v ? parseFloat(v.toString()) : null
+        },
         minDays: Number,
-        minInterestAmount: Types.Decimal128,
-        currentGoldRate: Types.Decimal128
-
+        minInterestAmount: {
+            type: Types.Decimal128,
+            get: v => v ? parseFloat(v.toString()) : null
+        },
+        currentGoldRate: {
+            type: Types.Decimal128,
+            get: v => v ? parseFloat(v.toString()) : null
+        }
     },
-    { timestamps: true }
+    {
+        timestamps: true,
+        toJSON: { getters: true },
+        toObject: { getters: true },
+        id: false
+    }
 );
 
 export default model('interestCalculation', interestCalculationSchema);
