@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon service.js"
+    "start": "nodemon service.js",
+    "seed": "node connection/seed.js"
   },
   "author": "raveena",
   "license": "ISC",

@@ -1,9 +1,38 @@
 import { Schema, model, Types } from 'mongoose';
 
+const itemDetailsSchema = new Schema(
+    {
+        goldItem: { type: Schema.Types.ObjectId, ref: 'goldItem' },
+        netWeight: {
+            type: Types.Decimal128,
+            get: v => (v ? parseFloat(v.toString()) : null)
+        },
+        grossWeight: {
+            type: Types.Decimal128,
+            get: v => (v ? parseFloat(v.toString()) : null)
+        },
+        quantity: {
+            type: Types.Decimal128,
+            get: v => (v ? parseFloat(v.toString()) : null)
+        },
+        description: String,
+        depreciation: {
+            type: Types.Decimal128,
+            get: v => (v ? parseFloat(v.toString()) : null)
+        },
+        stoneWeight: {
+            type: Types.Decimal128,
+            get: v => (v ? parseFloat(v.toString()) : null)
+        }
+    },
+    { id: false } // Ensure no id field is added
+);
+
 const goldLoanSchema = new Schema(
     {
         glNo: String,
-        purchaseDate: Date,
+        purchaseDate: String,
+        voucherNo: String,
         goldRate: {
             type: Types.Decimal128,
             get: v => v ? parseFloat(v.toString()) : null
@@ -12,28 +41,20 @@ const goldLoanSchema = new Schema(
             type: Types.Decimal128,
             get: v => v ? parseFloat(v.toString()) : null
         },
-        netWeight: {
-            type: Types.Decimal128,
-            get: v => v ? parseFloat(v.toString()) : null
-        },
-        grossWeight: {
-            type: Types.Decimal128,
-            get: v => v ? parseFloat(v.toString()) : null
-        },
-        stoneWeight: {
-            type: Types.Decimal128,
-            get: v => v ? parseFloat(v.toString()) : null
-        },
         interestRate: {
             type: Types.Decimal128,
             get: v => v ? parseFloat(v.toString()) : null
         },
         interestMode: String,
-        itemId: { type: Schema.Types.ObjectId, ref: 'goldItem' },
+        itemDetails: [itemDetailsSchema],
         customerId: { type: Schema.Types.ObjectId, ref: 'customer' },
         memberId: { type: Schema.Types.ObjectId, ref: 'member' },
         nomineeId: { type: Schema.Types.ObjectId, ref: 'customer' },
         insurance: {
+            type: Types.Decimal128,
+            get: v => v ? parseFloat(v.toString()) : null
+        },
+        paymentMode: {
             type: Types.Decimal128,
             get: v => v ? parseFloat(v.toString()) : null
         },
