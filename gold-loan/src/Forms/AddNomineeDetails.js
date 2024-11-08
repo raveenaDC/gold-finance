@@ -39,7 +39,7 @@ const AddNomineeDetails = () => {
             {/* Add or Display Nominee Button */}
             <Grid item xs={12}>
                 <Button
-                    variant="outlined"
+
                     color="primary"
                     fullWidth
                     onClick={handleNomineeModalOpen}

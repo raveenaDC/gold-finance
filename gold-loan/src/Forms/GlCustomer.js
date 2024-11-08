@@ -18,6 +18,7 @@ import ImageIcon from '@mui/icons-material/Image';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import BorderColorIcon from '@mui/icons-material/BorderColor';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import ItemDetailsTable from './ItemDetailsTable ';
 
 
 
@@ -301,6 +302,8 @@ export default function CustomerForm({ onCustomerAdded }) {
 
     return (
         <>
+
+            {/* <ItemDetailsTable /> */}
             <Button variant="contained" color="primary" onClick={handleOpen}>
                 Add Customer
             </Button>
