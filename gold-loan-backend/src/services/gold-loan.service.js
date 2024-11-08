@@ -122,6 +122,7 @@ export async function addGoldLoan(req, res, next) {
     try {
         let {
             glNo,
+            purchaseDate,
             goldRate,
             voucherNo,
             companyGoldRate,
@@ -170,7 +171,7 @@ export async function addGoldLoan(req, res, next) {
         const loan = await models.goldLoanModel.create({
             glNo,
             voucherNo,
-            purchaseDate: new Date().toLocaleDateString('en-GB'),
+            purchaseDate,//: new Date().toLocaleDateString('en-GB')
             goldRate,
             companyGoldRate,
             itemDetails,

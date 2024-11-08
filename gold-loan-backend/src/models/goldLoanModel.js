@@ -31,7 +31,7 @@ const itemDetailsSchema = new Schema(
 const goldLoanSchema = new Schema(
     {
         glNo: String,
-        purchaseDate: String,
+        purchaseDate: Date,
         voucherNo: String,
         goldRate: {
             type: Types.Decimal128,
