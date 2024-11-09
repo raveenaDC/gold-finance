@@ -519,7 +519,7 @@ const GoldLoanForm = () => {
                     )}
                     {fileImage.capture && (
                         <Box mt={2} position="relative">
-                            <img src={fileImage.capture} alt="Captured Image" style={{ maxWidth: '100%', height: 'auto' }} />
+                            <img src={fileImage.capture} alt="Captured Image" style={{ maxWidth: '100%', height: '180px' }} />
                             <IconButton
                                 onClick={handleCloseCapture}
                                 style={{ position: 'absolute', top: 0, right: 0, padding: '0' }}
