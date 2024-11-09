@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import Webcam from 'react-webcam';
 import {
     Box, TextField, Button, IconButton, Table, TableBody, TableCell,
@@ -6,11 +6,19 @@ import {
     Typography, ToggleButtonGroup, ToggleButton, FormControl,
     InputLabel, Select, MenuItem
 } from '@mui/material';
+import { useSelector, useDispatch } from 'react-redux';
+// import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+// import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+// import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import CloseIcon from '@mui/icons-material/Close';
+import AddNomineeDetails from './AddNomineeDetails';
+import { incrementGLNo } from '../Redux/GlNoSlice';
+import { incrementVoucherNo } from '../Redux/voucherNoSlice';
+import { useParams } from 'react-router-dom';
 
 const GoldLoanForm = () => {
     const [usingWebcam, setUsingWebcam] = useState(false); // Toggle between file upload and webcam
@@ -19,6 +27,8 @@ const GoldLoanForm = () => {
     const [items, setItems] = useState([
         { id: 1, type: 'Select', description: '', no: '', grossWeight: '', stoneWeight: '', netWeight: '', depWeight: '' },
     ]);
+
+    const [selectedDate, setSelectedDate] = useState(null);
 
     const [form, setForm] = useState({
         principalAmount: '',
@@ -30,6 +40,16 @@ const GoldLoanForm = () => {
         mode: '',
         range: ''
     });
+
+    const voucherNo = useSelector((state) => state.voucherNo.voucherNo);
+
+    const handleSubmit = () => {
+        // Your form submission logic here
+        console.log("Form submitted");
+        dispatch(incrementGLNo());
+        dispatch(incrementVoucherNo());
+    };
+
 
     const [interestType, setInterestType] = useState('simple');
     const goldRate = 5000;
@@ -114,28 +134,87 @@ const GoldLoanForm = () => {
     const handleCloseCapture = () => {
         setFileImage({ ...fileImage, capture: null }); // Clear the captured image
     };
+    const dispatch = useDispatch();
+    const glNo = useSelector((state) => state.glNo.glNo);
+
+    // Display GL number when form loads
+    useEffect(() => {
+        console.log('Current GL Number:', glNo);
+    }, [glNo]);
+
+    useEffect(() => {
+        // Log or display the voucher number in your UI, or handle any initialization
+        console.log("Current Voucher Number:", voucherNo);
+    }, [voucherNo]);
+
+    useEffect(() => {
+        const today = new Date();
+        const formattedDate = today.toISOString().split('T')[0]; // Formats as YYYY-MM-DD
+        setSelectedDate(formattedDate);
+    }, []);
+
+    const { customerId } = useParams();
+
 
     const totalNetWeight = items.reduce((total, item) => total + (parseFloat(item.netWeight) || 0), 0);
     const recommendedAmount = totalNetWeight * goldRate;
 
     return (
-        <Box sx={{ display: 'flex', p: 2, width: '100%', mx: 'auto', mt: -2 }}>
+        <Box sx={{ display: 'flex', p: 2, width: '100%', mx: 'auto', mt: -3 }}>
 
             <Box sx={{ flex: 2, p: 1 }}>
-                <Typography variant="subtitle1">GoldLoanForm</Typography><br />
+                <Typography variant="subtitle1">GoldLoanForm</Typography>
+                <Box
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="space-between"
+                    sx={{ width: '100%' }}
+
+                >
+                    <center> <Typography variant="overline">GL No: {glNo} </Typography > </center>
+
+
+                    <TextField
+                        label="Select Date"
+                        type="date"
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.target.value)}
+                        InputLabelProps={{
+                            shrink: true, // Ensures the label is positioned correctly
+                        }}
+                        size="small" // Makes the input compact
+                        sx={{
+                            height: '35px', // Reduces the height of the TextField
+                            '& .MuiInputBase-root': {
+                                minHeight: '20px', // Ensures the inner input area is smaller
+                                fontSize: '0.7rem', // Adjusts font size for a more compact look
+                                padding: '4px 8px', // Adds padding to make the input more compact
+                            },
+                            '& .MuiInputLabel-root': {
+                                fontSize: '0.77rem', // Adjusts label font size
+                            },
+                        }}
+                    />
+                </Box>
                 <TableContainer component={Paper} sx={{ mb: 2, height: 200, overflowY: 'auto', '&::-webkit-scrollbar': { width: '8px' }, '&::-webkit-scrollbar-thumb': { backgroundColor: '#888', borderRadius: '4px', '&:hover': { backgroundColor: '#555' } }, '&::-webkit-scrollbar-track': { backgroundColor: '#f1f1f1', borderRadius: '4px' } }}>
                     <Table stickyHeader aria-label="sticky table">
                         <TableHead>
                             <TableRow sx={{ height: '5px', '& .MuiTableCell-root': { padding: '0px' } }}>
                                 <TableCell colSpan={8} sx={{ padding: '4px', borderBottom: '1px solid #ccc' }}>
-                                    <Button variant="text" color="primary" startIcon={<AddIcon />} onClick={handleAddRow}>
-                                        Add Item
-                                    </Button>
+                                    {/* Left side: AddNomineeDetails */}
+                                    <AddNomineeDetails />
+
+                                    {/* Right side: Add Item button with spacing */}
+                                    <Box mt={-5} display="flex" justifyContent="flex-end">
+                                        <Button variant="text" color="primary" startIcon={<AddIcon />} onClick={handleAddRow}>
+                                            Add Item
+                                        </Button>
+                                    </Box>
                                 </TableCell>
                             </TableRow>
-                            <TableRow sx={{ backgroundColor: '#e0e0e0 !important' }}>
+                            <TableRow >
                                 {['Item Details', 'No', 'Gross Wt', 'Stone Wt', 'Dep Wt', 'Net Wt', 'Actions'].map((header) => (
-                                    <TableCell key={header} sx={{ fontSize: '12px', padding: '4px', borderBottom: '1px solid #ccc' }}>
+                                    <TableCell key={header} sx={{ fontSize: '12px', backgroundColor: '#e0e0e0 ', padding: '4px', borderBottom: '1px solid #ccc' }}>
                                         {header}
                                     </TableCell>
                                 ))}
@@ -245,8 +324,8 @@ const GoldLoanForm = () => {
                         <Grid item xs={4} key={index}>
                             <TextField
                                 label={label}
-                                name={label.toLowerCase().replace(/ /g, '')}
-                                value={form[label.toLowerCase().replace(/ /g, '')]}
+                                name={label.toLowerCase().replace(/\s+/g, '')}  // Removes spaces for matching
+                                value={form[label.toLowerCase().replace(/\s+/g, '')]}
                                 onChange={handleChangeForm}
                                 fullWidth
                                 margin="dense"  // Keeps the dense margin to reduce vertical space
@@ -303,8 +382,20 @@ const GoldLoanForm = () => {
                     </IconButton>
                 </Box>
 
+                <Grid container justifyContent="flex-end" sx={{ mt: 2 }}>
+                    <Grid item>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handleSubmit} // Your submit handler function
+                        >
+                            Submit
+                        </Button>
+                    </Grid>
+                </Grid>
+
                 {interestType === 'multiple' && (
-                    <Box sx={{ mt: 1 }}>
+                    <Box sx={{ mt: -4.5 }}>
                         <FormControl fullWidth size="small">
                             <InputLabel>Mode</InputLabel>
                             <Select
@@ -312,20 +403,30 @@ const GoldLoanForm = () => {
                                 value={form.mode}
                                 label="Mode"
                                 onChange={handleChange}
-                                sx={{ width: '50%', textAlign: 'left', }}
+                                sx={{ width: '50%', textAlign: 'left', font: '8px' }}
                             >
+                                <MenuItem value="days">Days</MenuItem>
                                 <MenuItem value="weekly">Weekly</MenuItem>
                                 <MenuItem value="monthly">Monthly</MenuItem>
+                                <MenuItem value="quarterly">Quarterly</MenuItem>
+                                <MenuItem value="halfyearly">Half Yearly</MenuItem>
                             </Select>
                         </FormControl>
                         {form.mode && (
                             <Typography variant="body2" sx={{ mt: 0.5, color: 'text.secondary' }}>
-                                Selected Mode: {form.mode === 'weekly' ? 'Weekly' : 'Monthly'}
+                                Selected Mode: {
+                                    form.mode === 'weekly' ? 'Weekly' :
+                                        form.mode === 'monthly' ? 'Monthly' :
+                                            form.mode === 'quarterly' ? 'Quarterly' :
+                                                form.mode === 'halfyearly' ? 'Half Yearly' :
+                                                    form.mode === 'days' ? 'Days' :
+                                                        ''
+                                }
                             </Typography>
                         )}
                     </Box>
                 )}
-
+                {/* 
                 {interestType === 'range' && (
                     <Box sx={{ mt: 1 }}>
                         <FormControl fullWidth size="small">
@@ -348,7 +449,19 @@ const GoldLoanForm = () => {
                             </Typography>
                         )}
                     </Box>
-                )}
+                )} */}
+
+                {/* <Grid container justifyContent="flex-end" sx={{ mt: 2 }}>
+                    <Grid item>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handleSubmit} // Your submit handler function
+                        >
+                            Submit
+                        </Button>
+                    </Grid>
+                </Grid> */}
             </Box>
 
             {/* display the image and summary details */}
@@ -396,11 +509,17 @@ const GoldLoanForm = () => {
                     {fileImage.image && (
                         <div style={{ marginTop: '10px' }}>
                             <img src={fileImage.image} alt="Selected" style={{ maxWidth: '100%', height: 'auto' }} />
+                            <IconButton
+                                onClick={handleCloseCapture}
+                                style={{ position: 'absolute', top: 0, right: 0, padding: '0' }}
+                            >
+                                <CloseIcon />
+                            </IconButton>
                         </div>
                     )}
                     {fileImage.capture && (
                         <Box mt={2} position="relative">
-                            <img src={fileImage.capture} alt="Captured Image" style={{ width: '100px' }} />
+                            <img src={fileImage.capture} alt="Captured Image" style={{ maxWidth: '100%', height: 'auto' }} />
                             <IconButton
                                 onClick={handleCloseCapture}
                                 style={{ position: 'absolute', top: 0, right: 0, padding: '0' }}
@@ -415,6 +534,9 @@ const GoldLoanForm = () => {
                     <Typography variant="subtitle1">Summary Table</Typography>
                     <TableContainer component={Paper} sx={{ mb: 3 }}>
                         <Table>
+                            <TableHead>
+                                <Typography variant="overline"> Vr No: {voucherNo}</Typography >
+                            </TableHead>
 
                             <TableBody>
                                 <TableRow>
@@ -427,7 +549,7 @@ const GoldLoanForm = () => {
                                 </TableRow>
                                 <TableRow>
                                     <TableCell>Gold Rate</TableCell>
-                                    <TableCell>{form.goldRate}</TableCell>
+                                    <TableCell>{goldRate}</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell>Processing Fee</TableCell>
@@ -446,6 +568,7 @@ const GoldLoanForm = () => {
             <Box sx={{ flex: 1, p: 1, textAlign: 'center' }}>
                 <Typography variant="subtitle1">Customer Details</Typography>
                 {/* Placeholder for customer details form */}
+                <p>Custom ID: {customerId}</p>
             </Box>
         </Box >
     );

@@ -16,6 +16,12 @@ const customerSchema = new Schema(
         aadhar: String,
         email: String,
         gst: String,
+        aadharImage: {
+            name: String,
+            fileName: String,
+            path: { type: String, default: '/cdn/images/user.png' },
+            uploadedDate: Date,
+        },
         image: {
             name: String,
             fileName: String,

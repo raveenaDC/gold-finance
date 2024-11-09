@@ -8,35 +8,87 @@ import {
     TableHead,
     TableRow,
     TextField,
-    Autocomplete,
     Box,
     Button,
+    Paper,
+    Autocomplete,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import Paper from '@mui/material/Paper';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 const ItemDetailsTable = () => {
-    const [items, setItems] = useState([
-        { id: 1, type: 'gold', description: '', no: '', grossWeight: '', stoneWeight: '', netWeight: '' },
-    ]);
+    const [items, setItems] = useState([]);
+    const [newItem, setNewItem] = useState({
+        type: 'Select',
+        no: '',
+        grossWeight: '',
+        stoneWeight: '',
+        deptWeight: '',
+        netWeight: '', // User input for net weight
+    });
 
-    const handleAddRow = () => {
-        const newItem = {
-            id: items.length + 1,
-            type: 'Select',
-            description: '',
-            no: '',
-            grossWeight: '',
-            stoneWeight: '',
-            netWeight: '',
-        };
-        setItems([...items, newItem]);
+    // Function to auto-calculate Net Weight
+    const calculateNetWeight = (grossWeight, stoneWeight) => {
+        if (grossWeight && stoneWeight) {
+            return (parseFloat(grossWeight) - parseFloat(stoneWeight)).toFixed(2);
+        }
+        return ''; // Return an empty string if calculation can't be done
     };
 
-    const handleChange = (id, field, value) => {
+    // Add a new row to the table
+    const handleAddRow = () => {
+        if (newItem.netWeight !== '') {
+            setItems([
+                ...items,
+                { ...newItem, id: Date.now(), isEditing: false },
+            ]);
+            setNewItem({
+                type: 'Select',
+                no: '',
+                grossWeight: '',
+                stoneWeight: '',
+                deptWeight: '',
+                netWeight: '', // Reset netWeight after adding
+            });
+        }
+    };
+
+    // Handle changes in the new item input fields
+    const handleChange = (field, value) => {
+        // If Gross Weight or Stone Weight changes, auto-calculate Net Weight
+        if (field === 'grossWeight' || field === 'stoneWeight') {
+            const netWeight = calculateNetWeight(value, newItem.stoneWeight || newItem.grossWeight);
+            setNewItem({ ...newItem, [field]: value, netWeight });
+        } else {
+            setNewItem({ ...newItem, [field]: value });
+        }
+    };
+
+    // Handle deleting a row
+    const handleDelete = (id) => {
+        const updatedItems = items.filter((item) => item.id !== id);
+        setItems(updatedItems);
+    };
+
+    // Toggle edit mode for a specific row
+    const toggleEditMode = (id) => {
         const updatedItems = items.map((item) => {
             if (item.id === id) {
+                return { ...item, isEditing: !item.isEditing };
+            }
+            return item;
+        });
+        setItems(updatedItems);
+    };
+
+    // Handle changes when editing a row
+    const handleChangeInRow = (id, field, value) => {
+        const updatedItems = items.map((item) => {
+            if (item.id === id) {
+                if (field === 'grossWeight' || field === 'stoneWeight') {
+                    const netWeight = calculateNetWeight(value, item.stoneWeight || item.grossWeight);
+                    return { ...item, [field]: value, netWeight };
+                }
                 return { ...item, [field]: value };
             }
             return item;
@@ -44,149 +96,139 @@ const ItemDetailsTable = () => {
         setItems(updatedItems);
     };
 
-    const handleNetWeightKeyDown = (id, e) => {
-        if (e.key === 'Enter') {
-            const currentItem = items.find(item => item.id === id);
-            if (currentItem.netWeight) {
-                handleAddRow();
-            }
-        }
-    };
-
-    const handleDelete = (id) => {
-        const updatedItems = items.filter((item) => item.id !== id);
-        setItems(updatedItems);
+    // Handle saving the changes after editing
+    const handleSaveRow = (id) => {
+        toggleEditMode(id); // Save changes and toggle back to view mode
     };
 
     return (
         <Box sx={{ p: 2 }}>
-            <TableContainer component={Paper}>
-                <Table sx={{ minWidth: 650 }} aria-label="simple table">
+            <TableContainer component={Paper} sx={{ mb: 2, height: 300, overflowY: 'auto' }}>
+                <Table stickyHeader aria-label="sticky table">
                     <TableHead>
-                        <TableRow
-                            sx={{
-                                height: '40px', // Adjust height as needed
-                                '& .MuiTableCell-root': {
-                                    padding: '4px', // Adjust padding to reduce cell height
-                                },
-                            }}
-                        >
-                            <TableCell colSpan={7} align="right">
-                                <Button
-                                    variant="text"
-                                    color="primary"
-                                    onClick={handleAddRow}
-                                    startIcon={<AddIcon />}
-                                    sx={{ fontSize: '0.875rem', minHeight: 'auto', padding: '4px 8px' }} // Reduce button padding
-                                >
-                                    Add Item
-                                </Button>
+                        <TableRow>
+                            <TableCell colSpan={8} sx={{ padding: '4px', borderBottom: '1px solid #ccc' }}>
+                                {/* Add Item button */}
+                                <Box display="flex" justifyContent="flex-end">
+                                    <Button
+                                        variant="contained"
+                                        color="primary"
+                                        startIcon={<AddIcon />}
+                                        onClick={handleAddRow}
+                                    >
+                                        Add Item
+                                    </Button>
+                                </Box>
                             </TableCell>
                         </TableRow>
-
-                        <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                            <TableCell>Type</TableCell>
-                            <TableCell>Description</TableCell>
-                            <TableCell>No</TableCell>
-                            <TableCell>Gross Weight</TableCell>
-                            <TableCell>Stone Weight</TableCell>
-                            <TableCell>Net Weight</TableCell>
-                            <TableCell>Actions</TableCell>
+                        <TableRow>
+                            {['Item Details', 'No', 'Gross Wt', 'Stone Wt', 'Dep Wt', 'Net Wt', 'Actions'].map((header) => (
+                                <TableCell key={header} sx={{ fontSize: '12px', backgroundColor: '#f0f0f0', padding: '4px' }}>
+                                    {header}
+                                </TableCell>
+                            ))}
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {items.map((item) => (
-                            <TableRow
-                                key={item.id}
-                                sx={{
-                                    height: '40px', // Adjust the row height
-                                    '& .MuiTableCell-root': {
-                                        padding: '4px', // Reduce padding for cells
-                                    },
-                                }}
-                            >
-                                <TableCell>
-                                    <Autocomplete
-                                        options={['gold', 'bangle', 'chain']}
-                                        value={item.type}
-                                        onChange={(event, newValue) => handleChange(item.id, 'type', newValue)}
-                                        freeSolo
-                                        renderInput={(params) => (
-                                            <TextField
-                                                {...params}
-                                                required
-                                                size="small"
-                                                variant="standard" // Apply standard variant for no outline
-                                                sx={{ width: '120px' }}
-                                            />
-                                        )}
+                        {/* New Item Input Row */}
+                        <TableRow>
+                            <TableCell sx={{ padding: '4px' }}>
+                                <Autocomplete
+                                    options={['Earrings', 'Bangle', 'Chain', 'Ring']}
+                                    value={newItem.type}
+                                    onChange={(event, newValue) => handleChange('type', newValue)}
+                                    renderInput={(params) => (
+                                        <TextField {...params} variant="outlined" size="small" fullWidth sx={{ fontSize: '12px' }} />
+                                    )}
+                                />
+                            </TableCell>
+                            {['no', 'grossWeight', 'stoneWeight', 'deptWeight'].map((field) => (
+                                <TableCell key={field} sx={{ padding: '4px' }}>
+                                    <TextField
+                                        value={newItem[field]}
+                                        onChange={(e) => handleChange(field, e.target.value)}
+                                        variant="outlined"
+                                        size="small"
+                                        fullWidth
+                                        sx={{ fontSize: '12px' }}
                                     />
                                 </TableCell>
+                            ))}
+                            <TableCell sx={{ padding: '4px' }}>
+                                <TextField
+                                    value={newItem.netWeight}
+                                    onChange={(e) => handleChange('netWeight', e.target.value)}
+                                    variant="outlined"
+                                    size="small"
+                                    fullWidth
+                                    sx={{ fontSize: '12px' }}
+                                />
+                            </TableCell>
+                            <TableCell sx={{ padding: '4px' }}>
+                                <IconButton
+                                    size="small"
+                                    color="primary"
+                                    onClick={handleAddRow}
+                                >
+                                    <AddIcon fontSize="small" />
+                                </IconButton>
+                            </TableCell>
+                        </TableRow>
 
-                                <TableCell>
-                                    <TextField
-                                        required
-                                        value={item.description}
-                                        onChange={(e) => handleChange(item.id, 'description', e.target.value)}
-                                        size="small"
-                                        variant="standard" // Removes the outline
-                                        sx={{ width: '120px' }}
-                                    />
+                        {/* Displaying Items */}
+                        {items.map((item) => (
+                            <TableRow key={item.id} onDoubleClick={() => toggleEditMode(item.id)}>
+                                <TableCell sx={{ padding: '4px' }}>
+                                    {item.isEditing ? (
+                                        <Autocomplete
+                                            options={['Earrings', 'Bangle', 'Chain', 'Ring']}
+                                            value={item.type}
+                                            onChange={(event, newValue) => handleChangeInRow(item.id, 'type', newValue)}
+                                            renderInput={(params) => (
+                                                <TextField {...params} variant="outlined" size="small" fullWidth sx={{ fontSize: '12px' }} />
+                                            )}
+                                        />
+                                    ) : (
+                                        item.type
+                                    )}
                                 </TableCell>
-                                <TableCell>
-                                    <TextField
-                                        required
-                                        type="number"
-                                        value={item.no}
-                                        onChange={(e) => handleChange(item.id, 'no', e.target.value)}
+                                {['no', 'grossWeight', 'stoneWeight', 'deptWeight', 'netWeight'].map((field) => (
+                                    <TableCell key={field} sx={{ padding: '4px' }}>
+                                        {item.isEditing ? (
+                                            <TextField
+                                                value={item[field]}
+                                                onChange={(e) => handleChangeInRow(item.id, field, e.target.value)}
+                                                variant="outlined"
+                                                size="small"
+                                                fullWidth
+                                                sx={{ fontSize: '12px' }}
+                                            />
+                                        ) : (
+                                            item[field]
+                                        )}
+                                    </TableCell>
+                                ))}
+                                <TableCell sx={{ padding: '4px' }}>
+                                    <IconButton
                                         size="small"
-                                        variant="standard" // Removes the outline
-                                        sx={{ width: '70px' }}
-                                    />
-                                </TableCell>
-                                <TableCell>
-                                    <TextField
-                                        required
-                                        type="number"
-                                        value={item.grossWeight}
-                                        onChange={(e) => handleChange(item.id, 'grossWeight', e.target.value)}
-                                        size="small"
-                                        variant="standard" // Removes the outline
-                                        sx={{ width: '90px' }}
-                                    />
-                                </TableCell>
-                                <TableCell>
-                                    <TextField
-                                        required
-                                        type="number"
-                                        value={item.stoneWeight}
-                                        onChange={(e) => handleChange(item.id, 'stoneWeight', e.target.value)}
-                                        size="small"
-                                        variant="standard" // Removes the outline
-                                        sx={{ width: '90px' }}
-                                    />
-                                </TableCell>
-                                <TableCell>
-                                    <TextField
-                                        required
-                                        type="number"
-                                        value={item.netWeight}
-                                        onKeyDown={(e) => handleNetWeightKeyDown(item.id, e)}
-                                        onChange={(e) => handleChange(item.id, 'netWeight', e.target.value)}
-                                        size="small"
-                                        variant="standard" // Removes the outline
-                                        sx={{ width: '90px' }}
-                                    />
-                                </TableCell>
-                                <TableCell>
-                                    <IconButton color="error" onClick={() => handleDelete(item.id)}>
-                                        <DeleteIcon />
+                                        color="error"
+                                        onClick={() => handleDelete(item.id)}
+                                    >
+                                        <DeleteIcon fontSize="small" />
                                     </IconButton>
+                                    {item.isEditing && (
+                                        <IconButton
+                                            size="small"
+                                            color="primary"
+                                            onClick={() => handleSaveRow(item.id)}
+                                        >
+                                            Save
+                                        </IconButton>
+                                    )}
                                 </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
-
                 </Table>
             </TableContainer>
         </Box>
@@ -194,5 +236,3 @@ const ItemDetailsTable = () => {
 };
 
 export default ItemDetailsTable;
-
-

@@ -2,7 +2,8 @@ import { Schema, model } from 'mongoose';
 
 const memberSchema = new Schema(
     {
-        name: String,
+        firstName: String,
+        lastName: String,
         email: String,
         memberImage: {
             name: String,

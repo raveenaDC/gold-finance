@@ -29,17 +29,28 @@ export async function viewMembers(req, res) {
         const query = {};
         if (search) {
             query.$or = [
-                { name: { $regex: new RegExp(search, 'i') } },
+                { firstName: { $regex: new RegExp(search, 'i') } },
+                {
+                    $expr: {
+                        $regexMatch: {
+                            input: { $concat: ['$firstName', ' ', '$lastName'] },
+                            regex: new RegExp(search, 'i')
+                        }
+                    }
+                },
+                { lastName: { $regex: new RegExp(search, 'i') } },
                 { email: { $regex: new RegExp(search, 'i') } }
             ];
         }
 
         let memberSet = await models.memberModel.find(query).select(
-            ' name email memberImage role address aadhar phone pin city landMark loginDetails isAccess state createdAt'
+            ' firstName lastName email memberImage role address aadhar phone pin city landMark  isAccess state createdAt'
         ).collation({ locale: 'en', strength: 2 });
 
-        if (orderBy === 'name') {
-            memberSet.sort((a, b) => a.name.localeCompare(b.name) * order);
+        if (orderBy === 'firstName') {
+            memberSet.sort((a, b) => a.firstName.localeCompare(b.firstName) * order);
+        } else if (orderBy === 'lastName') {
+            memberSet.sort((a, b) => a.lastName.localeCompare(b.lastName) * order);
         } else if (orderBy === 'date') {
             memberSet.sort((a, b) => a.createdAt.localeCompare(b.createdAt) * order);
         } else {
@@ -49,7 +60,7 @@ export async function viewMembers(req, res) {
         if (search) {
             // Define a function to calculate relevance score
             const calculateRelevance = (memberSet) => {
-                const fields = ['name email'];
+                const fields = ['firstName lastName email'];
                 let relevance = 0;
                 fields.forEach((field) => {
                     if (
@@ -89,7 +100,8 @@ export async function viewMembers(req, res) {
 
 export async function createMember(req, res) {
     try {
-        let { name,
+        let { firstName,
+            lastName,
             email,
             role,
             address,
@@ -113,7 +125,8 @@ export async function createMember(req, res) {
         const passCode = generateRandomPassword();
 
         const member = await models.memberModel.create({
-            name,
+            firstName,
+            lastName,
             email,
             role,
             password: await generatePasswordHash(passCode),
@@ -129,10 +142,11 @@ export async function createMember(req, res) {
             member.goldImage = transFormImageUploadResponseArray(memberImage)[0];
         }
 
+        let memberName = firstName + ' ' + lastName;
         const frontendUrl = process.env.FRONTEND_URL + '/auth/login';
         const subject = 'Account created successfully';
         const content = createAccountTemplate(
-            name,
+            memberName,
             email,
             passCode,
             frontendUrl
@@ -155,7 +169,8 @@ export async function createMember(req, res) {
 
 export async function updateMember(req, res) {
     try {
-        let { name,
+        let { firstName,
+            lastName,
             role,
             address,
             aadhar,
@@ -186,7 +201,8 @@ export async function updateMember(req, res) {
         const updateItem = await models.memberModel.findByIdAndUpdate(
             memberId,
             {
-                name,
+                firstName,
+                lastName,
                 role,
                 address,
                 aadhar,
@@ -245,7 +261,7 @@ export async function viewMemberById(req, res) {
     try {
         const { memberId } = req.params
         const member = await models.memberModel.findById(memberId).select(
-            'name email memberImage role address aadhar phone pin city landMark loginDetails isAccess state'
+            'firstName lastName email memberImage role address aadhar phone pin city landMark loginDetails isAccess state'
         );
         if (!member) {
             return responseHelper(

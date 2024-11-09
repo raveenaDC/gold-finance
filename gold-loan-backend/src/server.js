@@ -4,7 +4,7 @@ import cors from 'cors';
 import * as dotenv from 'dotenv';
 import initializeRoutes from './routes/index.js';
 import path from 'path'
-import { mongoUrl } from './config/db.config.js';
+import mongoDb from './connection/mongo-db.js';
 import { getCurrentWorkingFolder } from './utils/get-current-working-folder.helper.js';
 
 dotenv.config();
@@ -14,16 +14,12 @@ const dirname = getCurrentWorkingFolder(import.meta.url);
 
 async function main() {
     try {
+        await mongoDb.createConnection();
+
         app.use(express.json());
         app.use(express.urlencoded({ extended: true }));
 
         app.use(cors({ origin: '*' }));
-
-        mongoose.connect(mongoUrl).then(() => {
-            console.log("Mongodb connected successfully");
-        }).catch((err) => {
-            console.log(err, "Not connected to the mongodb");
-        })
 
         //   Initialize  express.static(path.join(dirname, '../', 'public')) before the app.all('*', ...)  (initializeRoutes(app);)
 

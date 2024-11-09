@@ -1,2 +1,4 @@
 /node_modules
 .env
+/connection/seed.js
+/connection/seed-data.js

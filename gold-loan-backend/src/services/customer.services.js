@@ -14,36 +14,85 @@ const transFormImageUploadResponseArray = (imageResponseArray) => {
     }));
 };
 
-export async function customerView(req, res) {
+export async function customerView(req, res, next) {
     try {
 
-        let { pageLimit, orderBy = 'createdAt', search = null, order } = req.query;
+        let { pageLimit, orderBy = 'createdAt', search = null, order, careOf, address, startYear, endYear } = req.query;
         pageLimit = parseInt(pageLimit || defaultPageLimit);
         const page = parseInt(req.query.page) || 1;
         order = order == 'asc' ? 1 : -1;
+        const currentDate = new Date();
+        let startDate, endDate;
         let sort = {};
-        const query = {};
-        if (search) {
-            query.$or = [
-                { firstName: { $regex: new RegExp(search, 'i') } },
+
+        // Sort by financial year
+
+        if (startYear && endYear) {
+            startDate = new Date(`${startYear}-03-01`);
+            endDate = new Date(`${endYear}-03-31`);
+        } else {
+            const currentYear = currentDate.getFullYear();
+            const currentMonth = currentDate.getMonth() + 1;
+
+            const defaultStartingYear = currentMonth >= 3 ? currentYear : currentYear - 1;
+            const defaultEndingYear = defaultStartingYear + 1;
+
+            startDate = new Date(`${defaultStartingYear}-03-01`);
+            endDate = new Date(`${defaultEndingYear}-03-31`);
+        }
+
+        const query = { createdAt: { $gte: startDate, $lte: endDate } };
+
+        if (search && address && careOf) {
+
+            query.$and = [
                 {
                     $expr: {
                         $regexMatch: {
                             input: { $concat: ['$firstName', ' ', '$lastName'] },
-                            regex: new RegExp(search, 'i'),
-                        },
-                    },
+                            regex: new RegExp(search, 'i')
+                        }
+                    }
                 },
-                { lastName: { $regex: new RegExp(search, 'i') } },
-                { email: { $regex: new RegExp(search, 'i') } },
-                { primaryNumber: { $regex: new RegExp(search, 'i') } },
-                { secondaryNumber: { $regex: new RegExp(search, 'i') } }
+                { address: { $regex: new RegExp(address, 'i') } },
+                { careOf: { $regex: new RegExp(careOf, 'i') } }
             ];
+        } else {
+            // Flexible search when not all fields are provided
+            let conditions = [];
+
+            if (search) {
+                conditions.push(
+                    { firstName: { $regex: new RegExp(search, 'i') } },
+                    {
+                        $expr: {
+                            $regexMatch: {
+                                input: { $concat: ['$firstName', ' ', '$lastName'] },
+                                regex: new RegExp(search, 'i')
+                            }
+                        }
+                    },
+                    { lastName: { $regex: new RegExp(search, 'i') } }
+                );
+            }
+
+            if (careOf) {
+                conditions.push({ careOf: { $regex: new RegExp(careOf, 'i') } });
+            }
+
+            if (address) {
+                conditions.push({ address: { $regex: new RegExp(address, 'i') } });
+            }
+
+            if (conditions.length > 0) {
+                query.$or = conditions;
+            }
         }
 
         let customerList = await models.customerModel.find(query).select(
-            'firstName lastName  address place state  pin nearBy  primaryNumber careOf secondaryNumber aadhar email image signature createdAt'
+            'firstName lastName  address place state  pin nearBy  primaryNumber careOf secondaryNumber aadhar email image signature aadharImage createdAt'
         ).collation({ locale: 'en', strength: 2 });
+        console.log(customerList);
 
         if (orderBy === 'firstName') {
             customerList.sort((a, b) => a.firstName.localeCompare(b.firstName) * order);
@@ -92,7 +141,7 @@ export async function customerView(req, res) {
             pagination: paginationResult.pagination,
         });
 
-    } catch {
+    } catch (error) {
         return next(new Error(error));
     }
 
@@ -114,8 +163,7 @@ export async function createCustomer(req, res, next) {
             gst,
             email, } = req.body;
 
-        let { image, signature } = req.files;
-
+        let { image, signature, aadharImage } = req.files;
 
         const existCustomer = await models.customerModel.findOne({ email: email })
         if (existCustomer) {
@@ -147,6 +195,8 @@ export async function createCustomer(req, res, next) {
             member.signature = transFormImageUploadResponseArray(signature)[0];
         } if (image && image.length > 0) {
             member.image = transFormImageUploadResponseArray(image)[0];
+        } if (aadharImage && aadharImage.length > 0) {
+            member.aadharImage = transFormImageUploadResponseArray(aadharImage)[0];
         }
 
         await member.save();
@@ -179,10 +229,10 @@ export async function updateCustomer(req, res) {
             gst,
             email, } = req.body;
 
-        let { image, signature } = req.files;
+        let { image, signature, aadharImage } = req.files;
 
         const { customerId } = req.params;
-        let images = {}, sign = {};
+        let images = {}, sign = {}; document = {};
 
         const customer = await models.customerModel.findById(customerId);
         if (!customer) {
@@ -208,6 +258,15 @@ export async function updateCustomer(req, res) {
                     : customer.signature,
             };
         }
+        if (
+            (aadharImage && aadharImage[0])
+        ) {
+            document = {
+                item: req.files.aadharImage
+                    ? transFormImageUploadResponseArray(aadharImage)[0]
+                    : customer.aadharImage,
+            };
+        }
 
         const updateItem = await models.customerModel.findByIdAndUpdate(
             customerId,
@@ -225,7 +284,8 @@ export async function updateCustomer(req, res) {
                 aadhar,
                 gst,
                 email, image: images.item,
-                signature: sign.item
+                signature: sign.item,
+                aadharImage: document.item
             },
             {
                 new: true,
@@ -277,7 +337,7 @@ export async function customerViewById(req, res) {
     try {
         const { customerId } = req.params
         const customer = await models.customerModel.findById(customerId).select(
-            'firstName lastName  address place state  pin nearBy  primaryNumber careOf secondaryNumber aadhar email image signature createdAt'
+            'firstName lastName  address place state  pin nearBy  primaryNumber careOf secondaryNumber aadhar email image signature aadharImage createdAt'
         );
         if (!customer) {
             return responseHelper(

@@ -3,6 +3,7 @@ import { Grid, Button, Typography, CircularProgress, Box, TextField } from '@mui
 import { DataGrid } from '@mui/x-data-grid';
 import GlCustomer from "../Forms/GlCustomer";
 import { useNavigate } from 'react-router-dom';
+import ItemDetailsTable from './ItemDetailsTable ';
 
 export default function GlMaster() {
     const [customers, setCustomers] = useState([]);
@@ -59,6 +60,9 @@ export default function GlMaster() {
                         color: '#000',
                         '&:hover': { backgroundColor: '#FFC107' },
                         width: '100%',
+                        fontSize: '8px', // Adjust font size (e.g., 12px or another value you prefer)
+                        height: '30px', // Adjust button height (e.g., 35px or another value you prefer)
+                        padding: '2px 2px', // Adjust padding to maintain proportion
                     }}
                     onClick={() => handleGoldLoan(params.row.customId)}
                 >
@@ -84,8 +88,11 @@ export default function GlMaster() {
     }
 
     return (
+
+
         <Box sx={{ padding: { xs: 1, sm: 2, md: 3 } }}>
             <Grid container justifyContent="space-between" alignItems="center" sx={{ mb: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+                <ItemDetailsTable />
                 {/* Typography for Customer List Heading */}
                 <Typography
                     variant="h4"
@@ -134,8 +141,12 @@ export default function GlMaster() {
                     checkboxSelection={false}
                     getRowId={(row) => row.id}
                     sx={{
-                        '& .MuiDataGrid-cell': { fontSize: { xs: '0.8rem', sm: '1rem' } },
-                        '& .MuiDataGrid-columnHeaders': { fontSize: { xs: '0.9rem', sm: '1rem' } },
+                        '& .MuiDataGrid-cell': {
+                            fontSize: { xs: '0.8rem', sm: '0.8rem' }, // Font size for different screen sizes
+                            padding: '-5px 4px', // Reduce padding to reduce cell height
+
+                        },
+                        '& .MuiDataGrid-columnHeaders': { fontSize: { xs: '0.6rem', sm: '.8rem' } },
                     }}
                 />
             </Box>

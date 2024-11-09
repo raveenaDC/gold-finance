@@ -38,14 +38,17 @@ const AddNomineeDetails = () => {
         <Grid container spacing={2}>
             {/* Add or Display Nominee Button */}
             <Grid item xs={12}>
-                <Button
-
-                    color="primary"
+                <Button variant="text" color="Secondary" onClick={handleNomineeModalOpen}>
+                    {nomineeSaved ? `Nominee: ${nomineeDetails.firstName}` : 'Add Nominee '}
+                </Button>
+                {/* <Button
+                    variant="text"
+                    color="Secondary"
                     fullWidth
-                    onClick={handleNomineeModalOpen}
+
                 >
                     {nomineeSaved ? `Nominee: ${nomineeDetails.firstName}` : 'Add Nominee Details'}
-                </Button>
+                </Button> */}
             </Grid>
 
             {/* Nominee Details Modal */}

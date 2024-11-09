@@ -13,6 +13,23 @@ const transFormImageUploadResponseArray = (imageResponseArray) => {
         uploadedDate: new Date(),
     }));
 };
+const itemArrayMapping = (goldItems) => {
+    let itemLists = [];
+    for (let key in goldItems) {
+        if (key.startsWith('itemDetails[')) {
+            const match = key.match(/itemDetails\[(\d+)\]\.(\w+)/);
+            if (match) {
+                const index = match[1];
+                const property = match[2];
+                if (!itemLists[index]) {
+                    itemLists[index] = {};
+                }
+                itemLists[index][property] = goldItems[key];
+            }
+        }
+    }
+    return itemLists;
+};
 
 export async function viewGoldLoan(req, res) {
     try {
@@ -46,7 +63,7 @@ export async function viewGoldLoan(req, res) {
         }
 
         let loanList = await models.goldLoanModel.find(query).select(
-            'glNo purchaseDate goldRate companyGoldRate netWeight grossWeight stoneWeight interestRate interestMode itemId customerId memberId nomineeId insurance  processingFee packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt'
+            'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestRate interestMode customerId memberId nomineeId paymentMode insurance  processingFee packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt'
         ).collation({ locale: 'en', strength: 2 });
 
         if (orderBy === 'glNo') {
@@ -104,16 +121,16 @@ export async function viewGoldLoan(req, res) {
 export async function addGoldLoan(req, res, next) {
     try {
         let {
+            glNo,
+            purchaseDate,
             goldRate,
+            voucherNo,
             companyGoldRate,
-            netWeight,
-            grossWeight,
-            stoneWeight,
             interestRate,
             interestMode,
-            itemId,
             customerId,
             nomineeId,
+            paymentMode,
             insurance,
             processingFee,
             packingFee,
@@ -125,6 +142,9 @@ export async function addGoldLoan(req, res, next) {
             currentGoldValue,
             // profitOrLoss
         } = req.body;
+
+
+        let itemDetails = await itemArrayMapping(req.body);
 
         let { goldImage } = req.files;
         // let { memberId } = req.user
@@ -149,19 +169,18 @@ export async function addGoldLoan(req, res, next) {
             );
         }
         const loan = await models.goldLoanModel.create({
-            glNo: 234,
-            purchaseDate: Date.now(),
+            glNo,
+            voucherNo,
+            purchaseDate,//: new Date().toLocaleDateString('en-GB')
             goldRate,
             companyGoldRate,
-            netWeight,
-            grossWeight,
-            stoneWeight,
+            itemDetails,
             interestRate,
             interestMode,
-            itemId,
             customerId,
             memberId,
             nomineeId,
+            paymentMode,
             insurance,
             processingFee,
             packingFee,
@@ -192,67 +211,66 @@ export async function addGoldLoan(req, res, next) {
 
 export async function updateGoldLoanById(req, res) {
     try {
-        let { firstName,
-            lastName,
-            address,
-            place,
-            state,
-            pin,
-            nearBy,
-            primaryNumber,
-            careOf,
-            secondaryNumber,
-            aadhar,
-            gst,
-            email, } = req.body;
+        let {
+            goldRate,
+            companyGoldRate,
+            interestRate,
+            interestMode,
+            nomineeId,
+            insurance,
+            processingFee,
+            packingFee,
+            appraiser,
+            principleAmount,
+            paymentMode,
+            //amountPaid,
+            // balanceAmount,
+            currentGoldValue,
+            // profitOrLoss
+        } = req.body;
+        const { loanId } = req.params;
+        let { goldImage } = req.files;
+        let itemDetails = await itemArrayMapping(req.body);
 
-        let { image, signature } = req.files;
 
-        const { customerId } = req.params;
-        let images = {}, sign = {};
+        let images = {};
 
-        const customer = await models.customerModel.findById(customerId);
-        if (!customer) {
-            return responseHelper(res, httpStatus.NOT_FOUND, true, 'Customer not found');
+        const loan = await models.goldLoanModel.findById(loanId);
+        if (!loan) {
+            return responseHelper(res, httpStatus.NOT_FOUND, true, 'Loan details not found');
         }
 
 
         if (
-            (image && image[0])
+            (goldImage && goldImage[0])
         ) {
             images = {
-                item: req.files.image
-                    ? transFormImageUploadResponseArray(image)[0]
-                    : customer.image,
-            };
-        }
-        if (
-            (signature && signature[0])
-        ) {
-            sign = {
-                item: req.files.signature
-                    ? transFormImageUploadResponseArray(signature)[0]
-                    : customer.signature,
+                item: req.files.goldImage
+                    ? transFormImageUploadResponseArray(goldImage)[0]
+                    : loan.goldImage,
             };
         }
 
-        const updateItem = await models.customerModel.findByIdAndUpdate(
-            customerId,
+        const updateGoldList = await models.goldLoanModel.findByIdAndUpdate(
+            loanId,
             {
-                firstName,
-                lastName,
-                address,
-                place,
-                state,
-                pin,
-                nearBy,
-                primaryNumber,
-                careOf,
-                secondaryNumber,
-                aadhar,
-                gst,
-                email, image: images.item,
-                signature: sign.item
+                goldRate,
+                companyGoldRate,
+                itemDetails,
+                interestRate,
+                interestMode,
+                paymentMode,
+                nomineeId,
+                insurance,
+                processingFee,
+                packingFee,
+                appraiser,
+                principleAmount,
+                //amountPaid,
+                // balanceAmount,
+                currentGoldValue,
+                // profitOrLoss
+                goldImage, image: images.item,
             },
             {
                 new: true,
@@ -263,7 +281,7 @@ export async function updateGoldLoanById(req, res) {
             httpStatus.OK,
             false,
             'Customer is updated successfully',
-            { item: updateItem }
+            { item: updateGoldList }
         );
     } catch (error) {
         return next(new Error(error));
@@ -304,7 +322,7 @@ export async function viewGoldLoanById(req, res) {
     try {
         const { loanId } = req.params
         const loan = await models.customerModel.findById(loanId).select(
-            'glNo purchaseDate goldRate companyGoldRate netWeight grossWeight stoneWeight interestRate interestMode itemId customerId memberId nomineeId insurance  processingFee packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt'
+            'glNo voucherNo purchaseDate goldRate companyGoldRate itemDetails interestRate interestMode customerId memberId nomineeId paymentMode insurance  processingFee packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt'
         );
         if (!loan) {
             return responseHelper(
