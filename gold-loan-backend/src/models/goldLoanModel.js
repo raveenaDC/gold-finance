@@ -15,7 +15,7 @@ const itemDetailsSchema = new Schema(
             type: Types.Decimal128,
             get: v => (v ? parseFloat(v.toString()) : null)
         },
-        description: String,
+        // description: String,
         depreciation: {
             type: Types.Decimal128,
             get: v => (v ? parseFloat(v.toString()) : null)

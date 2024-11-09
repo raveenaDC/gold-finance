@@ -142,12 +142,10 @@ export async function addGoldLoan(req, res, next) {
             currentGoldValue,
             // profitOrLoss
         } = req.body;
-
-
-        let itemDetails = await itemArrayMapping(req.body);
-
         let { goldImage } = req.files;
         // let { memberId } = req.user
+
+        let itemDetails = await itemArrayMapping(req.body);
 
         const existCustomer = await models.customerModel.findById({ _id: customerId })
         if (!existCustomer) {
