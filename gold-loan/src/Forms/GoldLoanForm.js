@@ -77,7 +77,7 @@ const GoldLoanForm = () => {
             const filename = `webcam_image_${timestamp}.jpg`; // e.g., 'webcam_image_20241018T123456.jpg'
             const fileWithFileName = new File([blob], filename, { type: 'image/jpeg' });// Create a new File from the Blob to include the filename
             fileImage.goldImage = fileWithFileName; // Assign it to fileImage.image
-            formData.append('goldImage', fileImage.capture); // Append Blob with a file name
+            formData.append('goldImage', fileImage.goldImage); // Append Blob with a file name
         }
 
 
