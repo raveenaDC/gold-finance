@@ -266,8 +266,6 @@ export default function CustomerForm({ onCustomerAdded }) {
             alert('Successfully uploaded!');
 
 
-            console.log(formData); // Handle form submission logic here
-
             // Clear form data after successful submission
             setFormData({
                 firstName: '',

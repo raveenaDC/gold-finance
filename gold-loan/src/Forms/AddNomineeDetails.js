@@ -1,19 +1,59 @@
 import React, { useState } from 'react';
 import { Button, Grid, TextField, Typography, Modal, Box } from '@mui/material';
+import PropTypes from 'prop-types';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
+import NomineeSearch from './NomineeSearch';
+import { useNominee } from './NomineeContext';
+import { submitDocument } from '../api';
+import Draggable from 'react-draggable';
+
+
+function CustomTabPanel(props) {
+    const { children, value, index, ...other } = props;
+
+    return (
+        <div
+            role="tabpanel"
+            hidden={value !== index}
+            id={`simple-tabpanel-${index}`}
+            aria-labelledby={`simple-tab-${index}`}
+            {...other}
+        >
+            {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+        </div>
+    );
+}
+
+CustomTabPanel.propTypes = {
+    children: PropTypes.node,
+    index: PropTypes.number.isRequired,
+    value: PropTypes.number.isRequired,
+};
+
+function a11yProps(index) {
+    return {
+        id: `simple-tab-${index}`,
+        'aria-controls': `simple-tabpanel-${index}`,
+    };
+}
+
 
 const AddNomineeDetails = () => {
     const [showNomineeModal, setShowNomineeModal] = useState(false);
     const [nomineeSaved, setNomineeSaved] = useState(false);
+    const [nomineeId, setNomineeNominee] = useState(false);
+
     const [nomineeDetails, setNomineeDetails] = useState({
         firstName: '',
         lastName: '',
         address: '',
         place: '',
         state: '',
-        nearByLocation: '',
+        nearBy: '',
         aadhar: '',
-        relationship: '',
-        contact: ''
+        primaryNumber: '',
+        email: '', // Add email field
     });
 
     const handleNomineeModalOpen = () => setShowNomineeModal(true);
@@ -27,10 +67,64 @@ const AddNomineeDetails = () => {
         }));
     };
 
-    const handleSaveNomineeDetails = () => {
-        setNomineeSaved(true); // Mark nominee details as saved
+    const handleSaveNomineeDetails = async () => {
+
+
+        setNomineeSaved(true);
         handleNomineeModalClose(); // Close the modal
+        nominee.firstName = nomineeDetails.firstName;
+
+        const data = new FormData();
+        data.append('firstName', nomineeDetails.firstName);
+        data.append('lastName', nomineeDetails.lastName);
+        data.append('address', nomineeDetails.address);
+        data.append('place', nomineeDetails.place);
+        data.append('state', nomineeDetails.state);
+        data.append('nearBy', nomineeDetails.nearBy);
+        data.append('aadhar', nomineeDetails.aadhar);
+        data.append('primaryNumber', nomineeDetails.primaryNumber);
+        data.append('email', nomineeDetails.email);
+
+        try {
+
+            const customerData = {
+                info: data,
+                method: 'post',
+                path: 'customer/create'
+            }
+            let response = await submitDocument(customerData); // Call the API function
+            alert('Successfully uploaded!');
+
+            setNomineeNominee(response.data._id)
+            setNominee({
+                nomineeId: response.data._id,
+                firstName: nomineeDetails.firstName,
+
+            });
+
+
+        } catch (error) {
+            alert('Failed to upload data. Please try again.');
+        }
+
+
+
     };
+
+
+
+    const [value, setValue] = React.useState(0);
+
+    const handleChange = (event, newValue) => {
+        setValue(newValue);
+    };
+
+    const { nominee } = useNominee(); // Access nominee data from context
+
+    // Use the setNominee function from context
+    const { setNominee } = useNominee();
+
+
 
 
 
@@ -39,7 +133,8 @@ const AddNomineeDetails = () => {
             {/* Add or Display Nominee Button */}
             <Grid item xs={12}>
                 <Button variant="text" color="Secondary" onClick={handleNomineeModalOpen}>
-                    {nomineeSaved ? `Nominee: ${nomineeDetails.firstName}` : 'Add Nominee '}
+                    {nominee.nomineeId ? `Nominee: ${nominee.firstName}` : nomineeSaved ? ` Nominee : ${nomineeDetails.firstName}` : 'Add Nominee'}
+
                 </Button>
                 {/* <Button
                     variant="text"
@@ -51,8 +146,14 @@ const AddNomineeDetails = () => {
                 </Button> */}
             </Grid>
 
+
+
+
+
             {/* Nominee Details Modal */}
             <Modal open={showNomineeModal} onClose={handleNomineeModalClose} aria-labelledby="nominee-modal-title">
+
+
                 <Box
                     sx={{
                         p: 4,
@@ -60,7 +161,7 @@ const AddNomineeDetails = () => {
                         borderRadius: 2,
                         maxWidth: 400,
                         margin: 'auto',
-                        mt: '7%',
+                        mt: '5.5%',
                         maxHeight: '88vh',    // Set maximum height for scrollable area
                         overflowY: 'auto',     // Enable vertical scrolling
                         '::-webkit-scrollbar': { display: 'none' },  // Hide scrollbar in Webkit browsers
@@ -68,95 +169,116 @@ const AddNomineeDetails = () => {
                         scrollbarWidth: 'none'    // Hide scrollbar in Firefox
                     }}
                 >
-                    <Typography id="nominee-modal-title" variant="h6" component="h2">
-                        Nominee Details
-                    </Typography>
-                    <TextField
-                        label="First Name"
-                        name="firstName"
-                        value={nomineeDetails.firstName}
-                        onChange={handleNomineeChange}
-                        fullWidth
-                        size="small"
-                        sx={{ mt: 1 }}
-                    />
-                    <TextField
-                        label="Last Name"
-                        name="lastName"
-                        value={nomineeDetails.lastName}
-                        onChange={handleNomineeChange}
-                        fullWidth
-                        size="small"
-                        sx={{ mt: 1 }}
-                    />
-                    <TextField
-                        label="Address"
-                        name="address"
-                        value={nomineeDetails.address}
-                        onChange={handleNomineeChange}
-                        fullWidth
-                        size="small"
-                        sx={{ mt: 1 }}
-                    />
-                    <TextField
-                        label="Place"
-                        name="place"
-                        value={nomineeDetails.place}
-                        onChange={handleNomineeChange}
-                        fullWidth
-                        size="small"
-                        sx={{ mt: 1 }}
-                    />
-                    <TextField
-                        label="State"
-                        name="state"
-                        value={nomineeDetails.state}
-                        onChange={handleNomineeChange}
-                        fullWidth
-                        size="small"
-                        sx={{ mt: 1 }}
-                    />
-                    <TextField
-                        label="Near By Location"
-                        name="nearByLocation"
-                        value={nomineeDetails.nearByLocation}
-                        onChange={handleNomineeChange}
-                        fullWidth
-                        size="small"
-                        sx={{ mt: 1 }}
-                    />
-                    <TextField
-                        label="Aadhar"
-                        name="aadhar"
-                        value={nomineeDetails.aadhar}
-                        onChange={handleNomineeChange}
-                        fullWidth
-                        size="small"
-                        sx={{ mt: 1 }}
-                    />
-                    <TextField
-                        label="Relationship"
-                        name="relationship"
-                        value={nomineeDetails.relationship}
-                        onChange={handleNomineeChange}
-                        fullWidth
-                        size="small"
-                        sx={{ mt: 1 }}
-                    />
-                    <TextField
-                        label="Contact"
-                        name="contact"
-                        value={nomineeDetails.contact}
-                        onChange={handleNomineeChange}
-                        fullWidth
-                        size="small"
-                        sx={{ mt: 1 }}
-                    />
-                    <Button variant="contained" color="primary" onClick={handleSaveNomineeDetails} fullWidth sx={{ mt: 3 }}>
-                        Save Nominee Details
-                    </Button>
+                    <Box sx={{ width: '100%', maxHeight: '88vh', }}>
+                        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                            <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
+                                <Tab label="Nominee Details" {...a11yProps(0)} />
+                                <Tab label="Item Two" {...a11yProps(1)} />
+                            </Tabs>
+                        </Box>
+                        <CustomTabPanel value={value} index={0}>
+
+
+
+                            <Typography id="nominee-modal-title" variant="h6" component="h2">
+                                Nominee Details
+                            </Typography>
+                            <TextField
+                                label="First Name"
+                                name="firstName"
+                                value={nomineeDetails.firstName}
+                                onChange={handleNomineeChange}
+                                fullWidth
+                                size="small"
+                                sx={{ mt: 1 }}
+                            />
+                            <TextField
+                                label="Last Name"
+                                name="lastName"
+                                value={nomineeDetails.lastName}
+                                onChange={handleNomineeChange}
+                                fullWidth
+                                size="small"
+                                sx={{ mt: 1 }}
+                            />
+                            <TextField
+                                label="Address"
+                                name="address"
+                                value={nomineeDetails.address}
+                                onChange={handleNomineeChange}
+                                fullWidth
+                                size="small"
+                                sx={{ mt: 1 }}
+                            />
+                            <TextField
+                                label="Place"
+                                name="place"
+                                value={nomineeDetails.place}
+                                onChange={handleNomineeChange}
+                                fullWidth
+                                size="small"
+                                sx={{ mt: 1 }}
+                            />
+                            <TextField
+                                label="State"
+                                name="state"
+                                value={nomineeDetails.state}
+                                onChange={handleNomineeChange}
+                                fullWidth
+                                size="small"
+                                sx={{ mt: 1 }}
+                            />
+                            <TextField
+                                label="Near By Location"
+                                name="nearByLocation"
+                                value={nomineeDetails.nearByLocation}
+                                onChange={handleNomineeChange}
+                                fullWidth
+                                size="small"
+                                sx={{ mt: 1 }}
+                            />
+                            <TextField
+                                label="Aadhar"
+                                name="aadhar"
+                                value={nomineeDetails.aadhar}
+                                onChange={handleNomineeChange}
+                                fullWidth
+                                size="small"
+                                sx={{ mt: 1 }}
+                            />
+                            <TextField
+                                label="Email"
+                                name="email"
+                                value={nomineeDetails.email}
+                                onChange={handleNomineeChange}
+                                fullWidth
+                                size="small"
+                                sx={{ mt: 1 }}
+                            />
+                            <TextField
+                                label="Contact"
+                                name="contact"
+                                value={nomineeDetails.contact}
+                                onChange={handleNomineeChange}
+                                fullWidth
+                                size="small"
+                                sx={{ mt: 1 }} s
+                            />
+                            <Button variant="contained" color="primary" onClick={handleSaveNomineeDetails} fullWidth sx={{ mt: 3 }}>
+                                Save Nominee Details
+
+                            </Button>
+                        </CustomTabPanel>
+                        <CustomTabPanel value={value} index={1} sx={{ width: '100%', maxHeight: '88vh', }}>
+                            <NomineeSearch />
+                        </CustomTabPanel>
+
+                    </Box>
                 </Box>
+
+
             </Modal>
+
         </Grid>
     );
 };

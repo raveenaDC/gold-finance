@@ -4,8 +4,12 @@ import {
     Box, TextField, Button, IconButton, Table, TableBody, TableCell,
     TableContainer, TableHead, TableRow, Paper, Autocomplete, Grid,
     Typography, ToggleButtonGroup, ToggleButton, FormControl,
-    InputLabel, Select, MenuItem
+    InputLabel, Select, MenuItem,
+    textFieldClasses, Divider, Rating
 } from '@mui/material';
+import { Card, CardContent, Avatar } from '@mui/material';
+
+import { FormControlLabel, Switch, } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
 // import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 // import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -19,64 +23,262 @@ import AddNomineeDetails from './AddNomineeDetails';
 import { incrementGLNo } from '../Redux/GlNoSlice';
 import { incrementVoucherNo } from '../Redux/voucherNoSlice';
 import { useParams } from 'react-router-dom';
+import { submitDocument } from '../api';
+import { useNominee } from './NomineeContext';
+import Draggable from 'react-draggable';
+import './ProfileDetail.css';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import PhoneIcon from '@mui/icons-material/Phone';
+import EmailIcon from '@mui/icons-material/Email';
+
 
 const GoldLoanForm = () => {
+
+    const [options, setOptions] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedOption, setSelectedOption] = useState(null); // State to store selected option
+    const [error, setError] = useState(null);
+
+
+    const [paymentMode, setPaymentMode] = useState('Cash');
+
+
+    const handleSwitchChange = (event) => {
+        const newMode = event.target.checked ? 'Debit' : 'Cash';
+        setPaymentMode(newMode);
+        console.log('Payment Mode:', newMode); // Log the new payment mode
+    };
+
+
+    const { nominee } = useNominee(); // Access nominee data from context
+    const { customerId } = useParams();
+
+
+
     const [usingWebcam, setUsingWebcam] = useState(false); // Toggle between file upload and webcam
-    const [fileImage, setFileImage] = useState({ image: null, capture: null, }); // State to store the uploaded image and signature
+    const [fileImage, setFileImage] = useState({ goldImage: null, capture: null, }); // State to store the uploaded image and signature
 
     const [items, setItems] = useState([
-        { id: 1, type: 'Select', description: '', no: '', grossWeight: '', stoneWeight: '', netWeight: '', depWeight: '' },
+        { id: 1, type: 'Select', quantity: '', grossWeight: '', stoneWeight: '', netWeight: '', depreciation: '' },
     ]);
 
-    const [selectedDate, setSelectedDate] = useState(null);
+    const [purchaseDate, setSelectedDate] = useState(null);
 
     const [form, setForm] = useState({
-        principalAmount: '',
+        principleAmount: '',
         insurance: '',
         processingFee: '',
         packingFee: '',
-        appraisercharge: '',
-        othercharges: '',
-        mode: '',
-        range: ''
+        appraiser: '',
+        otherCharges: '',
+        range: '',
+        interestMode: '',
+        interestRate: '14',
+        companyGoldRate: '4000',
+
+
     });
 
     const voucherNo = useSelector((state) => state.voucherNo.voucherNo);
 
-    const handleSubmit = () => {
-        // Your form submission logic here
-        console.log("Form submitted");
-        dispatch(incrementGLNo());
-        dispatch(incrementVoucherNo());
+    const base64ToBlob = (base64Data, contentType = '') => {
+        const byteCharacters = atob(base64Data.split(',')[1]); // Decode Base64 string
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        return new Blob([byteArray], { type: contentType });
     };
+
+    // Handle input changes in the table rows
+    const handleChangeItem = (id, gId, field, value) => {
+        setItems((prevItems) =>
+            prevItems.map((item) =>
+                item.id === id
+                    ? {
+                        ...item,
+                        [field]: value,
+                        ...(gId ? { goldItem: gId } : {}), // Add goldItem only if gId is provided
+                    }
+                    : item
+            )
+        );
+    };
+
+    // Append a new row
+    const appendRow = () => {
+        setItems((prevItems) => [
+            ...prevItems,
+            {
+                id: prevItems.length + 1,
+                goldItem: '',
+                netWeight: '',
+                grossWeight: '',
+                quantity: '',
+                depreciation: '',
+                stoneWeight: ''
+            }
+        ]);
+    };
+    const [customerData, setCustomerData] = useState(null);
+
+    // Use the customerId to fetch customer data
+    const fetchCustomerData = async () => {
+        try {
+            const response = await fetch(`http://localhost:4000/customer/${customerId}/details/view`);
+            const data = await response.json();
+            setCustomerData(data.data);
+            console.log(data.data);
+
+
+        } catch (error) {
+            console.error('Error fetching customer details:', error);
+        }
+    };
+
+    // useEffect(() => {
+    //     fetchCustomerData();
+    // }, [customerId]); // Run the effect whenever customerId changes
+
+    const fetchCustomers = async () => {
+        try {
+            const response = await fetch('http://localhost:4000/gold/view-items');
+            const data = await response.json();
+            // Map data to add unique `id` if not present
+            setOptions(data.data.items);
+
+        } catch (error) {
+            console.error("Error fetching customer data:", error);
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchCustomers();
+        fetchCustomerData();
+    }, [customerId]);
+
+
+    const nId = nominee.nomineeId;
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('principleAmount', form.principleAmount);
+        formData.append('appraiser', form.appraiser);
+        formData.append('insurance', form.insurance);
+        formData.append('interestMode', form.interestMode);
+        formData.append('packingFee', form.packingFee);
+        formData.append('processingFee', form.processingFee);
+        formData.append('goldImage', fileImage.goldImage);
+        formData.append("nomineeId", nId);
+        formData.append("otherCharges", form.otherCharges);
+        formData.append("interestRate", form.interestRate);
+        formData.append("paymentMode", paymentMode);
+        formData.append("companyGoldRate", form.companyGoldRate);
+        formData.append("glNo", glNo);  // Example for GL Number
+        formData.append("voucherNo", voucherNo);  // Example for Voucher Number
+        formData.append("customerId", customerId);
+        formData.append("purchaseDate", purchaseDate);
+        formData.append("goldRate", goldRate);
+
+
+
+        // Add the image (either captured or selected)
+        if (fileImage.capture) {
+            let blob = base64ToBlob(fileImage.capture, 'image/jpeg'); // Convert Base64 to Blob
+            // Generate a unique filename using current date and time
+            const timestamp = new Date().toISOString().replace(/[-:.]/g, ''); // Removes characters not allowed in filenames
+            const filename = `webcam_image_${timestamp}.jpg`; // e.g., 'webcam_image_20241018T123456.jpg'
+            const fileWithFileName = new File([blob], filename, { type: 'image/jpeg' });// Create a new File from the Blob to include the filename
+            fileImage.goldImage = fileWithFileName; // Assign it to fileImage.image
+            formData.append('goldImage', fileImage.goldImage); // Append Blob with a file name
+        }
+        items.forEach((item, index) => {
+            formData.append(`itemDetails[${index}].goldItem`, item.goldItem);
+            formData.append(`itemDetails[${index}].netWeight`, item.netWeight);
+            formData.append(`itemDetails[${index}].grossWeight`, item.grossWeight);
+            formData.append(`itemDetails[${index}].quantity`, item.quantity);
+            formData.append(`itemDetails[${index}].depreciation`, item.depreciation);
+            formData.append(`itemDetails[${index}].stoneWeight`, item.stoneWeight);
+        });
+
+
+        try {
+            const response = {
+                info: formData,
+                method: 'post',
+                path: 'customer/gold/loan-details'
+            }
+
+            let res = await submitDocument(response);
+            alert(res.message);
+
+            if (res.status === 201) {
+
+                dispatch(incrementGLNo());
+                dispatch(incrementVoucherNo());
+            } else {
+                console.error("Failed to submit form:", res.message);
+            }
+        } catch (error) {
+            console.error("Error submitting form:", error.message);
+            alert(error.message);
+        }
+    };
+
+    // Utility function to convert Base64 image to Blob for FormData
+    // const dataURItoBlob = (dataURI) => {
+    //     const byteString = atob(dataURI.split(',')[1]);
+    //     const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+    //     const ab = new ArrayBuffer(byteString.length);
+    //     const ia = new Uint8Array(ab);
+    //     for (let i = 0; i < byteString.length; i++) {
+    //         ia[i] = byteString.charCodeAt(i);
+    //     }
+    //     return new Blob([ab], { type: mimeString });
+    // };
+
 
 
     const [interestType, setInterestType] = useState('simple');
     const goldRate = 5000;
 
-    const handleAddRow = () => {
-        const newItem = {
-            id: items.length + 1,
-            type: 'Select',
-            description: '',
-            no: '',
-            grossWeight: '',
-            stoneWeight: '',
-            netWeight: '',
-            depWeight: '',
-        };
-        setItems([...items, newItem]);
+    // State to store the rating value
+    const [rating, setRating] = useState(0);
+
+    // Handler for changing the rating
+    const handleRatingChange = (event, newValue) => {
+        setRating(newValue);
     };
 
-    const handleChangeItem = (id, field, value) => {
-        const updatedItems = items.map((item) => {
-            if (item.id === id) {
-                return { ...item, [field]: value };
-            }
-            return item;
-        });
-        setItems(updatedItems);
-    };
+
+
+    // const handleAddRow = () => {
+    //     const newItem = {
+    //         id: items.length + 1,
+    //         itemDetails: 'Select',
+    //         description: '',
+    //         quantity: '',
+    //         grossWeight: '',
+    //         stoneWeight: '',
+    //         netWeight: '',
+    //         depreciation: '',
+    //     };
+    //     setItems([...items, newItem]);
+    // };
+
+    // const handleChangeItem = (id, field, value) => {
+    //     const updatedItems = items.map((item) => {
+    //         if (item.id === id) {
+    //             return { ...item, [field]: value };
+    //         }
+    //         return item;
+    //     });
+    //     setItems(updatedItems);
+    // };
 
     const handleChangeForm = (e) => {
         const { name, value } = e.target;
@@ -86,17 +288,40 @@ const GoldLoanForm = () => {
         }));
     };
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setForm((prevForm) => ({
-            ...prevForm,
-            [name]: value
-        }));
-    };
+    // const handleChange = (e) => {
+    //     const { name, value } = e.target;
+    //     setForm((prevForm) => ({
+    //         ...prevForm,
+    //         [name]: value
+    //     }));
+    // };
 
 
     const handleInterestChange = (event, newType) => {
-        setInterestType(newType);
+        setInterestType(newType);  // Update the interestType state
+
+        // If 'multiple' is selected, set interestMode to a valid option like 'monthly'
+        if (newType === 'multiple') {
+            setForm(prevState => ({
+                ...prevState,
+                interestMode: 'monthly'  // Default valid value when 'multiple' is selected
+            }));
+        } else {
+            // For other values like 'simple' or 'range', reset the interestMode if necessary
+            setForm(prevState => ({
+                ...prevState,
+                interestMode: newType // Reset or keep it empty for other types
+            }));
+        }
+    };
+
+    // Handle dropdown value change (when 'multiple' mode is selected)
+    const handleChange = (event) => {
+        const { value } = event.target;
+        setForm(prevState => ({
+            ...prevState,
+            interestMode: value  // Update the interestMode directly based on dropdown selection
+        }));
     };
 
     const handleDelete = (id) => {
@@ -105,7 +330,7 @@ const GoldLoanForm = () => {
     };
 
     const handleCloseImage = () => {
-        setFileImage({ ...fileImage, image: null }); // Clear the uploaded image
+        setFileImage({ ...fileImage, goldImage: null }); // Clear the uploaded image
     };
 
     const webcamRef = useRef(null); // Ref to access the webcam
@@ -117,19 +342,19 @@ const GoldLoanForm = () => {
         setUsingWebcam(false); // Hide the webcam after capture
     }, [webcamRef, fileImage]);
 
-    const handleFileChange = (event) => {
-        const file = event.target.files[0];
-
-        if (file) {
-            // Ensure that the file is a valid image
-            const imageUrl = URL.createObjectURL(file);
-            setFileImage({ ...fileImage, image: imageUrl });
-        } else {
-            console.error("No file selected or invalid file.");
-        }
-    };
     const handleButtonClick = () => {
-        document.getElementById('file-input').click();
+        const fileInput = document.getElementById("goldImage");
+
+        // Attach a one-time event listener to capture the selected file
+        fileInput.addEventListener("change", (e) => {
+            const { files, name } = e.target;
+            if (files && files[0]) {
+                setFileImage({ ...fileImage, [name]: files[0] });
+            }
+        }, { once: true });
+
+        // Trigger file input click
+        fileInput.click();
     };
     const handleCloseCapture = () => {
         setFileImage({ ...fileImage, capture: null }); // Clear the captured image
@@ -139,12 +364,10 @@ const GoldLoanForm = () => {
 
     // Display GL number when form loads
     useEffect(() => {
-        console.log('Current GL Number:', glNo);
     }, [glNo]);
 
     useEffect(() => {
         // Log or display the voucher number in your UI, or handle any initialization
-        console.log("Current Voucher Number:", voucherNo);
     }, [voucherNo]);
 
     useEffect(() => {
@@ -153,14 +376,21 @@ const GoldLoanForm = () => {
         setSelectedDate(formattedDate);
     }, []);
 
-    const { customerId } = useParams();
+    // const { customerId } = useParams(); // Get both parameters
+    // const location = useLocation();
+    // // const nomineeId = location.state?.nomineeId; // Retrieve nomineeId from state
+
+
+
 
 
     const totalNetWeight = items.reduce((total, item) => total + (parseFloat(item.netWeight) || 0), 0);
     const recommendedAmount = totalNetWeight * goldRate;
 
+
+
     return (
-        <Box sx={{ display: 'flex', p: 2, width: '100%', mx: 'auto', mt: -3 }}>
+        <Box sx={{ display: 'flex', p: 2, width: '100%', mx: 'auto', mt: 1 }}>
 
             <Box sx={{ flex: 2, p: 1 }}>
                 <Typography variant="subtitle1">GoldLoanForm</Typography>
@@ -177,7 +407,7 @@ const GoldLoanForm = () => {
                     <TextField
                         label="Select Date"
                         type="date"
-                        value={selectedDate}
+                        value={purchaseDate}
                         onChange={(e) => setSelectedDate(e.target.value)}
                         InputLabelProps={{
                             shrink: true, // Ensures the label is positioned correctly
@@ -206,14 +436,14 @@ const GoldLoanForm = () => {
 
                                     {/* Right side: Add Item button with spacing */}
                                     <Box mt={-5} display="flex" justifyContent="flex-end">
-                                        <Button variant="text" color="primary" startIcon={<AddIcon />} onClick={handleAddRow}>
+                                        <Button variant="text" color="primary" startIcon={<AddIcon />} onClick={appendRow}>
                                             Add Item
                                         </Button>
                                     </Box>
                                 </TableCell>
                             </TableRow>
                             <TableRow >
-                                {['Item Details', 'No', 'Gross Wt', 'Stone Wt', 'Dep Wt', 'Net Wt', 'Actions'].map((header) => (
+                                {['Item Details', 'Qty', 'Gross Wt', 'Stone Wt', 'Dep Wt', 'Net Wt', 'Actions'].map((header) => (
                                     <TableCell key={header} sx={{ fontSize: '12px', backgroundColor: '#e0e0e0 ', padding: '4px', borderBottom: '1px solid #ccc' }}>
                                         {header}
                                     </TableCell>
@@ -225,10 +455,12 @@ const GoldLoanForm = () => {
                                 <TableRow key={item.id}>
                                     <TableCell sx={{ fontSize: '8px', padding: '2px', borderBottom: '1px solid #ccc' }}>
                                         <Autocomplete
-                                            options={['Earrings', 'Bangle', 'Chain', 'Ring']}
-
-                                            value={item.type}
-                                            onChange={(event, newValue) => handleChangeItem(item.id, 'type', newValue)}
+                                            options={options}
+                                            // value={item.itemDetails}
+                                            onChange={(event, newValue) => handleChangeItem(item.id, newValue?._id, 'itemDetails', newValue)}
+                                            onInputChange={(event, newValue) => setSearchTerm(newValue)}
+                                            // value={(option) => option._id}
+                                            getOptionLabel={(option) => option.goldItem} // Adjust as needed
                                             renderInput={(params) => (
                                                 <TextField
                                                     {...params}
@@ -259,12 +491,12 @@ const GoldLoanForm = () => {
                                             }}
                                         />
                                     </TableCell>
-                                    {['no', 'grossWeight', 'stoneWeight', 'depWeight'].map((field) => (
+                                    {['quantity', 'grossWeight', 'stoneWeight', 'depreciation'].map((field) => (
                                         <TableCell key={field} sx={{ fontSize: '8px', padding: '2px', borderBottom: '1px solid #ccc' }}>
                                             <TextField
                                                 type="text"
                                                 value={item[field]}
-                                                onChange={(e) => handleChangeItem(item.id, field, e.target.value)}
+                                                onChange={(e) => handleChangeItem(item.id, item.goldItem, field, e.target.value)}
                                                 variant="outlined"
                                                 size="small"
                                                 fullWidth
@@ -285,13 +517,13 @@ const GoldLoanForm = () => {
                                         <TextField
                                             type="text"
                                             value={item.netWeight}
-                                            onChange={(e) => handleChangeItem(item.id, 'netWeight', e.target.value)}
+                                            onChange={(e) => handleChangeItem(item.id, item.goldItem, 'netWeight', e.target.value)}
                                             variant="outlined"
                                             size="small"
                                             fullWidth
                                             onKeyDown={(e) => {
                                                 if (e.key === 'Enter' && item.netWeight !== '') {
-                                                    handleAddRow();
+                                                    appendRow();
                                                 }
                                             }}
                                             InputProps={{
@@ -319,32 +551,41 @@ const GoldLoanForm = () => {
                     </Table>
                 </TableContainer>
 
-                <Grid container spacing={.5} sx={{ mb: 2 }}>
-                    {['Principal Amount', 'Processing Fee', 'Packing Fee', 'Appraiser Fee', 'Insurance Fee', 'Other charges'].map((label, index) => (
+                <Grid container spacing={0.5} sx={{ mb: 2 }}>
+                    {[
+                        { label: 'principle Amount', name: 'principleAmount' },
+                        { label: 'Processing Fee', name: 'processingFee' },
+                        { label: 'Packing Fee', name: 'packingFee' },
+                        { label: 'Appraiser Fee', name: 'appraiser' },
+                        { label: 'Insurance Fee', name: 'insurance' },
+                        { label: 'Other Charges', name: 'otherCharges' }
+                    ].map((field, index) => (
                         <Grid item xs={4} key={index}>
                             <TextField
-                                label={label}
-                                name={label.toLowerCase().replace(/\s+/g, '')}  // Removes spaces for matching
-                                value={form[label.toLowerCase().replace(/\s+/g, '')]}
+                                label={field.label}
+                                name={field.name}
+                                value={form[field.name]}
                                 onChange={handleChangeForm}
                                 fullWidth
-                                margin="dense"  // Keeps the dense margin to reduce vertical space
+                                margin="dense"
                                 size="small"
                                 sx={{
                                     '& .MuiInputLabel-root': {
                                         fontSize: '12.5px',
-                                        marginBottom: '0px', // Reduce space between label and field
+                                        marginBottom: '0px',
                                     },
                                     '& .MuiInputBase-root': {
                                         fontSize: '12.5px',
-                                        paddingTop: '0px',   // Reduce padding at the top
-                                        paddingBottom: '0px', // Reduce padding at the bottom
+                                        paddingTop: '0px',
+                                        paddingBottom: '0px',
                                     }
                                 }}
                             />
                         </Grid>
                     ))}
                 </Grid>
+
+
 
                 {/* interest calaculation and image upload and capture */}
                 <Typography variant="subtitle1" sx={{ mb: 1 }}>Interest Calculation</Typography>
@@ -362,7 +603,29 @@ const GoldLoanForm = () => {
                     <ToggleButton value="range">Range</ToggleButton>
                 </ToggleButtonGroup>
 
-                <Box sx={{ textAlign: 'right', mt: -5 }}>
+                {/* <Box sx={{ textAlign: 'right', mt: -8 }}>
+
+
+                </Box> */}
+
+                <Box sx={{ textAlign: 'right', mt: -10 }}>
+
+                    <div>
+                        {/* <Typography variant="h6">Select Payment Mode</Typography> */}
+
+                        <FormControlLabel
+                            control={
+                                <Switch
+                                    checked={paymentMode === 'Debit'}
+                                    onChange={handleSwitchChange}
+                                    color="primary"
+                                />
+                            }
+                            label={paymentMode === 'Debit' ? 'Debit' : 'Cash'}
+                        />
+
+                        {/* <Typography variant="body1">Selected Payment Mode: {paymentMode}</Typography> */}
+                    </div>
                     {/* Webcam Toggle Button */}
                     <IconButton color="primary">
                         <PhotoCamera onClick={() => setUsingWebcam(!usingWebcam)} startIcon={!usingWebcam && <PhotoCamera />} sx={{ ml: 2 }} />
@@ -372,17 +635,17 @@ const GoldLoanForm = () => {
                     {/* File Upload Button */}
                     <input
                         type="file"
-                        id="file-input"
+                        id="goldImage"
+                        name='goldImage'
                         style={{ display: 'none' }}
-                        onChange={handleFileChange}
                         accept="image/*" // Ensure only images can be selected
                     />
-                    <IconButton color="primary" onClick={handleButtonClick}>
+                    <IconButton color="primary" name='goldImage' onClick={handleButtonClick}>
                         <FileUploadIcon />
                     </IconButton>
                 </Box>
 
-                <Grid container justifyContent="flex-end" sx={{ mt: 2 }}>
+                {/* <Grid container justifyContent="flex-end" sx={{ mt: 2 }}>
                     <Grid item>
                         <Button
                             variant="contained"
@@ -392,15 +655,15 @@ const GoldLoanForm = () => {
                             Submit
                         </Button>
                     </Grid>
-                </Grid>
+                </Grid> */}
 
                 {interestType === 'multiple' && (
-                    <Box sx={{ mt: -4.5 }}>
+                    <Box sx={{ mt: 1 }}>
                         <FormControl fullWidth size="small">
                             <InputLabel>Mode</InputLabel>
                             <Select
-                                name="mode"
-                                value={form.mode}
+                                name="interestMode"
+                                value={form.interestMode}
                                 label="Mode"
                                 onChange={handleChange}
                                 sx={{ width: '50%', textAlign: 'left', font: '8px' }}
@@ -425,9 +688,24 @@ const GoldLoanForm = () => {
                             </Typography>
                         )}
                     </Box>
+
+
                 )}
+                <Grid container justifyContent="flex-end" sx={{ mt: 2, position: 'sticky', bottom: 0, backgroundColor: 'white', zIndex: 1 }}>
+                    <Grid item>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handleSubmit} // Your submit handler function
+                        >
+                            Submit
+                        </Button>
+                    </Grid>
+                </Grid>
+
                 {/* 
-                {interestType === 'range' && (
+           
+             {interestType === 'range' && (
                     <Box sx={{ mt: 1 }}>
                         <FormControl fullWidth size="small">
                             <InputLabel>Range</InputLabel>
@@ -506,11 +784,11 @@ const GoldLoanForm = () => {
                     )}
 
                     {/* Display the selected image preview  */}
-                    {fileImage.image && (
+                    {fileImage.goldImage && !fileImage.capture && (
                         <div style={{ marginTop: '10px' }}>
-                            <img src={fileImage.image} alt="Selected" style={{ maxWidth: '100%', height: 'auto' }} />
+                            <img src={URL.createObjectURL(fileImage.goldImage)} alt="Selected" style={{ maxWidth: '100%', height: 'auto' }} />
                             <IconButton
-                                onClick={handleCloseCapture}
+                                onClick={handleCloseImage}
                                 style={{ position: 'absolute', top: 0, right: 0, padding: '0' }}
                             >
                                 <CloseIcon />
@@ -536,6 +814,7 @@ const GoldLoanForm = () => {
                         <Table>
                             <TableHead>
                                 <Typography variant="overline"> Vr No: {voucherNo}</Typography >
+
                             </TableHead>
 
                             <TableBody>
@@ -557,7 +836,7 @@ const GoldLoanForm = () => {
                                 </TableRow>
                                 <TableRow>
                                     <TableCell>Packing Fee</TableCell>
-                                    <TableCell>{form.packingFee}</TableCell>
+                                    <TableCell>{form.insurance}</TableCell>
                                 </TableRow>
                             </TableBody>
                         </Table>
@@ -565,15 +844,79 @@ const GoldLoanForm = () => {
                 </Box>
             </Box>
 
-            <Box sx={{ flex: 1, p: 1, textAlign: 'center' }}>
-                <Typography variant="subtitle1">Customer Details</Typography>
+            <Box sx={{ flex: 1, p: 1, }}>
                 {/* Placeholder for customer details form */}
-                <p>Custom ID: {customerId}</p>
+                {customerData && (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh', backgroundColor: '#f4f4f9', mt: 0 }}>
+                        <Card sx={{ maxWidthwidth: 350, padding: 2, borderRadius: 3, boxShadow: 3, textAlign: 'center' }}>
+
+                            {/* Profile Picture */}
+                            <Avatar
+                                alt="Profile"
+                                src={`http://localhost:4000${customerData.image.path}`}
+                                sx={{ width: 120, height: 120, margin: '0 auto', border: '4px solid #0073e6', marginBottom: 2 }}
+                            />
+                            {/* 5-Star Rating */}
+                            <Rating
+                                name="profile-rating"
+                                value={rating}
+                                onChange={handleRatingChange}
+                                precision={0.5}  // Allows half-star ratings
+                                sx={{ mb: 2 }}
+                            />
+
+                            {/* Profile Name */}
+                            <Typography variant="h5" fontWeight="bold" color="text.primary">
+                                {customerData.firstName} {customerData.lastName}
+                            </Typography>
+
+                            {/* Location */}
+                            <Box display="flex" alignItems="center" justifyContent="center" color="text.secondary" mt={1}>
+                                <LocationOnIcon fontSize="small" sx={{ mr: 0.5 }} />
+                                <Typography variant="body2">{customerData.state}, INDIA</Typography>
+                            </Box>
+
+                            <Divider sx={{ my: 2 }} />
+
+                            {/* Contact Information */}
+                            <CardContent sx={{ textAlign: 'left' }}>
+                                <Box display="flex" alignItems="center" mb={1.5}>
+                                    <LocationOnIcon sx={{ color: 'text.secondary', mr: 1 }} />
+                                    <Typography variant="body2"><strong>Address:</strong> {customerData.address},{customerData.place}, {customerData.pin}</Typography>
+                                </Box>
+                                <Box display="flex" alignItems="center" mb={1.5}>
+                                    <PhoneIcon sx={{ color: 'text.secondary', mr: 1 }} />
+                                    <Typography variant="body2"><strong>Mobile:</strong> {customerData.primaryNumber}</Typography>
+                                </Box>
+                                <Box display="flex" alignItems="center" mb={1.5}>
+                                    <EmailIcon sx={{ color: 'text.secondary', mr: 1 }} />
+                                    <Typography variant="body2"><strong>Email:</strong>{customerData.email}</Typography>
+                                </Box>
+                            </CardContent>
+                        </Card>
+                    </Box>
+
+                )}
+
+                {/* Nominee Details */}
+                <Box sx={{ maxWidth: 600, margin: '0 auto', mt: 2, textAlign: { xs: 'center', sm: 'left' } }}>
+                    <Typography variant="body1">
+                        <strong>Custom ID:</strong> {customerId}
+                    </Typography>
+                    <Typography variant="body1">
+                        <strong>Nominee ID:</strong> {nominee.nomineeId}
+                    </Typography>
+                    <Typography variant="body1">
+                        <strong>First Name:</strong> {nominee.firstName}
+                    </Typography>
+                    <Typography variant="body1">
+                        <strong>Last Name:</strong> {nominee.lastName}
+                    </Typography>
+                </Box>
             </Box>
+
         </Box >
     );
 };
 
 export default GoldLoanForm;
-
-

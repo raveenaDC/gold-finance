@@ -15,7 +15,7 @@ const itemDetailsSchema = new Schema(
             type: Types.Decimal128,
             get: v => (v ? parseFloat(v.toString()) : null)
         },
-        description: String,
+        // description: String,
         depreciation: {
             type: Types.Decimal128,
             get: v => (v ? parseFloat(v.toString()) : null)
@@ -54,10 +54,7 @@ const goldLoanSchema = new Schema(
             type: Types.Decimal128,
             get: v => v ? parseFloat(v.toString()) : null
         },
-        paymentMode: {
-            type: Types.Decimal128,
-            get: v => v ? parseFloat(v.toString()) : null
-        },
+        paymentMode: String,
         processingFee: {
             type: Types.Decimal128,
             get: v => v ? parseFloat(v.toString()) : null
@@ -67,6 +64,10 @@ const goldLoanSchema = new Schema(
             get: v => v ? parseFloat(v.toString()) : null
         },
         appraiser: {
+            type: Types.Decimal128,
+            get: v => v ? parseFloat(v.toString()) : null
+        },
+        otherCharges: {
             type: Types.Decimal128,
             get: v => v ? parseFloat(v.toString()) : null
         },

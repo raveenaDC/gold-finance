@@ -25,14 +25,15 @@ export const submitData = async (data) => {
 
 export const submitDocument = async (data) => {
     try {
-
         const response = await fetch(API_URL + data.path, {
             method: data.method,
             body: data.info,
         });
 
         if (!response.ok) {
-            throw new Error('Network response was not ok');
+            // Parse error response if available
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Failed to submit data");
         }
 
         return await response.json(); // Assuming the API returns JSON data

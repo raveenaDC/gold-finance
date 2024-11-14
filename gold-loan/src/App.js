@@ -9,8 +9,9 @@ import DrawerLeft from './Dashboard/DrawerLeft';
 import MainPage from './Dashboard/MainPage';
 import GlMaster from './Forms/GlMaster';
 import Typography from '@mui/material/Typography';
-import { submitCustomerData } from './api'; // Import your API function
 import GoldLoanForm from './Forms/GoldLoanForm';
+import { NomineeProvider } from './Forms/NomineeContext';
+
 
 
 
@@ -49,21 +50,25 @@ export default function App() {
 
   return (
     <Router>
-      <Box sx={{ display: 'flex' }}>
-        <CssBaseline />
-        <Navbar handleDrawerOpen={handleDrawerOpen} open={open} />
-        <DrawerLeft open={open} handleDrawerClose={handleDrawerClose} theme={theme} drawerWidth={drawerWidth} />
-        <Main open={open}>
-          <Typography sx={{ marginTop: 6, }}>
+      <NomineeProvider>
+        <Box sx={{ display: 'flex' }}>
+          <CssBaseline />
+          <Navbar handleDrawerOpen={handleDrawerOpen} open={open} />
+          <DrawerLeft open={open} handleDrawerClose={handleDrawerClose} theme={theme} drawerWidth={drawerWidth} />
+          <Main open={open}>
+            <Typography sx={{ marginTop: 6, }}>
 
-            <Routes>
-              <Route path="/" element={<MainPage />} />
-              <Route path="/gl-master" element={<GlMaster />} />
-              <Route path="/gold-loan/:customerId" element={<GoldLoanForm />} /> {/* Add the customerId param */}
-            </Routes>
-          </Typography>
-        </Main>
-      </Box>
+              <Routes>
+                <Route path="/" element={<MainPage />} />
+                <Route path="/gl-master" element={<GlMaster />} />
+                <Route path="/gold-loan/:customerId" element={<GoldLoanForm />} />
+
+                {/* <Route path="/goldloan-form/:customerId/:id" element={<GoldLoanForm />} /> Add the nomineeId param */}
+              </Routes>
+            </Typography>
+          </Main>
+        </Box>
+      </NomineeProvider>
     </Router>
   );
 }
