@@ -92,7 +92,6 @@ export async function customerView(req, res, next) {
         let customerList = await models.customerModel.find(query).select(
             'firstName lastName  address place state  pin nearBy  primaryNumber careOf secondaryNumber aadhar email image signature aadharImage createdAt'
         ).collation({ locale: 'en', strength: 2 });
-        console.log(customerList);
 
         if (orderBy === 'firstName') {
             customerList.sort((a, b) => a.firstName.localeCompare(b.firstName) * order);

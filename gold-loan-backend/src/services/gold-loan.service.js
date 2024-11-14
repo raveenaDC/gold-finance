@@ -63,7 +63,7 @@ export async function viewGoldLoan(req, res) {
         }
 
         let loanList = await models.goldLoanModel.find(query).select(
-            'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestRate interestMode customerId memberId nomineeId paymentMode insurance  processingFee packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt'
+            'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestRate interestMode customerId memberId nomineeId paymentMode insurance  processingFee otherCharges packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt'
         ).collation({ locale: 'en', strength: 2 });
 
         if (orderBy === 'glNo') {
@@ -134,6 +134,7 @@ export async function addGoldLoan(req, res, next) {
             insurance,
             processingFee,
             packingFee,
+            otherCharges,
             appraiser,
             memberId,//need to remove
             principleAmount,
@@ -158,7 +159,7 @@ export async function addGoldLoan(req, res, next) {
             );
         }
 
-        if (memberId == customerId) {
+        if (nomineeId == customerId) {
             return responseHelper(
                 res,
                 httpStatus.CONFLICT,
@@ -176,17 +177,18 @@ export async function addGoldLoan(req, res, next) {
             interestRate,
             interestMode,
             customerId,
-            memberId,
+            //memberId,
             nomineeId,
             paymentMode,
             insurance,
             processingFee,
             packingFee,
+            otherCharges,
             appraiser,
             principleAmount,
             //amountPaid,
             // balanceAmount,
-            currentGoldValue,
+            // currentGoldValue,
             // profitOrLoss
         });
 
@@ -202,6 +204,7 @@ export async function addGoldLoan(req, res, next) {
             loan
         );
     } catch (error) {
+        console.log(error);
         return next(new Error(error));
     }
 
@@ -218,6 +221,7 @@ export async function updateGoldLoanById(req, res) {
             insurance,
             processingFee,
             packingFee,
+            otherCharges,
             appraiser,
             principleAmount,
             paymentMode,
@@ -262,6 +266,7 @@ export async function updateGoldLoanById(req, res) {
                 insurance,
                 processingFee,
                 packingFee,
+                otherCharges,
                 appraiser,
                 principleAmount,
                 //amountPaid,
@@ -320,7 +325,7 @@ export async function viewGoldLoanById(req, res) {
     try {
         const { loanId } = req.params
         const loan = await models.customerModel.findById(loanId).select(
-            'glNo voucherNo purchaseDate goldRate companyGoldRate itemDetails interestRate interestMode customerId memberId nomineeId paymentMode insurance  processingFee packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt'
+            'glNo voucherNo purchaseDate goldRate companyGoldRate itemDetails interestRate interestMode customerId memberId nomineeId paymentMode insurance  processingFee otherCharges packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt'
         );
         if (!loan) {
             return responseHelper(
