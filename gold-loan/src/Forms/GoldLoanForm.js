@@ -32,6 +32,7 @@ import EmailIcon from '@mui/icons-material/Email';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import { getCustomerDetails } from '../services/customer/customer.service';
 
 
 
@@ -160,10 +161,13 @@ const GoldLoanForm = () => {
     // Use the customerId to fetch customer data
     const fetchCustomerData = async () => {
         try {
-            const response = await fetch(`http://localhost:4000/customer/${customerId}/details/view`);
-            const data = await response.json();
-            setCustomerData(data.data);
-            console.log(data.data);
+            // const response = await fetch(`http://localhost:4000/customer/${customerId}/details/view`);
+            // const data = await response.json();
+            const response = await getCustomerDetails(customerId);
+            if (response.isSuccess && response.userDetails) {
+                setCustomerData(response.userDetails);
+            }
+            console.log(response);
 
 
         } catch (error) {

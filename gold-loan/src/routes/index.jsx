@@ -1,0 +1,20 @@
+
+import { Route, Routes } from 'react-router-dom';
+import MainPage from '../pages/Dashboard';
+import GlMaster from '../Forms/GlMaster';
+import GoldLoanForm from '../Forms/GoldLoanForm';
+import { ROUTES } from '../constant/route';
+
+const PageRoutes = () => {
+    return (
+        <Routes>
+            <Route path={ROUTES.HOME} element={<MainPage />} />
+            <Route path={ROUTES.GOLD_LOAN} element={<GlMaster />} />
+            <Route path={ROUTES.CUSTOMER_GOLD_LOAN} element={<GoldLoanForm />} />
+
+            {/* <Route path="/goldloan-form/:customerId/:id" element={<GoldLoanForm />} /> Add the nomineeId param */}
+        </Routes>
+    )
+}
+
+export default PageRoutes;
