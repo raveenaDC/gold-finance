@@ -13,23 +13,21 @@ const interestCalculationSchema = new Schema(
             enum: ['monthly', 'weekly', 'daily', 'annual', 'quarterly'],
         },
         interestRate: {
-            type: Types.Decimal128,
-            get: v => v ? parseFloat(v.toString()) : null
+            type: Number,
+            default: 0
         },
         minDays: Number,
         minInterestAmount: {
-            type: Types.Decimal128,
-            get: v => v ? parseFloat(v.toString()) : null
+            type: Number,
+            default: 0
         },
         currentGoldRate: {
-            type: Types.Decimal128,
-            get: v => v ? parseFloat(v.toString()) : null
+            type: Number,
+            default: 0
         }
     },
     {
         timestamps: true,
-        toJSON: { getters: true },
-        toObject: { getters: true },
         id: false
     }
 );

@@ -90,7 +90,7 @@ export async function customerView(req, res, next) {
         }
 
         let customerList = await models.customerModel.find(query).select(
-            'firstName lastName  address place state  pin nearBy  primaryNumber careOf secondaryNumber aadhar email image signature aadharImage createdAt'
+            'firstName lastName  address district place state  pin nearBy  primaryNumber careOf secondaryNumber aadhar email image signature aadharImage bankUserName bankAccount ifsc bankName createdAt '
         ).collation({ locale: 'en', strength: 2 });
 
         if (orderBy === 'firstName') {
@@ -152,6 +152,7 @@ export async function createCustomer(req, res, next) {
             lastName,
             address,
             place,
+            district,
             state,
             pin,
             nearBy,
@@ -160,7 +161,11 @@ export async function createCustomer(req, res, next) {
             secondaryNumber,
             aadhar,
             gst,
-            email, } = req.body;
+            email,
+            bankUserName,
+            bankAccount,
+            ifsc,
+            bankName } = req.body;
 
         let { image, signature, aadharImage } = req.files;
 
@@ -174,11 +179,22 @@ export async function createCustomer(req, res, next) {
 
             );
         }
+        const existAadhar = await models.customerModel.findOne({ aadhar: aadhar })
+        if (existAadhar) {
+            return responseHelper(
+                res,
+                httpStatus.CONFLICT,
+                true,
+                'This aadhar has already exist.',
+
+            );
+        }
         const member = await models.customerModel.create({
             firstName,
             lastName,
             address,
             place,
+            district,
             state,
             pin,
             nearBy,
@@ -188,6 +204,10 @@ export async function createCustomer(req, res, next) {
             secondaryNumber,
             aadhar,
             email,
+            bankUserName,
+            bankAccount,
+            ifsc,
+            bankName
         });
 
         if (signature && signature.length > 0) {
@@ -218,6 +238,7 @@ export async function updateCustomer(req, res) {
             lastName,
             address,
             place,
+            district,
             state,
             pin,
             nearBy,
@@ -226,7 +247,12 @@ export async function updateCustomer(req, res) {
             secondaryNumber,
             aadhar,
             gst,
-            email, } = req.body;
+            rating,
+            email,
+            bankUserName,
+            bankAccount,
+            ifsc,
+            bankName } = req.body;
 
         let { image, signature, aadharImage } = req.files;
 
@@ -274,6 +300,7 @@ export async function updateCustomer(req, res) {
                 lastName,
                 address,
                 place,
+                district,
                 state,
                 pin,
                 nearBy,
@@ -282,9 +309,14 @@ export async function updateCustomer(req, res) {
                 secondaryNumber,
                 aadhar,
                 gst,
+                rating,
                 email, image: images.item,
                 signature: sign.item,
-                aadharImage: document.item
+                aadharImage: document.item,
+                bankUserName,
+                bankAccount,
+                ifsc,
+                bankName
             },
             {
                 new: true,
@@ -335,8 +367,15 @@ export async function updateCustomer(req, res) {
 export async function customerViewById(req, res) {
     try {
         const { customerId } = req.params
+        if (!customerId) {
+            return responseHelper(
+                res, httpStatus.NOT_FOUND,
+                true,
+                'Customer Id is required',
+            )
+        }
         const customer = await models.customerModel.findById(customerId).select(
-            'firstName lastName  address place state  pin nearBy  primaryNumber careOf secondaryNumber aadhar email image signature aadharImage createdAt'
+            'firstName lastName  address place district state  pin nearBy  primaryNumber careOf secondaryNumber aadhar email image signature aadharImage bankUserName bankAccount ifsc  bankName createdAt'
         );
         if (!customer) {
             return responseHelper(
