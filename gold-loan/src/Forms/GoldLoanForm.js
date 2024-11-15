@@ -26,13 +26,18 @@ import { useParams } from 'react-router-dom';
 import { submitDocument } from '../api';
 import { useNominee } from './NomineeContext';
 import Draggable from 'react-draggable';
-import './ProfileDetail.css';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+
 
 
 const GoldLoanForm = () => {
+    const [tableData, setTableData] = useState([]);
+    const formRef = useRef();
 
     const [options, setOptions] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -93,19 +98,47 @@ const GoldLoanForm = () => {
     };
 
     // Handle input changes in the table rows
+    // const handleChangeItem = (id, gId, field, value) => {
+    //     setItems((prevItems) =>
+    //         prevItems.map((item) =>
+    //             item.id === id
+    //                 ? {
+    //                     ...item,
+    //                     [field]: value,
+    //                     ...(gId ? { goldItem: gId } : {}), // Add goldItem only if gId is provided
+    //                 }
+    //                 : item
+    //         )
+    //     );
+    // };
+
     const handleChangeItem = (id, gId, field, value) => {
         setItems((prevItems) =>
-            prevItems.map((item) =>
-                item.id === id
-                    ? {
+            prevItems.map((item) => {
+                if (item.id === id) {
+                    // Update the field value
+                    const updatedItem = {
                         ...item,
                         [field]: value,
                         ...(gId ? { goldItem: gId } : {}), // Add goldItem only if gId is provided
+                    };
+
+                    // Recalculate the netWeight if relevant fields change
+                    if (['quantity', 'grossWeight', 'stoneWeight', 'depreciation'].includes(field)) {
+                        const grossWt = parseFloat(updatedItem.grossWeight) || 0;
+                        const stoneWt = parseFloat(updatedItem.stoneWeight) || 0;
+                        const depWt = parseFloat(updatedItem.depreciation) || 0;
+                        const qty = parseFloat(updatedItem.quantity) || 0;
+                        updatedItem.netWeight = qty * (grossWt - (stoneWt + depWt)); // Correct formula
                     }
-                    : item
-            )
+
+                    return updatedItem;
+                }
+                return item;
+            })
         );
     };
+
 
     // Append a new row
     const appendRow = () => {
@@ -240,6 +273,33 @@ const GoldLoanForm = () => {
     //     }
     //     return new Blob([ab], { type: mimeString });
     // };
+
+    // Example to load some sample data for the table
+    useEffect(() => {
+        // Simulate fetching or setting table data
+        setTableData([
+            { column1: 'Data 1', column2: 'Data 2' },
+            { column1: 'Data 3', column2: 'Data 4' },
+            { column1: 'Data 5', column2: 'Data 6' }
+        ]);
+    }, []);
+
+    const handleDownloadPDF = async () => {
+        // Ensure that the table is rendered before capturing
+        const input = document.getElementById('table-section');
+        if (input) {
+            const canvas = await html2canvas(input, { scale: 2 });
+            const imgData = canvas.toDataURL("image/png");
+
+            const pdf = new jsPDF("p", "mm", "a4");
+            const imgWidth = 190; // Adjust this width for your layout
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+            // Add the image to the PDF, then save it
+            pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
+            pdf.save("table-details.pdf");
+        }
+    };
 
 
 
@@ -385,16 +445,25 @@ const GoldLoanForm = () => {
 
 
     const totalNetWeight = items.reduce((total, item) => total + (parseFloat(item.netWeight) || 0), 0);
+    const totalGrossWeight = items.reduce((total, item) => total + (parseFloat(item.grossWeight) || 0), 0);
+    const TotalStoneWeight = items.reduce((total, item) => total + (parseFloat(item.stoneWeight) || 0), 0);
+    const TotalDepWeight = items.reduce((total, item) => total + (parseFloat(item.depreciation) || 0), 0);
+    const TotalQuantity = items.reduce((total, item) => total + (parseFloat(item.quantity) || 0), 0);
     const recommendedAmount = totalNetWeight * goldRate;
+
+    const totalCharges = (parseFloat(form.otherCharges) || 0) + (parseFloat(form.appraiser) || 0) + (parseFloat(form.insurance) || 0) + (parseFloat(form.processingFee) || 0) + (parseFloat(form.packingFee) || 0);
+
+
 
 
 
     return (
         <Box sx={{ display: 'flex', p: 2, width: '100%', mx: 'auto', mt: 1 }}>
 
-            <Box sx={{ flex: 2, p: 1 }}>
+            <Box sx={{ flex: 2, p: 1 }} ref={formRef}>
                 <Typography variant="subtitle1">GoldLoanForm</Typography>
-                <Box
+
+                <Box id="table-section"
                     display="flex"
                     alignItems="center"
                     justifyContent="space-between"
@@ -426,8 +495,11 @@ const GoldLoanForm = () => {
                         }}
                     />
                 </Box>
-                <TableContainer component={Paper} sx={{ mb: 2, height: 200, overflowY: 'auto', '&::-webkit-scrollbar': { width: '8px' }, '&::-webkit-scrollbar-thumb': { backgroundColor: '#888', borderRadius: '4px', '&:hover': { backgroundColor: '#555' } }, '&::-webkit-scrollbar-track': { backgroundColor: '#f1f1f1', borderRadius: '4px' } }}>
-                    <Table stickyHeader aria-label="sticky table">
+                <TableContainer sx={{ mb: 2, height: 200, overflowY: 'auto', '&::-webkit-scrollbar': { width: '8px' }, '&::-webkit-scrollbar-thumb': { backgroundColor: '#888', borderRadius: '4px', '&:hover': { backgroundColor: '#555' } }, '&::-webkit-scrollbar-track': { backgroundColor: '#f1f1f1', borderRadius: '4px' } }}>
+                    {/* Check if tableData is not empty */}
+                    {tableData.length === 0 ? (
+                        <p>No data available</p>
+                    ) : (<Table stickyHeader aria-label="sticky table">
                         <TableHead>
                             <TableRow sx={{ height: '5px', '& .MuiTableCell-root': { padding: '0px' } }}>
                                 <TableCell colSpan={8} sx={{ padding: '4px', borderBottom: '1px solid #ccc' }}>
@@ -494,7 +566,7 @@ const GoldLoanForm = () => {
                                     {['quantity', 'grossWeight', 'stoneWeight', 'depreciation'].map((field) => (
                                         <TableCell key={field} sx={{ fontSize: '8px', padding: '2px', borderBottom: '1px solid #ccc' }}>
                                             <TextField
-                                                type="text"
+                                                type="number"
                                                 value={item[field]}
                                                 onChange={(e) => handleChangeItem(item.id, item.goldItem, field, e.target.value)}
                                                 variant="outlined"
@@ -549,7 +621,27 @@ const GoldLoanForm = () => {
                             ))}
                         </TableBody>
                     </Table>
+                    )}
                 </TableContainer>
+
+
+                <table style={{
+                    width: '100%',
+                    borderCollapse: 'collapse',
+                    marginTop: '-15px',
+                    backgroundColor: '#ffffff',
+                }}>
+                    <tbody>
+                        <tr>
+                            <td style={{ padding: '6px', border: '1px solid #ddd', fontSize: '12px' }}>No: 5</td>
+                            <td style={{ padding: '6px', border: '1px solid #ddd', fontSize: '12px' }}>Qty: {TotalQuantity.toFixed(2)}</td>
+                            <td style={{ padding: '6px', border: '1px solid #ddd', fontSize: '12px' }}>Gr Wt: {totalGrossWeight.toFixed(2)}</td>
+                            <td style={{ padding: '6px', border: '1px solid #ddd', fontSize: '12px' }}>St Wt:{TotalStoneWeight.toFixed(2)}</td>
+                            <td style={{ padding: '6px', border: '1px solid #ddd', fontSize: '12px' }}>Dpt Wt: {TotalDepWeight.toFixed(2)}</td>
+                            <td style={{ padding: '6px', border: '1px solid #ddd', fontSize: '12px' }}>Net Wt: {totalNetWeight.toFixed(2)}</td>
+                        </tr>
+                    </tbody>
+                </table>
 
                 <Grid container spacing={0.5} sx={{ mb: 2 }}>
                     {[
@@ -584,6 +676,9 @@ const GoldLoanForm = () => {
                         </Grid>
                     ))}
                 </Grid>
+
+
+
 
 
 
@@ -701,6 +796,14 @@ const GoldLoanForm = () => {
                             Submit
                         </Button>
                     </Grid>
+                    {/* PDF Download Button with Icon */}
+                    <IconButton
+                        color="primary"
+                        onClick={handleDownloadPDF}
+                        sx={{ ml: 2 }}
+                    >
+                        <PictureAsPdfIcon />
+                    </IconButton>
                 </Grid>
 
                 {/* 
@@ -831,37 +934,45 @@ const GoldLoanForm = () => {
                                     <TableCell>{goldRate}</TableCell>
                                 </TableRow>
                                 <TableRow>
-                                    <TableCell>Processing Fee</TableCell>
-                                    <TableCell>{form.processingFee}</TableCell>
+                                    <TableCell>Total Charges</TableCell>
+                                    <TableCell>{totalCharges}</TableCell>
                                 </TableRow>
-                                <TableRow>
+                                {/* <TableRow>
                                     <TableCell>Packing Fee</TableCell>
                                     <TableCell>{form.insurance}</TableCell>
-                                </TableRow>
+                                </TableRow> */}
                             </TableBody>
                         </Table>
                     </TableContainer>
                 </Box>
             </Box>
 
-            <Box sx={{ flex: 1, p: 1, }}>
-                {/* Placeholder for customer details form */}
+            <Box sx={{ flex: 1, p: 2 }}>
+                {/* Customer Details */}
                 {customerData && (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh', backgroundColor: '#f4f4f9', mt: 0 }}>
-                        <Card sx={{ maxWidthwidth: 350, padding: 2, borderRadius: 3, boxShadow: 3, textAlign: 'center' }}>
-
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '40vh', backgroundColor: '#f4f4f9', mt: -1 }}>
+                        <Card
+                            sx={{
+                                width: { xs: '90%', sm: 400, md: 350 },
+                                padding: 2,
+                                borderRadius: 3,
+                                boxShadow: 3,
+                                textAlign: 'center',
+                            }}
+                        >
                             {/* Profile Picture */}
                             <Avatar
                                 alt="Profile"
                                 src={`http://localhost:4000${customerData.image.path}`}
-                                sx={{ width: 120, height: 120, margin: '0 auto', border: '4px solid #0073e6', marginBottom: 2 }}
+                                sx={{ width: 120, height: 120, margin: '0 auto', border: '4px solid #0073e6', mb: 2 }}
                             />
+
                             {/* 5-Star Rating */}
                             <Rating
                                 name="profile-rating"
                                 value={rating}
                                 onChange={handleRatingChange}
-                                precision={0.5}  // Allows half-star ratings
+                                precision={0.5}
                                 sx={{ mb: 2 }}
                             />
 
@@ -882,24 +993,29 @@ const GoldLoanForm = () => {
                             <CardContent sx={{ textAlign: 'left' }}>
                                 <Box display="flex" alignItems="center" mb={1.5}>
                                     <LocationOnIcon sx={{ color: 'text.secondary', mr: 1 }} />
-                                    <Typography variant="body2"><strong>Address:</strong> {customerData.address},{customerData.place}, {customerData.pin}</Typography>
+                                    <Typography variant="body2">
+                                        <strong>Address:</strong> {customerData.address}, {customerData.place}, {customerData.pin}
+                                    </Typography>
                                 </Box>
                                 <Box display="flex" alignItems="center" mb={1.5}>
                                     <PhoneIcon sx={{ color: 'text.secondary', mr: 1 }} />
-                                    <Typography variant="body2"><strong>Mobile:</strong> {customerData.primaryNumber}</Typography>
+                                    <Typography variant="body2">
+                                        <strong>Mobile:</strong> {customerData.primaryNumber}
+                                    </Typography>
                                 </Box>
                                 <Box display="flex" alignItems="center" mb={1.5}>
                                     <EmailIcon sx={{ color: 'text.secondary', mr: 1 }} />
-                                    <Typography variant="body2"><strong>Email:</strong>{customerData.email}</Typography>
+                                    <Typography variant="body2">
+                                        <strong>Email:</strong> {customerData.email}
+                                    </Typography>
                                 </Box>
                             </CardContent>
                         </Card>
                     </Box>
-
                 )}
 
                 {/* Nominee Details */}
-                <Box sx={{ maxWidth: 600, margin: '0 auto', mt: 2, textAlign: { xs: 'center', sm: 'left' } }}>
+                <Box sx={{ maxWidth: 600, margin: '0 auto', mt: 3, textAlign: { xs: 'center', sm: 'left' }, px: { xs: 2, sm: 0 } }}>
                     <Typography variant="body1">
                         <strong>Custom ID:</strong> {customerId}
                     </Typography>
@@ -908,9 +1024,6 @@ const GoldLoanForm = () => {
                     </Typography>
                     <Typography variant="body1">
                         <strong>First Name:</strong> {nominee.firstName}
-                    </Typography>
-                    <Typography variant="body1">
-                        <strong>Last Name:</strong> {nominee.lastName}
                     </Typography>
                 </Box>
             </Box>
