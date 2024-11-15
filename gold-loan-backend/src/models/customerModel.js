@@ -7,6 +7,7 @@ const customerSchema = new Schema(
         lastName: String,
         address: String,
         place: String,
+        district: String,
         state: String,
         pin: Number,
         nearBy: String,
@@ -16,6 +17,10 @@ const customerSchema = new Schema(
         aadhar: String,
         email: String,
         gst: String,
+        rating: {
+            type: Number,
+            default: 0
+        },
         aadharImage: {
             name: String,
             fileName: String,
@@ -34,6 +39,10 @@ const customerSchema = new Schema(
             path: { type: String, default: '/cdn/images/user.png' },
             uploadedDate: Date,
         },
+        bankUserName: String,
+        bankAccount: Number,
+        ifsc: String,
+        bankName: String
     },
     { timestamps: true }
 );

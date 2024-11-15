@@ -4,25 +4,25 @@ const itemDetailsSchema = new Schema(
     {
         goldItem: { type: Schema.Types.ObjectId, ref: 'goldItem' },
         netWeight: {
-            type: Types.Decimal128,
-            get: v => (v ? parseFloat(v.toString()) : null)
+            type: Number,
+            default: 0
         },
         grossWeight: {
-            type: Types.Decimal128,
-            get: v => (v ? parseFloat(v.toString()) : null)
+            type: Number,
+            default: 0
         },
         quantity: {
-            type: Types.Decimal128,
-            get: v => (v ? parseFloat(v.toString()) : null)
+            type: Number,
+            default: 0
         },
         // description: String,
         depreciation: {
-            type: Types.Decimal128,
-            get: v => (v ? parseFloat(v.toString()) : null)
+            type: Number,
+            default: 0
         },
         stoneWeight: {
-            type: Types.Decimal128,
-            get: v => (v ? parseFloat(v.toString()) : null)
+            type: Number,
+            default: 0
         }
     },
     { id: false } // Ensure no id field is added
@@ -34,16 +34,16 @@ const goldLoanSchema = new Schema(
         purchaseDate: Date,
         voucherNo: String,
         goldRate: {
-            type: Types.Decimal128,
-            get: v => v ? parseFloat(v.toString()) : null
+            type: Number,
+            default: 0
         },
         companyGoldRate: {
-            type: Types.Decimal128,
-            get: v => v ? parseFloat(v.toString()) : null
+            type: Number,
+            default: 0
         },
         interestRate: {
-            type: Types.Decimal128,
-            get: v => v ? parseFloat(v.toString()) : null
+            type: Number,
+            default: 0
         },
         interestMode: String,
         itemDetails: [itemDetailsSchema],
@@ -51,49 +51,45 @@ const goldLoanSchema = new Schema(
         memberId: { type: Schema.Types.ObjectId, ref: 'member' },
         nomineeId: { type: Schema.Types.ObjectId, ref: 'customer' },
         insurance: {
-            type: Types.Decimal128,
-            get: v => v ? parseFloat(v.toString()) : null
+            type: Number,
+            default: 0
         },
         paymentMode: String,
         processingFee: {
-            type: Types.Decimal128,
-            get: v => v ? parseFloat(v.toString()) : null
+            type: Number,
+            default: 0
         },
         packingFee: {
-            type: Types.Decimal128,
-            get: v => v ? parseFloat(v.toString()) : null
+            type: Number,
+            default: 0
         },
         appraiser: {
-            type: Types.Decimal128,
-            get: v => v ? parseFloat(v.toString()) : null
+            type: Number,
+            default: 0
         },
         otherCharges: {
-            type: Types.Decimal128,
-            get: v => v ? parseFloat(v.toString()) : null
+            type: Number,
+            default: 0
         },
         principleAmount: {
-            type: Types.Decimal128,
-            get: v => v ? parseFloat(v.toString()) : null
+            type: Number,
+            default: 0
         },
         amountPaid: {
-            type: Types.Decimal128,
+            type: Number,
             default: 0,
-            get: v => v ? parseFloat(v.toString()) : 0
         },
         balanceAmount: {
-            type: Types.Decimal128,
+            type: Number,
             default: 0,
-            get: v => v ? parseFloat(v.toString()) : 0
         },
         currentGoldValue: {
-            type: Types.Decimal128,
+            type: Number,
             default: 0,
-            get: v => v ? parseFloat(v.toString()) : 0
         },
         profitOrLoss: {
-            type: Types.Decimal128,
+            type: Number,
             default: 0,
-            get: v => v ? parseFloat(v.toString()) : 0
         },
         goldImage: {
             name: String,
@@ -101,11 +97,13 @@ const goldLoanSchema = new Schema(
             path: { type: String, default: '/cdn/images/user.png' },
             uploadedDate: Date,
         },
+        isClosed: {
+            type: Boolean,
+            default: false
+        }
     },
     {
         timestamps: true,
-        toJSON: { getters: true },
-        toObject: { getters: true },
         id: false // Disable the `id` virtual field
 
     }

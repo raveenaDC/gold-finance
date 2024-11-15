@@ -292,6 +292,38 @@ export async function updateGoldLoanById(req, res) {
 
 }
 
+export async function updateGoldStatus(req, res, next) {
+    try {
+        let { isClosed } = req.body;
+        const { loanId } = req.params;
+
+        const loan = await models.goldLoanModel.findById(loanId);
+        if (!loan) {
+            return responseHelper(res, httpStatus.NOT_FOUND, true, 'Loan details not found');
+        }
+
+        const updateGoldList = await models.goldLoanModel.findByIdAndUpdate(
+            loanId,
+            { isClosed },
+            { new: true, }
+        );
+        let message;
+        if (isClosed) { message = 'Gold loan closed' }
+        else { message = 'Gold loan opened' }
+
+        return responseHelper(
+            res,
+            httpStatus.OK,
+            false,
+            message,
+            { item: updateGoldList }
+        );
+    } catch (error) {
+        return next(new Error(error));
+    }
+
+}
+
 // export async function denyMember(req, res) {
 //     try {
 //         const { memberId } = req.params
@@ -324,6 +356,13 @@ export async function updateGoldLoanById(req, res) {
 export async function viewGoldLoanById(req, res) {
     try {
         const { loanId } = req.params
+        if (!loanId) {
+            return responseHelper(
+                res, httpStatus.NOT_FOUND,
+                true,
+                'Loan ID is required',
+            )
+        }
         const loan = await models.customerModel.findById(loanId).select(
             'glNo voucherNo purchaseDate goldRate companyGoldRate itemDetails interestRate interestMode customerId memberId nomineeId paymentMode insurance  processingFee otherCharges packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt'
         );

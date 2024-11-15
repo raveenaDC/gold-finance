@@ -9,7 +9,7 @@ const billingSchema = new Schema(
         //     type: Types.Decimal128,
         //     get: v => v ? parseFloat(v.toString()) : null
         // },
-        // memberId: { type: Schema.Types.ObjectId, ref: 'customer' },
+        // memberId: { type: Schema.Types.ObjectId, ref: 'member' },
 
     },
     {
