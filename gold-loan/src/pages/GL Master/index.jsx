@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Grid, Button, Typography, CircularProgress, Box, TextField } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
-import GlCustomer from "../Forms/GlCustomer";
+import { CustomerForm } from '../../Forms';
 import { useNavigate } from 'react-router-dom';
-import ItemDetailsTable from './ItemDetailsTable ';
+import ItemDetailsTable from '../../Forms/ItemDetailsTable ';
+import { ROUTES } from '../../constant/route';
 
 export default function GlMaster() {
     const [customers, setCustomers] = useState([]);
@@ -37,7 +38,7 @@ export default function GlMaster() {
     }, []);
 
     const handleGoldLoan = (customerId) => {
-        navigate(`/gold-loan/${customerId}`);
+        navigate(ROUTES.CUSTOMER_GOLD_LOAN.replace(":customerId", customerId));
     };
 
     // Define columns for the DataGrid
@@ -73,15 +74,19 @@ export default function GlMaster() {
     ];
 
     // Filter customers based on the search term
-    const filteredCustomers = customers.filter(customer => {
-        return (
-            customer.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            customer.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            customer.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            customer.primaryNumber.includes(searchTerm) || // Assuming mobile is in primaryNumber
-            (customer.email && customer.email.toLowerCase().includes(searchTerm.toLowerCase())) // Check for email
-        );
-    });
+    const filteredCustomers = useMemo(() => {
+        if (!searchTerm) return customers;
+        return customers.filter(customer => {
+            const searchQuery = searchTerm.toLowerCase();
+            return (
+                customer.firstName.toLowerCase().includes(searchQuery) ||
+                customer.lastName.toLowerCase().includes(searchQuery) ||
+                customer.address.toLowerCase().includes(searchQuery) ||
+                customer.primaryNumber.includes(searchTerm) || // Assuming mobile is in primaryNumber
+                (customer.email && customer.email.toLowerCase().includes(searchQuery)) // Check for email
+            );
+        })
+    }, [searchTerm, customers]);
 
     if (loading) {
         return <CircularProgress />;
@@ -118,11 +123,12 @@ export default function GlMaster() {
 
                 {/* Add Customer Button */}
                 <Box sx={{ mt: { xs: 1, sm: 0 }, flexShrink: 0 }}>
-                    <GlCustomer onCustomerAdded={fetchCustomers} />
+                    <CustomerForm onCustomerAdded={fetchCustomers} />
                 </Box>
             </Grid>
 
 
+            {/* <Box sx={{ height: 100, width: 100, border: "1px solid black", backgroundColor: "primary.main" }} /> */}
 
             <Box
                 sx={{

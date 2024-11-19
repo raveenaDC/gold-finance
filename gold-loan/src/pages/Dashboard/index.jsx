@@ -1,8 +1,6 @@
 import React from 'react';
-import Typography from '@mui/material/Typography';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { LineChart } from '@mui/x-charts/LineChart';
-import GlCustomer from "../Forms/GlCustomer";
 
 export default function MainPage() {
     return (
@@ -21,8 +19,6 @@ export default function MainPage() {
                 width={500}
                 height={300}
             />
-
-
 
         </div>
     );

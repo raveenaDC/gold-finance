@@ -3,11 +3,10 @@ import { Button, Grid, TextField, Typography, Modal, Box } from '@mui/material';
 import PropTypes from 'prop-types';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
-import NomineeSearch from './NomineeSearch';
-import { useNominee } from './NomineeContext';
-import { submitDocument } from '../api';
+import { NomineeSearch } from '../../components'
+import { useNominee } from '../../configure/NomineeContext';
+import { submitDocument } from '../../api';
 import Draggable from 'react-draggable';
-
 
 function CustomTabPanel(props) {
     const { children, value, index, ...other } = props;
@@ -24,21 +23,17 @@ function CustomTabPanel(props) {
         </div>
     );
 }
-
 CustomTabPanel.propTypes = {
     children: PropTypes.node,
     index: PropTypes.number.isRequired,
     value: PropTypes.number.isRequired,
 };
-
 function a11yProps(index) {
     return {
         id: `simple-tab-${index}`,
         'aria-controls': `simple-tabpanel-${index}`,
     };
 }
-
-
 const AddNomineeDetails = () => {
     const [showNomineeModal, setShowNomineeModal] = useState(false);
     const [nomineeSaved, setNomineeSaved] = useState(false);

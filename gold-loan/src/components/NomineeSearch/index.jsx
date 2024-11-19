@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Autocomplete, TextField, CircularProgress, Button } from '@mui/material';
-
-import { useNominee } from './NomineeContext';
+import { useNominee } from '../../configure/NomineeContext';
 
 // import axios from 'axios';
 
@@ -45,6 +44,7 @@ function NomineeSearch() {
     // }, [searchTerm]);
 
     const fetchCustomers = async () => {
+
         try {
             const response = await fetch('http://localhost:4000/customer/details/view');
             const data = await response.json();
@@ -61,7 +61,7 @@ function NomineeSearch() {
 
     useEffect(() => {
         fetchCustomers();
-    }, []);
+    }, [searchTerm]);
 
     const handleOkClick = () => {
         if (selectedOption) {

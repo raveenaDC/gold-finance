@@ -1,5 +1,4 @@
-// src/components/Sidebar.js
-import React from 'react';
+
 import { Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Divider, IconButton, Avatar, Box } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { deepOrange } from '@mui/material/colors';
@@ -15,6 +14,7 @@ import PaymentIcon from '@mui/icons-material/Payment';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import DescriptionIcon from '@mui/icons-material/Description';
 import { styled } from '@mui/material/styles';
+import { ROUTES } from '../../constant/route';
 
 const DrawerHeader = styled('div')(({ theme }) => ({
     display: 'flex',
@@ -84,7 +84,7 @@ export default function Sidebar({ open, handleDrawerClose, theme, drawerWidth })
             {/* Masters Section */}
             <List>
                 <ListItem disablePadding>
-                    <ListItemButton component={Link} to="/gl-master">
+                    <ListItemButton component={Link} to={ROUTES.GOLD_LOAN}>
                         <ListItemIcon><AccountBoxSharpIcon /></ListItemIcon>
                         <ListItemText primary="GL Master" />
                     </ListItemButton>
