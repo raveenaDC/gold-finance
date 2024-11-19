@@ -4,8 +4,7 @@ import React from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { Box, CssBaseline } from '@mui/material'; // Keep 'Box' and 'CssBaseline' as they are used
 import { styled, useTheme, ThemeProvider } from '@mui/material/styles';
-
-import { NomineeProvider } from './Forms/NomineeContext';
+import { NomineeProvider } from './configure/NomineeContext';
 import PageRoutes from './routes';
 import appTheme from './theme/appTheme';
 import { Sidebar, Navbar } from './components';

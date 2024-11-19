@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Grid, Button, Typography, CircularProgress, Box, TextField } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
-import GlCustomer from "../Forms/GlCustomer";
+import { CustomerForm } from '../../Forms';
 import { useNavigate } from 'react-router-dom';
-import ItemDetailsTable from './ItemDetailsTable ';
-import { ROUTES } from '../constant/route';
+import ItemDetailsTable from '../../Forms/ItemDetailsTable ';
+import { ROUTES } from '../../constant/route';
 
 export default function GlMaster() {
     const [customers, setCustomers] = useState([]);
@@ -123,7 +123,7 @@ export default function GlMaster() {
 
                 {/* Add Customer Button */}
                 <Box sx={{ mt: { xs: 1, sm: 0 }, flexShrink: 0 }}>
-                    <GlCustomer onCustomerAdded={fetchCustomers} />
+                    <CustomerForm onCustomerAdded={fetchCustomers} />
                 </Box>
             </Grid>
 

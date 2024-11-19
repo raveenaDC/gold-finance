@@ -1,7 +1,7 @@
 
 import { Route, Routes } from 'react-router-dom';
 import MainPage from '../pages/Dashboard';
-import GlMaster from '../Forms/GlMaster';
+import GlMaster from '../pages/GL Master';
 import GoldLoanForm from '../Forms/GoldLoanForm';
 import { ROUTES } from '../constant/route';
 

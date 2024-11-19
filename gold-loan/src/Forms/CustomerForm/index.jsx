@@ -1,24 +1,14 @@
 import React, { useState, useRef, useCallback } from 'react';
-import signatureIcon from '../assets/signatureIcon.png';
+import signatureIcon from '../../assets/signatureIcon.png';
 import Webcam from 'react-webcam';
-import {
-    Box,
-    Button,
-    TextField,
-    Grid,
-    Typography,
-    Modal,
-    IconButton,
-    Container
-} from '@mui/material';
+import { Box, Button, TextField, Grid, Typography, Modal, IconButton, Container } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { submitDocument } from '../api';
+import { submitDocument } from '../../api';
 import { DEFAULT_MARGINS } from '@mui/x-charts';
 import ImageIcon from '@mui/icons-material/Image';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import BorderColorIcon from '@mui/icons-material/BorderColor';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import ItemDetailsTable from './ItemDetailsTable ';
 import Accordion from '@mui/material/Accordion';
 import AccordionActions from '@mui/material/AccordionActions';
 import AccordionSummary from '@mui/material/AccordionSummary';

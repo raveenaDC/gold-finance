@@ -19,12 +19,12 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import CloseIcon from '@mui/icons-material/Close';
-import AddNomineeDetails from './AddNomineeDetails';
-import { incrementGLNo } from '../Redux/GlNoSlice';
-import { incrementVoucherNo } from '../Redux/voucherNoSlice';
+import { AddNomineeDetails } from '../../Forms';
+import { incrementGLNo } from '../../Redux/GlNoSlice';
+import { incrementVoucherNo } from '../../Redux/voucherNoSlice';
 import { useParams } from 'react-router-dom';
-import { submitDocument } from '../api';
-import { useNominee } from './NomineeContext';
+import { submitDocument } from '../../api';
+import { useNominee } from '../../configure/NomineeContext';
 import Draggable from 'react-draggable';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PhoneIcon from '@mui/icons-material/Phone';
@@ -32,7 +32,7 @@ import EmailIcon from '@mui/icons-material/Email';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
-import { getCustomerDetails } from '../services/customer/customer.service';
+import { getCustomerDetails } from '../../services/customer/customer.service';
 
 
 
