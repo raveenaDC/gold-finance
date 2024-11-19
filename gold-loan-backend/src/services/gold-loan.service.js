@@ -9,7 +9,7 @@ const transFormImageUploadResponseArray = (imageResponseArray) => {
     return imageResponseArray.map((image) => ({
         name: image.originalname,
         fileName: image.filename,
-        path: `/cdn/uploads/images/${image.filename}`,
+        path: `/cdn/uploads/images/goldItems/${image.filename}`,
         uploadedDate: new Date(),
     }));
 };

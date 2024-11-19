@@ -4,6 +4,7 @@ import goldItemModel from "./goldItemModel.js";
 import goldLoanModel from "./goldLoanModel.js";
 import memberModel from "./memberModel.js";
 import interestCalculationModel from "./interestCalculationModel.js";
+import goldLoanPdfModel from "./goldLoanPdfModel.js";
 
 export {
     billingModel,
@@ -11,5 +12,6 @@ export {
     goldItemModel,
     goldLoanModel,
     memberModel,
-    interestCalculationModel
+    interestCalculationModel,
+    goldLoanPdfModel
 };
