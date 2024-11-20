@@ -33,6 +33,7 @@ import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { getCustomerDetails } from '../../services/customer/customer.service';
+import { getgolditemdetails } from '../../services/goldItems/goldItems.service';
 
 
 
@@ -181,10 +182,14 @@ const GoldLoanForm = () => {
 
     const fetchCustomers = async () => {
         try {
-            const response = await fetch('http://localhost:4000/gold/view-items');
-            const data = await response.json();
+            const response = await getgolditemdetails();
+            // const data = await response.json();
             // Map data to add unique `id` if not present
-            setOptions(data.data.items);
+            if (response.isSuccess && response.items) {
+                // setOptions(data.data.items);
+                setOptions(response.items);
+            }
+            console.log(response);
 
         } catch (error) {
             console.error("Error fetching customer data:", error);
@@ -592,6 +597,7 @@ const GoldLoanForm = () => {
                                     <TableCell sx={{ fontSize: '8px', padding: '2px', borderBottom: '1px solid #ccc' }}>
                                         <TextField
                                             type="text"
+                                            type="number"
                                             value={item.netWeight}
                                             onChange={(e) => handleChangeItem(item.id, item.goldItem, 'netWeight', e.target.value)}
                                             variant="outlined"
@@ -646,7 +652,6 @@ const GoldLoanForm = () => {
                         </tr>
                     </tbody>
                 </table>
-
                 <Grid container spacing={0.5} sx={{ mb: 2 }}>
                     {[
                         { label: 'principle Amount', name: 'principleAmount' },
@@ -658,6 +663,7 @@ const GoldLoanForm = () => {
                     ].map((field, index) => (
                         <Grid item xs={4} key={index}>
                             <TextField
+                                type="number"
                                 label={field.label}
                                 name={field.name}
                                 value={form[field.name]}

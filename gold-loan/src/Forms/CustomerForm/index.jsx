@@ -14,14 +14,16 @@ import AccordionActions from '@mui/material/AccordionActions';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { FileUpload } from '@mui/icons-material';
 
 
 
 export default function CustomerForm({ onCustomerAdded }) {
     const [open, setOpen] = useState(false); // Modal state
+    const [usingAadharcam, setUsingAadharcam] = useState(false); // Toggle between file upload and webcam
     const [usingSigncam, setUsingSigncam] = useState(false); // Toggle between file upload and webcam
     const [usingWebcam, setUsingWebcam] = useState(false); // Toggle between file upload and webcam
-    const [fileImage, setFileImage] = useState({ image: null, signature: null, capture: null, sCapture: null }); // State to store the uploaded image and signature
+    const [fileImage, setFileImage] = useState({ image: null, signature: null, aadharImage: null, capture: null, sCapture: null, aCapture: null }); // State to store the uploaded image and signature
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -29,12 +31,17 @@ export default function CustomerForm({ onCustomerAdded }) {
         careOf: '',
         place: '',
         state: '',
+        district: '',
         zip: '',
         aadhar: '',
         primaryNumber: '',
         secondaryNumber: '',
         gst: '',
         nearBy: '',
+        bankUserName: '',
+        bankAccount: '',
+        ifsc: '',
+        bankName: '',
         email: '', // Add email field
 
     });
@@ -61,6 +68,15 @@ export default function CustomerForm({ onCustomerAdded }) {
         setUsingSigncam(false); // Hide the webcam after capture
     }, [webcamRef, fileImage]);
 
+    // Handle Signaturecam capture
+    const captureAadhar = useCallback(() => {
+        const imageSrc = webcamRef.current.getScreenshot(); // Capture image from webcam as Base64
+        setFileImage({ ...fileImage, aCapture: imageSrc });  // Set Base64 image
+        setUsingAadharcam(false); // Hide the webcam after capture
+    }, [webcamRef, fileImage]);
+
+
+
     // handle image change
     const handleimagechange = (e) => {
         const { name, files } = e.target;
@@ -74,6 +90,11 @@ export default function CustomerForm({ onCustomerAdded }) {
             [e.target.id]: e.target.value,
         });
     };
+    const handleButtonClick = () => {
+        if (fileInputaadharRef.current) {
+            fileInputaadharRef.current.click();
+        }
+    };
 
     const base64ToBlob = (base64Data, contentType = '') => {
         const byteCharacters = atob(base64Data.split(',')[1]); // Decode Base64 string
@@ -85,13 +106,16 @@ export default function CustomerForm({ onCustomerAdded }) {
         return new Blob([byteArray], { type: contentType });
     };
 
-    const fileInputRef = useRef(null); // Reference to the file input
+    const fileInputcamRef = useRef(null); // Reference to the file input
+    const fileInputSignRef = useRef(null); // Reference to the file input    
+    const fileInputaadharRef = useRef(null);
+
 
     // Function to handle closing the image
     const handleCloseImage = () => {
         setFileImage({ ...fileImage, image: null }); // Clear the uploaded image
-        if (fileInputRef.current) {
-            fileInputRef.current.value = ""; // Clear the input value
+        if (fileInputcamRef.current) {
+            fileInputcamRef.current.value = ""; // Clear the input value
         }
     };
 
@@ -102,8 +126,8 @@ export default function CustomerForm({ onCustomerAdded }) {
     // Function to handle closing the signature image
     const handleCloseSignature = () => {
         setFileImage({ ...fileImage, signature: null }); // Clear the uploaded signature
-        if (fileInputRef.current) {
-            fileInputRef.current.value = ""; // Clear the input value
+        if (fileInputSignRef.current) {
+            fileInputSignRef.current.value = ""; // Clear the input value
         }
 
 
@@ -111,6 +135,18 @@ export default function CustomerForm({ onCustomerAdded }) {
 
     const handleCloseSCapture = () => {
         setFileImage({ ...fileImage, sCapture: null }); // Clear the captured signature
+    };
+
+    // Function to handle closing the image
+    const handleCloseAadhar = () => {
+        setFileImage({ ...fileImage, aadharImage: null }); // Clear the uploaded image
+        if (fileInputaadharRef.current) {
+            fileInputaadharRef.current.value = ""; // Clear the input value
+        }
+    };
+
+    const handleCloseACapture = () => {
+        setFileImage({ ...fileImage, aCapture: null }); // Clear the captured image
     };
 
 
@@ -165,6 +201,10 @@ export default function CustomerForm({ onCustomerAdded }) {
         // State validation
         if (!formData.state.trim()) formErrors.state = "State is required";
 
+        // State validation
+        if (!formData.district.trim()) formErrors.district = "District is required";
+
+
         // Zip Code validation
         if (!formData.zip.trim()) {
             formErrors.zip = "Zip Code is required";
@@ -177,6 +217,33 @@ export default function CustomerForm({ onCustomerAdded }) {
             formErrors.aadhar = "Aadhar number is required";
         } else if (!/^\d{12}$/.test(formData.aadhar)) {
             formErrors.aadhar = "Aadhar number must be exactly 12 digits";
+        }
+
+        // Bank Account Number Verification
+        if (!formData.bankAccount) {
+            formErrors.bankAccount = "Bank account number is required";
+        } else if (!/^\d{9,18}$/.test(formData.bankAccount)) {
+            formErrors.bankAccount = "Bank account number must be between 9 and 18 digits";
+        }
+
+        // IFSC Code Verification
+        if (!formData.ifsc) {
+            formErrors.ifsc = "IFSC code is required";
+        } else if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(formData.ifsc)) {
+            formErrors.ifsc = "Invalid IFSC code format";
+        }
+
+        // Bank Username Verification
+        if (!formData.bankUserName) {
+            formErrors.bankUserName = "Bank username is required";
+        } else if (!/^[a-zA-Z\s]{3,50}$/.test(formData.bankUserName)) {
+            formErrors.bankUserName = "Bank username must be 3 to 50 characters long and contain only alphabets and spaces";
+        }
+        // Bank Name Verification
+        if (!formData.bankName) {
+            formErrors.bankName = "Bank name is required";
+        } else if (!/^[a-zA-Z\s]{3,50}$/.test(formData.bankName)) {
+            formErrors.bankName = "Bank name must be 3 to 50 characters long and contain only alphabets and spaces";
         }
 
         // Primary Mobile Number validation
@@ -205,6 +272,10 @@ export default function CustomerForm({ onCustomerAdded }) {
 
         if (!fileImage.signature && !fileImage.sCapture) {
             formErrors.signature = "Either upload a signature or capture one with the webcam";
+        }
+
+        if (!fileImage.aadharImage && !fileImage.aCapture) {
+            formErrors.aadharImage = "Either upload an Aadhar image or capture one with the webcam";
         }
 
         setErrors(formErrors);
@@ -236,9 +307,16 @@ export default function CustomerForm({ onCustomerAdded }) {
         data.append('primaryNumber', formData.primaryNumber);
         data.append('secondaryNumber', formData.secondaryNumber);
         data.append('gst', formData.gst);
+        data.append('district', formData.district);
+        data.append('bankAccount', formData.bankAccount);
+        data.append('bankName', formData.bankName);
+        data.append('bankUserName', formData.bankUserName);
+        data.append('ifsc', formData.ifsc);
         data.append('email', formData.email);
         data.append('image', fileImage.image);
         data.append('signature', fileImage.signature);
+        data.append('aadharImage', fileImage.aadharImage);
+
 
         // Add captured image if available (convert Base64 to Blob and append)
         if (fileImage.capture) {
@@ -259,6 +337,16 @@ export default function CustomerForm({ onCustomerAdded }) {
             const fileWithFileName = new File([blob], filename, { type: 'image/jpeg' });
             fileImage.signature = fileWithFileName; // Assign it to fileImage.image
             data.append('signature', fileWithFileName); // Append the signature file
+        }
+
+        // Handle captured signature (convert Base64 to Blob)
+        if (fileImage.aCapture) {
+            let blob = base64ToBlob(fileImage.aCapture, 'image/jpeg');
+            const timestamp = new Date().toISOString().replace(/[-:.]/g, '');
+            const filename = `webcam_aadhar_${timestamp}.jpg`;
+            const fileWithFileName = new File([blob], filename, { type: 'image/jpeg' });
+            fileImage.aadharImage = fileWithFileName; // Assign it to fileImage.image
+            data.append('aadharImage', fileWithFileName); // Append the signature file
         }
 
 
@@ -288,6 +376,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                 nearBy: '',
                 gst: '',
                 email: '', // Clear email field
+
             });
             setFileImage({
                 image: null,
@@ -411,132 +500,8 @@ export default function CustomerForm({ onCustomerAdded }) {
                                     />
                                 </Grid>
 
-                                {/* Address */}
-                                <Grid item xs={12} sm={7}>
-                                    <TextField
-                                        fullWidth
-                                        id="address"
-                                        name="address"
-                                        label="Address"
-                                        variant="outlined"
-                                        required
-                                        value={formData.address}
-                                        onChange={handleChange}
-                                        error={!!errors.address} // Add error prop
-                                        helperText={errors.address} // Display error message
-                                        sx={commonTextFieldSx} // Apply common style
-                                        size="small"
-                                    />
-                                </Grid>
-                                {/* care Of */}
-                                <Grid item xs={12} sm={5}>
-                                    <TextField
-                                        fullWidth
-                                        id="careOf"
-                                        name="careOf"
-                                        label="CareOf"
-                                        variant="outlined"
-                                        required
-                                        value={formData.careOf}
-                                        onChange={handleChange}
-                                        error={!!errors.careOf} // Add error prop
-                                        helperText={errors.careOf} // Display error message
-                                        sx={commonTextFieldSx} // Apply common style
-                                        size="small"
-                                    />
-                                </Grid>
-                                {/* place/City */}
-                                <Grid item xs={12} sm={4}>
-                                    <TextField
-                                        fullWidth
-                                        id="place"
-                                        name="place"
-                                        label="place (City)"
-                                        variant="outlined"
-                                        required
-                                        value={formData.place}
-                                        onChange={handleChange}
-                                        error={!!errors.place} // Add error prop
-                                        helperText={errors.place} // Display error message
-                                        sx={commonTextFieldSx} // Apply common style
-                                        size="small"
-                                    />
-                                </Grid>
-
-                                {/* District */}
-                                <Grid item xs={12} sm={4}>
-                                    <TextField
-                                        fullWidth
-                                        id="state"
-                                        name="state"
-                                        label="District"
-                                        variant="outlined"
-                                        required
-                                        value={formData.state}
-                                        onChange={handleChange}
-                                        error={!!errors.state} // Add error prop
-                                        helperText={errors.state} // Display error message
-                                        sx={commonTextFieldSx} // Apply common style
-                                        size="small"
-                                    />
-                                </Grid>
-
-                                {/* State */}
-                                <Grid item xs={12} sm={4}>
-                                    <TextField
-                                        fullWidth
-                                        id="state"
-                                        name="state"
-                                        label="State"
-                                        variant="outlined"
-                                        required
-                                        value={formData.state}
-                                        onChange={handleChange}
-                                        error={!!errors.state} // Add error prop
-                                        helperText={errors.state} // Display error message
-                                        sx={commonTextFieldSx} // Apply common style
-                                        size="small"
-                                    />
-                                </Grid>
-
-
-                                {/* Near By location */}
-                                <Grid item xs={12} sm={8}>
-                                    <TextField
-                                        fullWidth
-                                        id="nearBy"
-                                        name="nearBy"
-                                        label="Near By location"
-                                        variant="outlined"
-                                        value={formData.nearBy}
-                                        onChange={handleChange}
-                                        error={!!errors.nearBy} // Add error prop
-                                        helperText={errors.nearBy} // Display error message
-                                        sx={commonTextFieldSx} // Apply common style
-                                        size="small"
-                                    />
-                                </Grid>
-
-
-                                {/* Zip Code */}
-                                <Grid item xs={12} sm={4}>
-                                    <TextField
-                                        fullWidth
-                                        id="zip"
-                                        name="zip"
-                                        label="Zip Code"
-                                        variant="outlined"
-                                        required
-                                        value={formData.zip}
-                                        onChange={handleChange}
-                                        error={!!errors.zip} // Add error prop
-                                        helperText={errors.zip} // Display error message
-                                        sx={commonTextFieldSx} // Apply common style
-                                        size="small"
-                                    />
-                                </Grid>
                                 {/* Email */}
-                                <Grid item xs={12} sm={6}>
+                                <Grid item xs={12} >
                                     <TextField
                                         fullWidth
                                         id="email"
@@ -553,6 +518,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         size="small"
                                     />
                                 </Grid>
+
 
                                 {/* Primary Mobile Number */}
                                 <Grid item xs={12} sm={6}>
@@ -578,7 +544,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         fullWidth
                                         id="secondaryNumber"
                                         name="secondaryNumber"
-                                        label="Secondary Mobile Number"
+                                        label="Secondary  Number"
                                         variant="outlined"
                                         value={formData.secondaryNumber}
                                         onChange={handleChange}
@@ -589,23 +555,133 @@ export default function CustomerForm({ onCustomerAdded }) {
                                     />
                                 </Grid>
 
-                                {/* Aadhar Number */}
+
+                                {/* Address */}
                                 <Grid item xs={12} sm={6}>
                                     <TextField
                                         fullWidth
-                                        id="aadhar"
-                                        name="aadhar"
-                                        label="Aadhar Number"
+                                        id="address"
+                                        name="address"
+                                        label="Address"
                                         variant="outlined"
                                         required
-                                        value={formData.aadhar}
+                                        value={formData.address}
                                         onChange={handleChange}
-                                        error={!!errors.aadhar} // Add error prop
-                                        helperText={errors.aadhar} // Display error message
+                                        error={!!errors.address} // Add error prop
+                                        helperText={errors.address} // Display error message
                                         sx={commonTextFieldSx} // Apply common style
                                         size="small"
                                     />
                                 </Grid>
+                                {/* care Of */}
+                                <Grid item xs={12} sm={6}>
+                                    <TextField
+                                        fullWidth
+                                        id="careOf"
+                                        name="careOf"
+                                        label="CareOf"
+                                        variant="outlined"
+                                        required
+                                        value={formData.careOf}
+                                        onChange={handleChange}
+                                        error={!!errors.careOf} // Add error prop
+                                        helperText={errors.careOf} // Display error message
+                                        sx={commonTextFieldSx} // Apply common style
+                                        size="small"
+                                    />
+                                </Grid>
+                                {/* place/City */}
+                                <Grid item xs={12} sm={6}>
+                                    <TextField
+                                        fullWidth
+                                        id="place"
+                                        name="place"
+                                        label="place (City)"
+                                        variant="outlined"
+                                        required
+                                        value={formData.place}
+                                        onChange={handleChange}
+                                        error={!!errors.place} // Add error prop
+                                        helperText={errors.place} // Display error message
+                                        sx={commonTextFieldSx} // Apply common style
+                                        size="small"
+                                    />
+                                </Grid>
+
+                                {/* District */}
+                                <Grid item xs={12} sm={6}>
+                                    <TextField
+                                        fullWidth
+                                        id="district"
+                                        name="district"
+                                        label="District"
+                                        variant="outlined"
+                                        required
+                                        value={formData.district}
+                                        onChange={handleChange}
+                                        error={!!errors.district} // Add error prop
+                                        helperText={errors.district} // Display error message
+                                        sx={commonTextFieldSx} // Apply common style
+                                        size="small"
+                                    />
+                                </Grid>
+
+                                {/* State */}
+                                <Grid item xs={12} sm={6}>
+                                    <TextField
+                                        fullWidth
+                                        id="state"
+                                        name="state"
+                                        label="State"
+                                        variant="outlined"
+                                        required
+                                        value={formData.state}
+                                        onChange={handleChange}
+                                        error={!!errors.state} // Add error prop
+                                        helperText={errors.state} // Display error message
+                                        sx={commonTextFieldSx} // Apply common style
+                                        size="small"
+                                    />
+                                </Grid>
+
+                                {/* Zip Code */}
+                                <Grid item xs={12} sm={6}>
+                                    <TextField
+                                        fullWidth
+                                        id="zip"
+                                        name="zip"
+                                        label="Zip Code"
+                                        variant="outlined"
+                                        required
+                                        value={formData.zip}
+                                        onChange={handleChange}
+                                        error={!!errors.zip} // Add error prop
+                                        helperText={errors.zip} // Display error message
+                                        sx={commonTextFieldSx} // Apply common style
+                                        size="small"
+                                    />
+                                </Grid>
+
+
+
+                                {/* Near By location */}
+                                <Grid item xs={12} sm={6}>
+                                    <TextField
+                                        fullWidth
+                                        id="nearBy"
+                                        name="nearBy"
+                                        label="Near By location"
+                                        variant="outlined"
+                                        value={formData.nearBy}
+                                        onChange={handleChange}
+                                        error={!!errors.nearBy} // Add error prop
+                                        helperText={errors.nearBy} // Display error message
+                                        sx={commonTextFieldSx} // Apply common style
+                                        size="small"
+                                    />
+                                </Grid>
+
+
 
                                 {/* GST Number */}
                                 <Grid item xs={12} sm={6}>
@@ -622,12 +698,115 @@ export default function CustomerForm({ onCustomerAdded }) {
                                     />
                                 </Grid>
 
+                                {/* Aadhar Details Heading */}
+                                <Grid item xs={12}>
+                                    <Typography sx={{ fontSize: 14, borderBottom: '1px solid #979797', marginTop: .5, marginBottom: .5, color: '#626161' }}>
+                                        Aadhar Details
+                                    </Typography>
+                                </Grid>
+
+                                {/* Aadhar Number */}
+                                <Grid item xs={12} sm={8}>
+                                    <TextField
+                                        fullWidth
+                                        id="aadhar"
+                                        name="aadhar"
+                                        label="Aadhar Number"
+                                        variant="outlined"
+                                        required
+                                        value={formData.aadhar}
+                                        onChange={handleChange}
+                                        error={!!errors.aadhar}
+                                        helperText={errors.aadhar}
+                                        sx={commonTextFieldSx}
+                                        size="small"
+                                    />
+                                </Grid>
+
+                                {/* Aadhar File Upload */}
+                                <Grid item xs={12} sm={4}>
+                                    <IconButton onClick={handleButtonClick}>
+                                        {/* onClick={() => fileInputaadharRef.current?.click()} */}
+                                        <FileUpload />
+
+                                    </IconButton>
+                                    <input
+                                        ref={fileInputaadharRef} // Add a ref for programmatic access
+                                        hidden
+                                        name="aadharImage"
+                                        accept="image/*"
+                                        type="file"
+                                        onChange={handleimagechange} // Handle file change
+                                    />
+
+                                    <IconButton
+
+                                        onClick={() => setUsingAadharcam(!usingAadharcam)} // Toggle `usingSigncam`
+                                    // sx={{ ml: 2 }}
+                                    >
+                                        {usingAadharcam ? <PhotoCamera /> : <PhotoCamera />} {/* Conditionally render text or icon */}
+                                    </IconButton>
+
+                                </Grid>
+
+                                <Grid item xs={12}>
+
+
+                                    {/* Display uploaded Aadhar */}
+                                    {fileImage.aadharImage && !fileImage.aCapture && (
+                                        <Box mt={2} style={{ position: 'relative', right: 0, }} >
+                                            <img src={URL.createObjectURL(fileImage.aadharImage)} alt="Uploaded Aadhar" style={{ width: '100px' }} />
+                                            <IconButton
+                                                onClick={handleCloseAadhar}
+                                                style={{ position: 'absolute', top: 0, left: 105, padding: '0' }}
+                                            >
+                                                <CloseIcon />
+                                            </IconButton>
+                                        </Box>
+                                    )}
+
+                                    {fileImage.aCapture && (
+                                        <Box mt={2} position="relative">
+                                            <img src={fileImage.aCapture} alt="Captured Aadhar" style={{ width: '100px' }} />
+                                            <IconButton
+                                                onClick={handleCloseACapture}
+                                                style={{ position: 'absolute', top: 0, right: 0, padding: '0' }}
+                                            >
+                                                <CloseIcon />
+                                            </IconButton>
+                                        </Box>
+                                    )}
+
+
+                                    {/* Webcam Component */}
+                                    {usingAadharcam && (
+                                        <Box mt={2}>
+                                            <Webcam
+                                                audio={false}
+                                                ref={webcamRef}
+                                                screenshotFormat="image/jpeg"
+                                                width="100%"
+                                            />
+                                            <Button
+                                                variant="contained"
+                                                color="primary"
+                                                onClick={captureAadhar}
+                                                sx={{ mt: 2 }}
+                                            >
+                                                Capture
+                                            </Button>
+                                        </Box>
+                                    )}
+                                    {errors.aadharImage && <Typography color="error">{errors.aadharImage}</Typography>}
+                                </Grid>
+
                                 <Grid item xs={12} >
                                     <Accordion>
                                         <AccordionSummary
                                             expandIcon={<ExpandMoreIcon />}
                                             aria-controls="panel1-content"
                                             id="panel1-header"
+                                            sx={{ marginTop: 1 }}
                                         >
                                             Please enter bank details
 
@@ -638,15 +817,15 @@ export default function CustomerForm({ onCustomerAdded }) {
                                                 <Grid item xs={12} sm={6}>
                                                     <TextField
                                                         fullWidth
-                                                        id="Account Name"
-                                                        name="Account Name"
+                                                        id="bankUserName"
+                                                        name="bankUserName"
                                                         label="Account Namee"
                                                         variant="outlined"
-                                                        // required
-                                                        // value={formData.zip}
-                                                        // onChange={handleChange}
-                                                        // error={!!errors.zip} // Add error prop
-                                                        // helperText={errors.zip} // Display error message
+                                                        required
+                                                        value={formData.bankUserName}
+                                                        onChange={handleChange}
+                                                        error={!!errors.bankUserName} // Add error prop
+                                                        helperText={errors.bankUserName} // Display error message
                                                         sx={commonTextFieldSx} // Apply common style
                                                         size="small"
                                                     />
@@ -655,15 +834,15 @@ export default function CustomerForm({ onCustomerAdded }) {
                                                 <Grid item xs={12} sm={6}>
                                                     <TextField
                                                         fullWidth
-                                                        id="bankname"
-                                                        name="bankname"
+                                                        id="bankName"
+                                                        name="bankName"
                                                         label="Bank name"
                                                         variant="outlined"
-                                                        // required
-                                                        // value={formData.zip}
-                                                        // onChange={handleChange}
-                                                        // error={!!errors.zip} // Add error prop
-                                                        // helperText={errors.zip} // Display error message
+                                                        required
+                                                        value={formData.bankName}
+                                                        onChange={handleChange}
+                                                        error={!!errors.bankName} // Add error prop
+                                                        helperText={errors.bankName} // Display error message
                                                         sx={commonTextFieldSx} // Apply common style
                                                         size="small"
                                                     />
@@ -672,15 +851,15 @@ export default function CustomerForm({ onCustomerAdded }) {
                                                 <Grid item xs={12} sm={6}>
                                                     <TextField
                                                         fullWidth
-                                                        id="ifsccode"
-                                                        name="ifscCode"
+                                                        id="ifsc"
+                                                        name="ifsc"
                                                         label="IFSC Code"
                                                         variant="outlined"
-                                                        // required
-                                                        // value={formData.zip}
-                                                        // onChange={handleChange}
-                                                        // error={!!errors.zip} // Add error prop
-                                                        // helperText={errors.zip} // Display error message
+                                                        required
+                                                        value={formData.ifsc}
+                                                        onChange={handleChange}
+                                                        error={!!errors.ifsc} // Add error prop
+                                                        helperText={errors.ifsc} // Display error message
                                                         sx={commonTextFieldSx} // Apply common style
                                                         size="small"
                                                     />
@@ -689,16 +868,15 @@ export default function CustomerForm({ onCustomerAdded }) {
                                                 <Grid item xs={12} sm={6}>
                                                     <TextField
                                                         fullWidth
-                                                        id="accountnumber"
-                                                        name="accountnumber"
+                                                        id="bankAccount"
+                                                        name="bankAccount"
                                                         label="Account Number"
                                                         variant="outlined"
-                                                        // required
-                                                        // type="email"
-                                                        // value={formData.email}
-                                                        // onChange={handleChange}
-                                                        // error={!!errors.email} // Add error prop
-                                                        // helperText={errors.email} // Display error message
+                                                        required
+                                                        value={formData.bankAccount}
+                                                        onChange={handleChange}
+                                                        error={!!errors.bankAccount} // Add error prop
+                                                        helperText={errors.bankAccount} // Display error message
                                                         sx={commonTextFieldSx} // Apply common style
                                                         size="small"
                                                     />
@@ -718,7 +896,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                             startIcon={<AccountCircleIcon />} // Adds the PhotoCamera icon
                                         >
                                             <input
-                                                ref={fileInputRef} // Attach the ref here
+                                                ref={fileInputcamRef} // Attach the ref here
                                                 type="file"
                                                 name="image"
                                                 hidden
@@ -794,7 +972,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         >
 
                                             <input
-                                                ref={fileInputRef} // Attach the ref here
+                                                ref={fileInputSignRef} // Attach the ref here
                                                 type="file"
                                                 name="signature"
                                                 hidden
