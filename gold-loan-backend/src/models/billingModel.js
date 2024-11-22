@@ -6,16 +6,14 @@ const billingSchema = new Schema(
         billDate: Date,
         goldLoanId: { type: Schema.Types.ObjectId, ref: 'goldLoan' },
         // amountPaid: {
-        //     type: Types.Decimal128,
-        //     get: v => v ? parseFloat(v.toString()) : null
+        //     type: Number,
+        //     default: 0,
         // },
-        // memberId: { type: Schema.Types.ObjectId, ref: 'member' },
+        memberId: { type: Schema.Types.ObjectId, ref: 'member' },
 
     },
     {
         timestamps: true,
-        // toJSON: { getters: true },
-        // toObject: { getters: true },
         //id: false
     }
 );

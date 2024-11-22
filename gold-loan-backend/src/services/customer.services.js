@@ -90,7 +90,7 @@ export async function customerView(req, res, next) {
         }
 
         let customerList = await models.customerModel.find(query).select(
-            'firstName lastName  address district place state  pin nearBy  primaryNumber careOf secondaryNumber aadhar email image signature aadharImage bankUserName bankAccount ifsc bankName createdAt '
+            'firstName lastName  address district place state rating  pin nearBy  primaryNumber careOf secondaryNumber aadhar email image signature aadharImage bankUserName bankAccount ifsc bankName createdAt '
         ).collation({ locale: 'en', strength: 2 });
 
         if (orderBy === 'firstName') {
@@ -375,7 +375,7 @@ export async function customerViewById(req, res) {
             )
         }
         const customer = await models.customerModel.findById(customerId).select(
-            'firstName lastName  address place district state  pin nearBy  primaryNumber careOf secondaryNumber aadhar email image signature aadharImage bankUserName bankAccount ifsc  bankName createdAt'
+            'firstName lastName  address place district state rating pin nearBy  primaryNumber careOf secondaryNumber aadhar email image signature aadharImage bankUserName bankAccount ifsc  bankName createdAt'
         );
         if (!customer) {
             return responseHelper(
