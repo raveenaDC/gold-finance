@@ -3,10 +3,10 @@ import { Button, Grid, TextField, Typography, Modal, Box } from '@mui/material';
 import PropTypes from 'prop-types';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
+
 import { NomineeSearch } from '../../components'
 import { useNominee } from '../../configure/NomineeContext';
 import { submitDocument } from '../../api';
-import Draggable from 'react-draggable';
 
 function CustomTabPanel(props) {
     const { children, value, index, ...other } = props;
@@ -38,6 +38,7 @@ const AddNomineeDetails = () => {
     const [showNomineeModal, setShowNomineeModal] = useState(false);
     const [nomineeSaved, setNomineeSaved] = useState(false);
     const [nomineeId, setNomineeNominee] = useState(false);
+    const [value, setValue] = React.useState(0);
 
     const [nomineeDetails, setNomineeDetails] = useState({
         firstName: '',
@@ -51,6 +52,10 @@ const AddNomineeDetails = () => {
         email: '', // Add email field
     });
 
+
+    const { nominee } = useNominee(); // Access nominee data from context    
+    const { setNominee } = useNominee();// Use the setNominee function from context
+
     const handleNomineeModalOpen = () => setShowNomineeModal(true);
     const handleNomineeModalClose = () => setShowNomineeModal(false);
 
@@ -63,12 +68,9 @@ const AddNomineeDetails = () => {
     };
 
     const handleSaveNomineeDetails = async () => {
-
-
         setNomineeSaved(true);
         handleNomineeModalClose(); // Close the modal
-        nominee.firstName = nomineeDetails.firstName;
-
+        // nominee.firstName = nomineeDetails.firstName;
         const data = new FormData();
         data.append('firstName', nomineeDetails.firstName);
         data.append('lastName', nomineeDetails.lastName);
@@ -79,7 +81,6 @@ const AddNomineeDetails = () => {
         data.append('aadhar', nomineeDetails.aadhar);
         data.append('primaryNumber', nomineeDetails.primaryNumber);
         data.append('email', nomineeDetails.email);
-
         try {
 
             const customerData = {
@@ -96,32 +97,14 @@ const AddNomineeDetails = () => {
                 firstName: nomineeDetails.firstName,
 
             });
-
-
         } catch (error) {
             alert('Failed to upload data. Please try again.');
         }
-
-
-
     };
-
-
-
-    const [value, setValue] = React.useState(0);
 
     const handleChange = (event, newValue) => {
         setValue(newValue);
     };
-
-    const { nominee } = useNominee(); // Access nominee data from context
-
-    // Use the setNominee function from context
-    const { setNominee } = useNominee();
-
-
-
-
 
     return (
         <Grid container spacing={2}>
@@ -131,24 +114,11 @@ const AddNomineeDetails = () => {
                     {nominee.nomineeId ? `Nominee: ${nominee.firstName}` : nomineeSaved ? ` Nominee : ${nomineeDetails.firstName}` : 'Add Nominee'}
 
                 </Button>
-                {/* <Button
-                    variant="text"
-                    color="Secondary"
-                    fullWidth
-
-                >
-                    {nomineeSaved ? `Nominee: ${nomineeDetails.firstName}` : 'Add Nominee Details'}
-                </Button> */}
             </Grid>
-
-
-
 
 
             {/* Nominee Details Modal */}
             <Modal open={showNomineeModal} onClose={handleNomineeModalClose} aria-labelledby="nominee-modal-title">
-
-
                 <Box
                     sx={{
                         p: 4,
@@ -173,11 +143,10 @@ const AddNomineeDetails = () => {
                         </Box>
                         <CustomTabPanel value={value} index={0}>
 
-
-
                             <Typography id="nominee-modal-title" variant="h6" component="h2">
                                 Nominee Details
                             </Typography>
+
                             <TextField
                                 label="First Name"
                                 name="firstName"
@@ -259,21 +228,20 @@ const AddNomineeDetails = () => {
                                 size="small"
                                 sx={{ mt: 1 }} s
                             />
+
                             <Button variant="contained" color="primary" onClick={handleSaveNomineeDetails} fullWidth sx={{ mt: 3 }}>
                                 Save Nominee Details
-
                             </Button>
+
                         </CustomTabPanel>
+
                         <CustomTabPanel value={value} index={1} sx={{ width: '100%', maxHeight: '88vh', }}>
                             <NomineeSearch />
                         </CustomTabPanel>
 
                     </Box>
                 </Box>
-
-
             </Modal>
-
         </Grid>
     );
 };

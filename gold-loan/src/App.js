@@ -48,7 +48,7 @@ export default function App() {
     <Router>
       <ThemeProvider theme={appTheme}>
         <NomineeProvider>
-          <Box sx={{ display: 'flex' }}>
+          <Box sx={{ display: 'flex', mt: 4 }}>
             <CssBaseline />
             <Navbar handleDrawerOpen={handleDrawerOpen} open={open} />
             <Sidebar open={open} handleDrawerClose={handleDrawerClose} theme={theme} drawerWidth={drawerWidth} />
