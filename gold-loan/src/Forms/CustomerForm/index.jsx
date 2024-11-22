@@ -1,22 +1,19 @@
 import React, { useState, useRef, useCallback } from 'react';
-import signatureIcon from '../../assets/signatureIcon.png';
 import Webcam from 'react-webcam';
 import { Box, Button, TextField, Grid, Typography, Modal, IconButton, Container } from '@mui/material';
+
 import CloseIcon from '@mui/icons-material/Close';
-import { submitDocument } from '../../api';
-import { DEFAULT_MARGINS } from '@mui/x-charts';
-import ImageIcon from '@mui/icons-material/Image';
+import signatureIcon from '../../assets/signatureIcon.png';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
-import BorderColorIcon from '@mui/icons-material/BorderColor';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import Accordion from '@mui/material/Accordion';
-import AccordionActions from '@mui/material/AccordionActions';
-import AccordionSummary from '@mui/material/AccordionSummary';
-import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { FileUpload } from '@mui/icons-material';
 
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
 
+import { submitDocument } from '../../api';
 
 export default function CustomerForm({ onCustomerAdded }) {
     const [open, setOpen] = useState(false); // Modal state
@@ -24,6 +21,7 @@ export default function CustomerForm({ onCustomerAdded }) {
     const [usingSigncam, setUsingSigncam] = useState(false); // Toggle between file upload and webcam
     const [usingWebcam, setUsingWebcam] = useState(false); // Toggle between file upload and webcam
     const [fileImage, setFileImage] = useState({ image: null, signature: null, aadharImage: null, capture: null, sCapture: null, aCapture: null }); // State to store the uploaded image and signature
+
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -45,14 +43,15 @@ export default function CustomerForm({ onCustomerAdded }) {
         email: '', // Add email field
 
     });
+
     const [errors, setErrors] = useState({});
     const webcamRef = useRef(null); // Ref to access the webcam
+    const fileInputcamRef = useRef(null); // Reference to the file input
+    const fileInputSignRef = useRef(null); // Reference to the file input    
+    const fileInputaadharRef = useRef(null);
 
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
-
-
-
 
     // Handle webcam capture
     const captureImage = useCallback(() => {
@@ -74,8 +73,6 @@ export default function CustomerForm({ onCustomerAdded }) {
         setFileImage({ ...fileImage, aCapture: imageSrc });  // Set Base64 image
         setUsingAadharcam(false); // Hide the webcam after capture
     }, [webcamRef, fileImage]);
-
-
 
     // handle image change
     const handleimagechange = (e) => {
@@ -105,11 +102,6 @@ export default function CustomerForm({ onCustomerAdded }) {
         const byteArray = new Uint8Array(byteNumbers);
         return new Blob([byteArray], { type: contentType });
     };
-
-    const fileInputcamRef = useRef(null); // Reference to the file input
-    const fileInputSignRef = useRef(null); // Reference to the file input    
-    const fileInputaadharRef = useRef(null);
-
 
     // Function to handle closing the image
     const handleCloseImage = () => {
@@ -149,19 +141,14 @@ export default function CustomerForm({ onCustomerAdded }) {
         setFileImage({ ...fileImage, aCapture: null }); // Clear the captured image
     };
 
-
     const commonTextFieldSx = {
         '& .MuiInputBase-root': {
             // height: 40, // Adjust to the desired height
-
         },
         '& .MuiInputLabel-root': {
             fontSize: 13.5,
-
         },
-
     };
-
 
     // Validate form data
     const validate = () => {
@@ -282,8 +269,6 @@ export default function CustomerForm({ onCustomerAdded }) {
         return Object.keys(formErrors).length === 0;
     };
 
-    // Validate the form fields
-
     // handle for submission
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -316,7 +301,6 @@ export default function CustomerForm({ onCustomerAdded }) {
         data.append('image', fileImage.image);
         data.append('signature', fileImage.signature);
         data.append('aadharImage', fileImage.aadharImage);
-
 
         // Add captured image if available (convert Base64 to Blob and append)
         if (fileImage.capture) {
@@ -368,6 +352,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                 address: '',
                 careOf: '',
                 place: '',
+                district: '',
                 state: '',
                 zip: '',
                 aadhar: '',
@@ -375,6 +360,10 @@ export default function CustomerForm({ onCustomerAdded }) {
                 secondaryNumber: '',
                 nearBy: '',
                 gst: '',
+                bankUserName: '',
+                bankAccount: '',
+                ifsc: '',
+                bankName: '',
                 email: '', // Clear email field
 
             });
@@ -383,6 +372,8 @@ export default function CustomerForm({ onCustomerAdded }) {
                 signature: null,
                 capture: null,
                 sCapture: null,
+                aadharImage: null,
+                aCapture: null,
             }); // Clear uploaded image
             // setFileSignature(null); // Clear uploaded signature
             if (onCustomerAdded) {
