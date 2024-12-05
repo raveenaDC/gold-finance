@@ -429,7 +429,7 @@ export async function viewGoldLoanByGoldNumber(req, res, next) {
         }
 
         let loanList = await models.goldLoanModel.find(query).select(
-            'glNo purchaseDate createdAt'
+            'glNo purchaseDate customerId createdAt'
         ).collation({ locale: 'en', strength: 2 });
 
         if (loanList.length == 0) {
