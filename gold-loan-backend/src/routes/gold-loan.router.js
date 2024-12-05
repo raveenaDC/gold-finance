@@ -6,14 +6,15 @@ const router = express.Router();
 
 router.get('/loan-details/customer/:customerId', goldLoanServices.viewGoldLoan)
 router.get('/loan/:loanId', goldLoanServices.viewGoldLoanById)
+router.get('/loan/number/view', goldLoanServices.viewGoldLoanByGoldNumber)
 //router.delete('/remove/item/:itemId', goldItemServices.removeGoldLoan)
 router.patch('/loan/:loanId/update', middlewares.handleMulterErrors(
     middlewares.fileUploadMiddleWare('images/goldItems')
-), validator.goldLoanPostValidation, goldLoanServices.updateGoldLoanById)
+), validator.goldLoanPostValidation, middlewares.validationCheckMiddleWare, goldLoanServices.updateGoldLoanById)
 router.post('/loan-details', middlewares.handleMulterErrors(
     middlewares.fileUploadMiddleWare('images/goldItems')
-), validator.goldLoanPostValidation, goldLoanServices.addGoldLoan)
+), validator.goldLoanPostValidation, middlewares.validationCheckMiddleWare, goldLoanServices.addGoldLoan)
 
-router.patch('/loan/:loanId/update/status', validator.goldLoanStatusValidation, goldLoanServices.updateGoldStatus)
+router.patch('/loan/:loanId/update/status', validator.goldLoanStatusValidation, middlewares.validationCheckMiddleWare, goldLoanServices.updateGoldStatus)
 
 export default router;

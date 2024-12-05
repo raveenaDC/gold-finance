@@ -17,7 +17,7 @@ const transFormImageUploadResponseArray = (imageResponseArray) => {
 export async function customerView(req, res, next) {
     try {
 
-        let { pageLimit, orderBy = 'createdAt', search = null, order, careOf, address, startYear, endYear } = req.query;
+        let { pageLimit, orderBy = 'createdAt', search = null, order, phone, firstName, lastName, address, startYear, endYear } = req.query;
         pageLimit = parseInt(pageLimit || defaultPageLimit);
         const page = parseInt(req.query.page) || 1;
         order = order == 'asc' ? 1 : -1;
@@ -43,41 +43,43 @@ export async function customerView(req, res, next) {
 
         const query = { createdAt: { $gte: startDate, $lte: endDate } };
 
-        if (search && address && careOf) {
+        if (phone && firstName && lastName && address) {
 
             query.$and = [
-                {
-                    $expr: {
-                        $regexMatch: {
-                            input: { $concat: ['$firstName', ' ', '$lastName'] },
-                            regex: new RegExp(search, 'i')
-                        }
-                    }
-                },
+
                 { address: { $regex: new RegExp(address, 'i') } },
-                { careOf: { $regex: new RegExp(careOf, 'i') } }
+                { firstName: { $regex: new RegExp(firstName, 'i') } },
+                { lastName: { $regex: new RegExp(lastName, 'i') } },
+                { primaryNumber: { $regex: new RegExp(phone, 'i') } }
+
             ];
         } else {
             // Flexible search when not all fields are provided
             let conditions = [];
 
-            if (search) {
-                conditions.push(
-                    { firstName: { $regex: new RegExp(search, 'i') } },
-                    {
-                        $expr: {
-                            $regexMatch: {
-                                input: { $concat: ['$firstName', ' ', '$lastName'] },
-                                regex: new RegExp(search, 'i')
-                            }
-                        }
-                    },
-                    { lastName: { $regex: new RegExp(search, 'i') } }
-                );
+            // if (search) {
+            //     conditions.push(
+            //         { firstName: { $regex: new RegExp(search, 'i') } },
+            //         {
+            //             $expr: {
+            //                 $regexMatch: {
+            //                     input: { $concat: ['$firstName', ' ', '$lastName'] },
+            //                     regex: new RegExp(search, 'i')
+            //                 }
+            //             }
+            //         },
+            //         { lastName: { $regex: new RegExp(search, 'i') } }
+            //     );
+            // }
+            if (firstName) {
+                conditions.push({ firstName: { $regex: new RegExp(firstName, 'i') } });
             }
 
-            if (careOf) {
-                conditions.push({ careOf: { $regex: new RegExp(careOf, 'i') } });
+            if (lastName) {
+                conditions.push({ lastName: { $regex: new RegExp(lastName, 'i') } });
+            }
+            if (phone) {
+                conditions.push({ primaryNumber: { $regex: new RegExp(phone, 'i') } });
             }
 
             if (address) {
@@ -90,7 +92,7 @@ export async function customerView(req, res, next) {
         }
 
         let customerList = await models.customerModel.find(query).select(
-            'firstName lastName  address district place state rating  pin nearBy  primaryNumber careOf secondaryNumber aadhar email image signature aadharImage bankUserName bankAccount ifsc bankName createdAt '
+            'firstName lastName  address district place state rating  pin nearBy  primaryNumber dateOfBirth gender upId createdDate passBookImage city secondaryNumber aadhar email image signature aadharImage bankUserName bankAccount ifsc bankName createdAt '
         ).collation({ locale: 'en', strength: 2 });
 
         if (orderBy === 'firstName') {
@@ -100,7 +102,7 @@ export async function customerView(req, res, next) {
         } else if (orderBy === 'date') {
             customerList.sort((a, b) => a.createdAt.localeCompare(b.createdAt) * order);
         } else {
-            customerList.sort((a, b) => (a.createdAt - b.createdAt) * order); // Default sorting by createdAt
+            customerList.sort((a, b) => (a.createdDate - b.createdDate) * order); // Default sorting by createdAt
         }
 
         if (search) {
@@ -157,17 +159,21 @@ export async function createCustomer(req, res, next) {
             pin,
             nearBy,
             primaryNumber,
-            careOf,
+            city,
             secondaryNumber,
             aadhar,
             gst,
             email,
+            dateOfBirth,
+            gender,
+            upId,
+            createdDate,
             bankUserName,
             bankAccount,
             ifsc,
             bankName } = req.body;
 
-        let { image, signature, aadharImage } = req.files;
+        let { image, signature, aadharImage, passBookImage } = req.files;
 
         const existCustomer = await models.customerModel.findOne({ email: email })
         if (existCustomer) {
@@ -199,7 +205,11 @@ export async function createCustomer(req, res, next) {
             pin,
             nearBy,
             primaryNumber,
-            careOf,
+            city,
+            dateOfBirth,
+            gender,
+            upId,
+            createdDate,
             gst,
             secondaryNumber,
             aadhar,
@@ -215,7 +225,9 @@ export async function createCustomer(req, res, next) {
         } if (image && image.length > 0) {
             member.image = transFormImageUploadResponseArray(image)[0];
         } if (aadharImage && aadharImage.length > 0) {
-            member.aadharImage = transFormImageUploadResponseArray(aadharImage)[0];
+            member.aadharImage = transFormImageUploadResponseArray(aadharImage);
+        } if (passBookImage && passBookImage.length > 0) {
+            member.passBookImage = transFormImageUploadResponseArray(passBookImage)[0];
         }
 
         await member.save();
@@ -243,10 +255,14 @@ export async function updateCustomer(req, res) {
             pin,
             nearBy,
             primaryNumber,
-            careOf,
+            city,
             secondaryNumber,
             aadhar,
             gst,
+            dateOfBirth,
+            gender,
+            upId,
+            createdDate,
             rating,
             email,
             bankUserName,
@@ -254,10 +270,10 @@ export async function updateCustomer(req, res) {
             ifsc,
             bankName } = req.body;
 
-        let { image, signature, aadharImage } = req.files;
+        let { image, signature, aadharImage, passBookImage } = req.files;
 
         const { customerId } = req.params;
-        let images = {}, sign = {}; document = {};
+        let images = {}, sign = {}, document = {}, passBook = {};
 
         const customer = await models.customerModel.findById(customerId);
         if (!customer) {
@@ -288,8 +304,17 @@ export async function updateCustomer(req, res) {
         ) {
             document = {
                 item: req.files.aadharImage
-                    ? transFormImageUploadResponseArray(aadharImage)[0]
+                    ? transFormImageUploadResponseArray(aadharImage)
                     : customer.aadharImage,
+            };
+        }
+        if (
+            (passBookImage && passBookImage[0])
+        ) {
+            passBook = {
+                item: req.files.passBookImage
+                    ? transFormImageUploadResponseArray(passBookImage)[0]
+                    : customer.passBookImage,
             };
         }
 
@@ -305,10 +330,14 @@ export async function updateCustomer(req, res) {
                 pin,
                 nearBy,
                 primaryNumber,
-                careOf,
+                city,
                 secondaryNumber,
                 aadhar,
                 gst,
+                dateOfBirth,
+                gender,
+                upId,
+                createdDate,
                 rating,
                 email, image: images.item,
                 signature: sign.item,
@@ -316,7 +345,8 @@ export async function updateCustomer(req, res) {
                 bankUserName,
                 bankAccount,
                 ifsc,
-                bankName
+                bankName,
+                passBookImage: passBook.item
             },
             {
                 new: true,
@@ -335,34 +365,7 @@ export async function updateCustomer(req, res) {
 
 }
 
-// export async function denyMember(req, res) {
-//     try {
-//         const { memberId } = req.params
-//         const { access } = req.body;
-//         let member = await models.memberModel.findById(memberId);
-//         if (!member) {
-//             return responseHelper(
-//                 res, httpStatus.NOT_FOUND,
-//                 true,
-//                 'Member not found',
-//             )
-//         }
 
-//         member.isAccess = access
-//         await member.save();
-//         let message = ''
-//         if (access) message = 'Access enabled';
-//         else message = 'Access denied'
-//         return responseHelper(
-//             res, httpStatus.OK,
-//             false,
-//             message,
-//         )
-
-//     } catch {
-//         return next(new Error(error));
-//     }
-// }
 
 export async function customerViewById(req, res) {
     try {
@@ -375,7 +378,7 @@ export async function customerViewById(req, res) {
             )
         }
         const customer = await models.customerModel.findById(customerId).select(
-            'firstName lastName  address place district state rating pin nearBy  primaryNumber careOf secondaryNumber aadhar email image signature aadharImage bankUserName bankAccount ifsc  bankName createdAt'
+            'firstName lastName  address place district state rating pin nearBy  primaryNumber dateOfBirth gender upId createdDate passBookImage city secondaryNumber aadhar email image signature aadharImage bankUserName bankAccount ifsc  bankName createdAt'
         );
         if (!customer) {
             return responseHelper(
