@@ -12,21 +12,25 @@ const customerSchema = new Schema(
         pin: Number,
         nearBy: String,
         primaryNumber: String,
-        careOf: String,
+        city: String,
         secondaryNumber: String,
         aadhar: String,
+        dateOfBirth: Date,
+        gender: String,
+        upId: String,
+        createdDate: Date,
         email: String,
         gst: String,
         rating: {
             type: Number,
             default: 0
         },
-        aadharImage: {
+        aadharImage: [{
             name: String,
             fileName: String,
             path: { type: String, default: '/cdn/images/user.png' },
             uploadedDate: Date,
-        },
+        }],
         image: {
             name: String,
             fileName: String,
@@ -42,7 +46,13 @@ const customerSchema = new Schema(
         bankUserName: String,
         bankAccount: Number,
         ifsc: String,
-        bankName: String
+        bankName: String,
+        passBookImage: {
+            name: String,
+            fileName: String,
+            path: { type: String, default: '/cdn/images/user.png' },
+            uploadedDate: Date,
+        }
     },
     { timestamps: true }
 );

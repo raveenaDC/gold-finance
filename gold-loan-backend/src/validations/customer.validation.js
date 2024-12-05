@@ -62,6 +62,17 @@ export default [
 
     return true;
   }),
+  body('passBookImage').custom(async (value, { req }) => {
+    if (
+      req.files.passBookImage &&
+      !mimeTypes.IMAGE.includes(req.files.passBookImage[0]['mimetype'])
+    ) {
+      await removeMulterFiles(req.files);
+      throw new Error(`only ${mimeTypes.IMAGE.join(',')} are accepted`);
+    }
+
+    return true;
+  }),
   body('email')
     .if(body('email').exists())
     .matches(/^[\w-]+(?:\.[\w-]+)*@(?:[\w-]+\.)+[a-zA-Z]{2,}$/)
@@ -83,8 +94,17 @@ export default [
   body('ifsc')
     .if(body('ifsc').exists())
     .matches(/^[A-Z]{4}0\d{6}$/i)
-    .withMessage('IFSC code must be valid (e.g., ABCD0123456)')
-
+    .withMessage('IFSC code must be valid (e.g., ABCD0123456)'),
+  body('dateOfBirth')
+    .if(body('dateOfBirth').exists())
+    .notEmpty()
+    .withMessage('Date of Birth is required'),
+  body('upId')
+    .if(body('upId').exists())
+    .notEmpty()
+    .withMessage('UPID is required')
+    .matches(/^[a-zA-Z0-9.\-_]{2,}@[a-zA-Z]{2,}$/)
+    .withMessage('Invalid UPID format, expected format: username@bank'),
 ];
 
 

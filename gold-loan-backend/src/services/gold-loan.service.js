@@ -43,7 +43,7 @@ export async function viewGoldLoan(req, res) {
         let sort = {};
         const query = { customerId: req.params.customerId }; // Search by customerId
         const existCustomer = await models.customerModel.findById({ _id: customerId }).select(
-            'firstName lastName  address place state  pin nearBy  primaryNumber careOf secondaryNumber aadhar email image signature createdAt'
+            'firstName lastName  address place state  pin nearBy  primaryNumber city secondaryNumber aadhar aadharImage dateOfBirth gender upId createdDate passBookImage bankUserName bankAccount ifsc bankName email image signature createdAt'
         );
         if (!existCustomer) {
             return responseHelper(
@@ -63,7 +63,7 @@ export async function viewGoldLoan(req, res) {
         }
 
         let loanList = await models.goldLoanModel.find(query).select(
-            'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestRate interestMode customerId memberId nomineeId paymentMode insurance  processingFee otherCharges packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt'
+            'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode insurance  processingFee otherCharges packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt'
         ).collation({ locale: 'en', strength: 2 });
 
         if (orderBy === 'glNo') {
@@ -125,8 +125,9 @@ export async function addGoldLoan(req, res, next) {
             purchaseDate,
             goldRate,
             voucherNo,
+            totalNetWeight,
             companyGoldRate,
-            interestRate,
+            interestPercentage,
             interestMode,
             customerId,
             nomineeId,
@@ -138,10 +139,7 @@ export async function addGoldLoan(req, res, next) {
             appraiser,
             memberId,//need to remove
             principleAmount,
-            //amountPaid,
-            // balanceAmount,
             currentGoldValue,
-            // profitOrLoss
         } = req.body;
         let { goldImage } = req.files;
         // let { memberId } = req.user
@@ -167,14 +165,46 @@ export async function addGoldLoan(req, res, next) {
                 "Cannot choose the same customer as the nominee."
             );
         }
+
+        let profitLossAmount = totalNetWeight * goldRate
+        let interestCalculation = principleAmount * (interestPercentage / 100);
+
+        //BALANCE AMOUNT CALCULATION
+        let balancePrice;
+
+        switch (interestMode) {
+            case 'monthly':
+                balancePrice = principleAmount + interestCalculation;
+                break;
+            case 'yearly':
+                balancePrice = principleAmount + interestCalculation * 12;
+                break;
+            case 'quarterly':
+                balancePrice = principleAmount + interestCalculation * 3;
+                break;
+            case 'halfyearly':
+                balancePrice = principleAmount + interestCalculation * 6;
+                break;
+            case 'days':
+                balancePrice = principleAmount + ((interestCalculation * 12) / 365);
+                break;
+            case 'weekly':
+                balancePrice = principleAmount + ((interestCalculation * 12) / 365) * 7;
+                break;
+            default:
+                throw new Error("Invalid interest mode");
+        }
+
         const loan = await models.goldLoanModel.create({
             glNo,
             voucherNo,
             purchaseDate,//: new Date().toLocaleDateString('en-GB')
             goldRate,
+            totalNetWeight,
             companyGoldRate,
             itemDetails,
-            interestRate,
+            interestPercentage,
+            interestRate: interestCalculation,
             interestMode,
             customerId,
             //memberId,
@@ -186,10 +216,9 @@ export async function addGoldLoan(req, res, next) {
             otherCharges,
             appraiser,
             principleAmount,
-            //amountPaid,
-            // balanceAmount,
-            // currentGoldValue,
-            // profitOrLoss
+            balanceAmount: balancePrice,
+            //currentGoldValue,
+            profitOrLoss: profitLossAmount,
         });
 
         if (goldImage && goldImage.length > 0) {
@@ -215,20 +244,18 @@ export async function updateGoldLoanById(req, res) {
         let {
             goldRate,
             companyGoldRate,
-            interestRate,
+            interestPercentage,
             interestMode,
             nomineeId,
             insurance,
+            totalNetWeight,
             processingFee,
             packingFee,
             otherCharges,
             appraiser,
             principleAmount,
             paymentMode,
-            //amountPaid,
-            // balanceAmount,
-            currentGoldValue,
-            // profitOrLoss
+            // currentGoldValue,
         } = req.body;
         const { loanId } = req.params;
         let { goldImage } = req.files;
@@ -252,6 +279,34 @@ export async function updateGoldLoanById(req, res) {
                     : loan.goldImage,
             };
         }
+        let profitLossAmount = totalNetWeight * goldRate
+        let interestCalculation = principleAmount * (interestPercentage / 100);
+
+        //BALANCE AMOUNT CALCULATION
+        let balancePrice;
+
+        switch (interestMode) {
+            case 'monthly':
+                balancePrice = principleAmount + interestCalculation;
+                break;
+            case 'yearly':
+                balancePrice = principleAmount + interestCalculation * 12;
+                break;
+            case 'quarterly':
+                balancePrice = principleAmount + interestCalculation * 3;
+                break;
+            case 'halfyearly':
+                balancePrice = principleAmount + interestCalculation * 6;
+                break;
+            case 'days':
+                balancePrice = principleAmount + ((interestCalculation * 12) / 365);
+                break;
+            case 'weekly':
+                balancePrice = principleAmount + ((interestCalculation * 12) / 365) * 7;
+                break;
+            default:
+                throw new Error("Invalid interest mode");
+        }
 
         const updateGoldList = await models.goldLoanModel.findByIdAndUpdate(
             loanId,
@@ -259,20 +314,21 @@ export async function updateGoldLoanById(req, res) {
                 goldRate,
                 companyGoldRate,
                 itemDetails,
-                interestRate,
+                interestPercentage,
+                interestRate: interestCalculation,
                 interestMode,
                 paymentMode,
                 nomineeId,
                 insurance,
                 processingFee,
+                totalNetWeight,
                 packingFee,
                 otherCharges,
                 appraiser,
                 principleAmount,
-                //amountPaid,
-                // balanceAmount,
-                currentGoldValue,
-                // profitOrLoss
+                balanceAmount: balancePrice,
+                //currentGoldValue,
+                profitOrLoss: profitLossAmount,
                 goldImage, image: images.item,
             },
             {
@@ -324,34 +380,7 @@ export async function updateGoldStatus(req, res, next) {
 
 }
 
-// export async function denyMember(req, res) {
-//     try {
-//         const { memberId } = req.params
-//         const { access } = req.body;
-//         let member = await models.memberModel.findById(memberId);
-//         if (!member) {
-//             return responseHelper(
-//                 res, httpStatus.NOT_FOUND,
-//                 true,
-//                 'Member not found',
-//             )
-//         }
 
-//         member.isAccess = access
-//         await member.save();
-//         let message = ''
-//         if (access) message = 'Access enabled';
-//         else message = 'Access denied'
-//         return responseHelper(
-//             res, httpStatus.OK,
-//             false,
-//             message,
-//         )
-
-//     } catch {
-//         return next(new Error(error));
-//     }
-// }
 
 export async function viewGoldLoanById(req, res) {
     try {
@@ -363,8 +392,8 @@ export async function viewGoldLoanById(req, res) {
                 'Loan ID is required',
             )
         }
-        const loan = await models.customerModel.findById(loanId).select(
-            'glNo voucherNo purchaseDate goldRate companyGoldRate itemDetails interestRate interestMode customerId memberId nomineeId paymentMode insurance  processingFee otherCharges packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt'
+        const loan = await models.goldLoanModel.findById(loanId).select(
+            'glNo voucherNo purchaseDate totalNetWeight goldRate companyGoldRate itemDetails interestPercentage interestRate interestMode customerId memberId nomineeId paymentMode insurance  processingFee otherCharges packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt'
         );
         if (!loan) {
             return responseHelper(
@@ -383,4 +412,42 @@ export async function viewGoldLoanById(req, res) {
     } catch {
         return next(new Error(error));
     }
+}
+
+//view gold loan by gold number
+
+export async function viewGoldLoanByGoldNumber(req, res, next) {
+    try {
+
+        let { search } = req.query;
+        let query = {}
+
+        if (search) {
+            query.$or = [
+                { glNo: { $regex: new RegExp(search, 'i') } },
+            ];
+        }
+
+        let loanList = await models.goldLoanModel.find(query).select(
+            'glNo purchaseDate customerId createdAt'
+        ).collation({ locale: 'en', strength: 2 });
+
+        if (loanList.length == 0) {
+            return responseHelper(
+                res,
+                httpStatus.NOT_FOUND,
+                true,
+                'Gold loan details are empty'
+            );
+        }
+        // console.log(customerList);
+
+        return responseHelper(res, httpStatus.OK, false, 'Gold loan list', {
+            loanDetails: loanList,
+        });
+
+    } catch (error) {
+        return next(new Error(error));
+    }
+
 }

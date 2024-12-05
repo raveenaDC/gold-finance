@@ -29,5 +29,13 @@ export default [
         .notEmpty()
         .withMessage('Pin number is required')
         .matches(/^\d{6}$/)
-        .withMessage('Pin number must be a valid 6-digit number')
+        .withMessage('Pin number must be a valid 6-digit number'),
+    body('gender')
+        .notEmpty()
+        .withMessage('Gender is required')
+        .isIn(['male', 'female', 'other'])
+        .withMessage('Gender must be one of the following: male, female, or other'),
+    body('createdDate')
+        .notEmpty()
+        .withMessage('Customer created date is required')
 ];
