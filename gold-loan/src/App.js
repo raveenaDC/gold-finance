@@ -1,5 +1,3 @@
-// src/App.js
-
 import React from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { Box, CssBaseline } from '@mui/material'; // Keep 'Box' and 'CssBaseline' as they are used

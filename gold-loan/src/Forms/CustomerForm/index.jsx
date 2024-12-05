@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import Webcam from 'react-webcam';
-import { Box, Button, TextField, Grid, Typography, Modal, IconButton, Container } from '@mui/material';
+import { Box, Button, TextField, Grid, Typography, Modal, IconButton, Container, MenuItem, } from '@mui/material';
+
 
 import CloseIcon from '@mui/icons-material/Close';
 import signatureIcon from '../../assets/signatureIcon.png';
@@ -388,7 +389,6 @@ export default function CustomerForm({ onCustomerAdded }) {
     return (
         <>
 
-            {/* <ItemDetailsTable /> */}
             <Button variant="contained" color="primary" onClick={handleOpen}>
                 Add Customer
             </Button>
@@ -490,65 +490,53 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         size="small"
                                     />
                                 </Grid>
-
-                                {/* Email */}
-                                <Grid item xs={12} >
-                                    <TextField
-                                        fullWidth
-                                        id="email"
-                                        name="email"
-                                        label="Email"
-                                        variant="outlined"
-                                        required
-                                        type="email"
-                                        value={formData.email}
-                                        onChange={handleChange}
-                                        error={!!errors.email} // Add error prop
-                                        helperText={errors.email} // Display error message
-                                        sx={commonTextFieldSx} // Apply common style
-                                        size="small"
-                                    />
-                                </Grid>
-
-
-                                {/* Primary Mobile Number */}
                                 <Grid item xs={12} sm={6}>
                                     <TextField
                                         fullWidth
-                                        id="primaryNumber"
-                                        name="primaryNumber"
-                                        label="Primary Mobile Number"
+                                        id="dob"
+                                        name="dob"
+                                        label="Date of Birth"
+                                        type="date" // Enables both typing and picking a date
                                         variant="outlined"
                                         required
-                                        value={formData.primaryNumber}
-                                        onChange={handleChange}
-                                        error={!!errors.primaryNumber}
-                                        helperText={errors.primaryNumber}
-                                        sx={commonTextFieldSx} // Apply common style
+                                        value={formData.dob} // Controlled component value
+                                        onChange={handleChange} // Update state on change
+                                        error={!!errors.dob} // Display error state if applicable
+                                        helperText={errors.dob} // Error message
+                                        sx={commonTextFieldSx} // Apply common styles for consistency
                                         size="small"
+                                        InputLabelProps={{
+                                            shrink: true, // Ensures the label doesn't overlap the input
+                                        }}
                                     />
                                 </Grid>
 
-                                {/* Secondary Mobile Number */}
                                 <Grid item xs={12} sm={6}>
                                     <TextField
+                                        select // Enables dropdown functionality
                                         fullWidth
-                                        id="secondaryNumber"
-                                        name="secondaryNumber"
-                                        label="Secondary  Number"
+                                        id="gender"
+                                        name="gender"
+                                        label="Gender"
                                         variant="outlined"
-                                        value={formData.secondaryNumber}
-                                        onChange={handleChange}
-                                        error={!!errors.secondaryNumber} // Add error prop
-                                        helperText={errors.secondaryNumber} // Display error message
-                                        sx={commonTextFieldSx} // Apply common style
+                                        required
+                                        value={formData.gender} // Controlled component value
+                                        onChange={handleChange} // Update state on change
+                                        error={!!errors.gender} // Display error state if applicable
+                                        helperText={errors.gender} // Error message
+                                        sx={commonTextFieldSx} // Apply common styles for consistency
                                         size="small"
-                                    />
+                                    >
+                                        {/* Dropdown options */}
+                                        <MenuItem value="">Select Gender</MenuItem>
+                                        <MenuItem value="male">Male</MenuItem>
+                                        <MenuItem value="female">Female</MenuItem>
+                                        <MenuItem value="other">Other</MenuItem>
+                                    </TextField>
                                 </Grid>
-
 
                                 {/* Address */}
-                                <Grid item xs={12} sm={6}>
+                                <Grid item xs={12} >
                                     <TextField
                                         fullWidth
                                         id="address"
@@ -564,36 +552,36 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         size="small"
                                     />
                                 </Grid>
-                                {/* care Of */}
-                                <Grid item xs={12} sm={6}>
-                                    <TextField
-                                        fullWidth
-                                        id="careOf"
-                                        name="careOf"
-                                        label="CareOf"
-                                        variant="outlined"
-                                        required
-                                        value={formData.careOf}
-                                        onChange={handleChange}
-                                        error={!!errors.careOf} // Add error prop
-                                        helperText={errors.careOf} // Display error message
-                                        sx={commonTextFieldSx} // Apply common style
-                                        size="small"
-                                    />
-                                </Grid>
                                 {/* place/City */}
                                 <Grid item xs={12} sm={6}>
                                     <TextField
                                         fullWidth
                                         id="place"
                                         name="place"
-                                        label="place (City)"
+                                        label="place "
                                         variant="outlined"
                                         required
                                         value={formData.place}
                                         onChange={handleChange}
                                         error={!!errors.place} // Add error prop
                                         helperText={errors.place} // Display error message
+                                        sx={commonTextFieldSx} // Apply common style
+                                        size="small"
+                                    />
+                                </Grid>
+                                {/* care Of */}
+                                <Grid item xs={12} sm={6}>
+                                    <TextField
+                                        fullWidth
+                                        id="careOf"
+                                        name="careOf"
+                                        label="City"
+                                        variant="outlined"
+                                        required
+                                        value={formData.careOf}
+                                        onChange={handleChange}
+                                        error={!!errors.careOf} // Add error prop
+                                        helperText={errors.careOf} // Display error message
                                         sx={commonTextFieldSx} // Apply common style
                                         size="small"
                                     />
@@ -654,7 +642,6 @@ export default function CustomerForm({ onCustomerAdded }) {
                                 </Grid>
 
 
-
                                 {/* Near By location */}
                                 <Grid item xs={12} sm={6}>
                                     <TextField
@@ -672,7 +659,60 @@ export default function CustomerForm({ onCustomerAdded }) {
                                     />
                                 </Grid>
 
+                                {/* Primary Mobile Number */}
+                                <Grid item xs={12} sm={6}>
+                                    <TextField
+                                        fullWidth
+                                        id="primaryNumber"
+                                        name="primaryNumber"
+                                        label="Primary Mobile Number"
+                                        variant="outlined"
+                                        required
+                                        value={formData.primaryNumber}
+                                        onChange={handleChange}
+                                        error={!!errors.primaryNumber}
+                                        helperText={errors.primaryNumber}
+                                        sx={commonTextFieldSx} // Apply common style
+                                        size="small"
+                                    />
+                                </Grid>
 
+                                {/* Secondary Mobile Number */}
+                                <Grid item xs={12} sm={6}>
+                                    <TextField
+                                        fullWidth
+                                        id="secondaryNumber"
+                                        name="secondaryNumber"
+                                        label="Secondary  Number"
+                                        variant="outlined"
+                                        value={formData.secondaryNumber}
+                                        onChange={handleChange}
+                                        error={!!errors.secondaryNumber} // Add error prop
+                                        helperText={errors.secondaryNumber} // Display error message
+                                        sx={commonTextFieldSx} // Apply common style
+                                        size="small"
+                                    />
+                                </Grid>
+
+
+                                {/* Email */}
+                                <Grid item xs={12} >
+                                    <TextField
+                                        fullWidth
+                                        id="email"
+                                        name="email"
+                                        label="Email"
+                                        variant="outlined"
+                                        required
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        error={!!errors.email} // Add error prop
+                                        helperText={errors.email} // Display error message
+                                        sx={commonTextFieldSx} // Apply common style
+                                        size="small"
+                                    />
+                                </Grid>
 
                                 {/* GST Number */}
                                 <Grid item xs={12} sm={6}>
@@ -872,6 +912,40 @@ export default function CustomerForm({ onCustomerAdded }) {
                                                         size="small"
                                                     />
                                                 </Grid>
+                                                {/* Account Number */}
+                                                <Grid item xs={12} sm={6}>
+                                                    <TextField
+                                                        fullWidth
+                                                        id="bankAccount"
+                                                        name="bankAccount"
+                                                        label="Account Number"
+                                                        variant="outlined"
+                                                        required
+                                                        value={formData.bankAccount}
+                                                        onChange={handleChange}
+                                                        error={!!errors.bankAccount} // Add error prop
+                                                        helperText={errors.bankAccount} // Display error message
+                                                        sx={commonTextFieldSx} // Apply common style
+                                                        size="small"
+                                                    />
+                                                </Grid>
+
+                                                <Grid item xs={12} sm={6}>
+                                                    <button
+                                                        style={{ fontSize: '16px', cursor: 'pointer' }}
+                                                        onClick={() => document.getElementById('image-upload').click()} // Trigger file input click on button click
+                                                    >
+                                                        Upload Image
+                                                    </button>
+                                                    <input
+                                                        type="file"
+                                                        id="image-upload"
+                                                        style={{ display: 'none' }}
+                                                    // onChange={handleImageChange} // Function to handle image selection
+                                                    />
+                                                </Grid>
+
+
                                             </Grid>
                                         </AccordionDetails>
                                     </Accordion>

@@ -90,7 +90,7 @@ export default function Sidebar({ open, handleDrawerClose, theme, drawerWidth })
                     </ListItemButton>
                 </ListItem>
                 <ListItem disablePadding>
-                    <ListItemButton component={Link} to="/fr-master">
+                    <ListItemButton >
                         <ListItemIcon><AccountBoxTwoToneIcon /></ListItemIcon>
                         <ListItemText primary="FR Master" />
                     </ListItemButton>
@@ -107,12 +107,12 @@ export default function Sidebar({ open, handleDrawerClose, theme, drawerWidth })
 
             {/* Transactions Section */}
             <List>
-                {[{ text: 'GL Transaction', icon: <MonetizationOnIcon /> },
-                { text: 'FR Transaction', icon: <SavingsIcon /> },
-                { text: 'PL Transaction', icon: <SecurityIcon /> },
-                ].map(({ text, icon }) => (
+                {[{ text: 'GL Transaction', icon: <MonetizationOnIcon />, value: ROUTES.GOLD_TRANSACTION },
+                { text: 'FR Transaction', icon: <SavingsIcon />, value: ROUTES.FIXED_TRANSACTION },
+                { text: 'PL Transaction', icon: <SecurityIcon />, value: ROUTES.PLEDGED_TRANSACTION },
+                ].map(({ text, icon, value }) => (
                     <ListItem key={text} disablePadding>
-                        <ListItemButton>
+                        <ListItemButton component={Link} to={value}>
                             <ListItemIcon>{icon}</ListItemIcon>
                             <ListItemText primary={text} />
                         </ListItemButton>

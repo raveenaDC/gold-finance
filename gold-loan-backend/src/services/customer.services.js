@@ -232,7 +232,7 @@ export async function createCustomer(req, res, next) {
 
 }
 
-export async function updateCustomer(req, res) {
+export async function updateCustomer(req, res, next) {
     try {
         let { firstName,
             lastName,
@@ -257,7 +257,7 @@ export async function updateCustomer(req, res) {
         let { image, signature, aadharImage } = req.files;
 
         const { customerId } = req.params;
-        let images = {}, sign = {}; document = {};
+        let images = {}, sign = {}, document = {};
 
         const customer = await models.customerModel.findById(customerId);
         if (!customer) {

@@ -14,35 +14,6 @@ function NomineeSearch() {
     // Use the setNominee function from context
     const { setNominee } = useNominee();
 
-
-
-
-
-    // Fetch data from the API
-    // useEffect(() => {
-    //     if (searchTerm === '') return;
-
-    //     const fetchData = async () => {
-    //         setLoading(true);
-    //         try {
-    //             console.log("look at here............/////////////////");
-
-    //             const response = await fetch('http://localhost:4000/customer/details/view');
-    //             const data = await response.json();
-    //             console.log(data);
-
-    //             // const response = await fetch.get(`/your-api-endpoint?search=${searchTerm}`);
-    //             setOptions(response.data); // Assuming response data is an array of options
-    //         } catch (error) {
-    //             console.error('Error fetching data:', error);
-    //         } finally {
-    //             setLoading(false);
-    //         }
-    //     };
-
-    //     fetchData();
-    // }, [searchTerm]);
-
     const fetchCustomers = async () => {
 
         try {
@@ -79,9 +50,6 @@ function NomineeSearch() {
             console.log('No option selected');
         }
     };
-
-
-
     return (
         <div> <h1>hii</h1>
             <Autocomplete
@@ -89,7 +57,7 @@ function NomineeSearch() {
                 loading={loading}
                 onChange={(event, newValue) => setSelectedOption(newValue)} // Set selected option
                 onInputChange={(event, newValue) => setSearchTerm(newValue)}
-                getOptionLabel={(option) => option.firstName + ' ' + option.lastName || ''} // Adjust as needed
+                getOptionLabel={(option) => option.firstName + ' ' + option.lastName + ' | ' + option.address} // Adjust as needed
                 renderInput={(params) => (
                     <TextField
                         {...params}

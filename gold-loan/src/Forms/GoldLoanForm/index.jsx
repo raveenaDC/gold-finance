@@ -17,6 +17,8 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import SaveIcon from '@mui/icons-material/Save'; // Import the Save icon
+
 
 import { AddNomineeDetails } from '../../Forms';
 import { incrementGLNo } from '../../Redux/GlNoSlice';
@@ -45,14 +47,21 @@ const GoldLoanForm = () => {
         appraiser: '',
         otherCharges: '',
         range: '',
-        interestMode: '',
+        interestMode: 'simple',
         interestRate: '14',
         companyGoldRate: '4000',
     });
 
-    const [items, setItems] = useState([
-        { id: 1, type: 'Select', quantity: '', grossWeight: '', stoneWeight: '', netWeight: '', depreciation: '' },
-    ]);
+    const [items, setItems] = useState([]);
+    const [newItem, setNewItems] = useState({
+        id: 1,
+        type: 'Select',
+        quantity: '',
+        grossWeight: '',
+        stoneWeight: '',
+        depreciation: '',
+        netWeight: '', // User input for net weight
+    });
 
     const [customerData, setCustomerData] = useState(null);
     const [options, setOptions] = useState([]);
@@ -73,7 +82,7 @@ const GoldLoanForm = () => {
     const { nominee } = useNominee();// Access nominee data from context
     const nId = nominee.nomineeId;
 
-
+    const [showErrors, setShowErrors] = useState(false); // Controls when to show validation errors
     const [errors, setErrors] = useState({
         principleAmount: false,
         insurance: false,
@@ -82,50 +91,151 @@ const GoldLoanForm = () => {
         appraiser: false,
         otherCharges: false,
         nId: false,
-        fileImage: false
+        goldImage: false,
     });
 
     const goldRate = 5000;
 
     const totalNetWeight = items.reduce((total, item) => total + (parseFloat(item.netWeight) || 0), 0);
     const totalGrossWeight = items.reduce((total, item) => total + (parseFloat(item.grossWeight) || 0), 0);
-    const TotalStoneWeight = items.reduce((total, item) => total + (parseFloat(item.stoneWeight) || 0), 0);
-    const TotalDepWeight = items.reduce((total, item) => total + (parseFloat(item.depreciation) || 0), 0);
-    const TotalQuantity = items.reduce((total, item) => total + (parseFloat(item.quantity) || 0), 0);
+    const totalStoneWeight = items.reduce((total, item) => total + (parseFloat(item.stoneWeight) || 0), 0);
+    const totalDepWeight = items.reduce((total, item) => total + (parseFloat(item.depreciation) || 0), 0);
+    const totalQuantity = items.reduce((total, item) => total + (parseFloat(item.quantity) || 0), 0);
     const recommendedAmount = totalNetWeight * goldRate;
     const totalCharges = (parseFloat(form.otherCharges) || 0) + (parseFloat(form.appraiser) || 0) + (parseFloat(form.insurance) || 0) + (parseFloat(form.processingFee) || 0) + (parseFloat(form.packingFee) || 0);
 
-    const handleSwitchChange = (event) => {
-        const newMode = event.target.checked ? 'Debit' : 'Cash';
-        setPaymentMode(newMode);
-        console.log('Payment Mode:', newMode); // Log the new payment mode
+    // Function to auto-calculate Net Weight
+    const calculateNetWeight = (quantity, grossWeight, stoneWeight, depreciation) => {
+        const qty = parseFloat(quantity) || 0;
+        const grossWt = parseFloat(grossWeight) || 0;
+        const stoneWt = parseFloat(stoneWeight) || 0;
+        const depWt = parseFloat(depreciation) || 0;
+        return grossWt - (stoneWt + depWt);
+    };
+
+    // Add a new row to the table
+    const handleAddRow = () => {
+        if (newItem.netWeight !== "") {
+            setItems((prevItems) => [
+                ...prevItems,
+                { ...newItem, id: prevItems.length + 1 }
+            ]);
+            // Reset newItem to its initial state
+            setNewItems({
+                id: newItem.id + 1, // Increment ID for the next item
+                type: 'Select',
+                quantity: '',
+                grossWeight: '',
+                stoneWeight: '',
+                depreciation: '',
+                netWeight: '',
+            });
+        }
+    };
+
+    const handleChange = (field, value, type, goldItemId) => {
+        setNewItems((prevState) => {
+            const updatedItem = {
+                ...prevState,
+                [field]: value,
+            };
+
+            // Assign goldItem ID if provided
+            if (goldItemId) {
+                updatedItem.goldItem = goldItemId;
+            }
+
+            // Calculate netWeight if relevant fields are updated
+            if (["quantity", "grossWeight", "stoneWeight", "depreciation"].includes(field)) {
+                updatedItem.netWeight = calculateNetWeight(
+                    updatedItem.quantity || 0,
+                    updatedItem.grossWeight || 0,
+                    updatedItem.stoneWeight || 0,
+                    updatedItem.depreciation || 0
+                );
+            }
+
+            // Handle type for dropdown selections (goldItem)
+            if (field === "goldItem" && value) {
+                updatedItem.type = options.find((option) => option._id === value)?.goldItem || "Select";
+            }
+
+            return updatedItem;
+        });
     };
 
     const handleChangeItem = (id, gId, field, value) => {
         setItems((prevItems) =>
             prevItems.map((item) => {
                 if (item.id === id) {
-                    // Update the field value
                     const updatedItem = {
                         ...item,
                         [field]: value,
-                        ...(gId ? { goldItem: gId } : {}), // Add goldItem only if gId is provided
                     };
-
-                    // Recalculate the netWeight if relevant fields change
-                    if (['quantity', 'grossWeight', 'stoneWeight', 'depreciation'].includes(field)) {
-                        const grossWt = parseFloat(updatedItem.grossWeight) || 0;
-                        const stoneWt = parseFloat(updatedItem.stoneWeight) || 0;
-                        const depWt = parseFloat(updatedItem.depreciation) || 0;
-                        const qty = parseFloat(updatedItem.quantity) || 0;
-                        updatedItem.netWeight = qty * (grossWt - (stoneWt + depWt)); // Correct formula
+                    if (gId) {
+                        updatedItem.goldItem = gId;
+                        updatedItem.type = options.find((option) => option._id === gId)?.goldItem || item.type;
                     }
-
+                    // Recalculate net weight if applicable
+                    if (["quantity", "grossWeight", "stoneWeight", "depreciation"].includes(field)) {
+                        updatedItem.netWeight = calculateNetWeight(
+                            updatedItem.quantity,
+                            updatedItem.grossWeight,
+                            updatedItem.stoneWeight,
+                            updatedItem.depreciation
+                        );
+                    }
                     return updatedItem;
                 }
                 return item;
             })
         );
+    };
+
+    // Handle changes when editing a row
+    const handleChangeInRow = (id, field, value) => {
+        const updatedItems = items.map((item) => {
+            if (item.id === id) {
+                const updatedItem = { ...item, [field]: value }; // Update the specific field
+
+                // Recalculate netWeight if relevant fields are updated
+                if (["quantity", "grossWeight", "stoneWeight", "depreciation"].includes(field)) {
+                    updatedItem.netWeight = calculateNetWeight(
+                        updatedItem.quantity || 0,
+                        updatedItem.grossWeight || 0,
+                        updatedItem.stoneWeight || 0,
+                        updatedItem.depreciation || 0
+                    );
+                }
+
+                return updatedItem;
+            }
+            return item;
+        });
+        setItems(updatedItems);
+    };
+
+
+    // Toggle edit mode for a specific row
+    const toggleEditMode = (id) => {
+        const updatedItems = items.map((item) => {
+            if (item.id === id) {
+                return { ...item, isEditing: !item.isEditing };
+            }
+            return item;
+        });
+        setItems(updatedItems);
+    };
+
+    // Handle deleting a row
+    const handleDelete = (id) => {
+        const updatedItems = items.filter((item) => item.id !== id);
+        setItems(updatedItems);
+    };
+
+    // Handle saving the changes after editing
+    const handleSaveRow = (id) => {
+        toggleEditMode(id); // Save changes and toggle back to view mode
     };
 
     const handleChangeForm = (e) => {
@@ -136,30 +246,17 @@ const GoldLoanForm = () => {
         }));
     };
 
-    // Append a new row
-    const appendRow = () => {
-        // Validate before appending a row
-        setItems((prevItems) => [
-            ...prevItems,
-            {
-                id: prevItems.length + 1,
-                goldItem: '',
-                netWeight: '',
-                grossWeight: '',
-                quantity: '',
-                depreciation: '',
-                stoneWeight: ''
-            }
-        ]);
-    };
-
-    const handleDelete = (id) => {
-        const updatedItems = items.filter((item) => item.id !== id);
-        setItems(updatedItems);
+    const handleSwitchChange = (event) => {
+        const newMode = event.target.checked ? 'Debit' : 'Cash';
+        setPaymentMode(newMode);
+        console.log('Payment Mode:', newMode); // Log the new payment mode
     };
 
     const handleInterestChange = (event, newType) => {
         setInterestType(newType);  // Update the interestType state
+        // Update the interestType state
+
+        console.log(newType);
 
         // If 'multiple' is selected, set interestMode to a valid option like 'monthly'
         if (newType === 'multiple') {
@@ -177,7 +274,7 @@ const GoldLoanForm = () => {
     };
 
     // Handle dropdown value change (when 'multiple' mode is selected)
-    const handleChange = (event) => {
+    const handleChangeMode = (event) => {
         const { value } = event.target;
         setForm(prevState => ({
             ...prevState,
@@ -221,7 +318,7 @@ const GoldLoanForm = () => {
         }
     };
 
-    const fetchCustomers = async () => {
+    const fetchGoldItems = async () => {
         try {
             const response = await getgolditemdetails();
             if (response.isSuccess && response.items) {
@@ -236,7 +333,7 @@ const GoldLoanForm = () => {
     };
 
     useEffect(() => {
-        fetchCustomers();
+        fetchGoldItems();
         fetchCustomerData();
     }, [customerId]);
 
@@ -305,12 +402,14 @@ const GoldLoanForm = () => {
             appraiser: form.appraiser === '',
             otherCharges: form.otherCharges === '',
             nId: !nId || nId === '',
-            goldImage: fileImage.goldImage === ''
+            goldImage: !(fileImage.goldImage || fileImage.capture), // Ensure at least one image is provided
         };
 
 
         setErrors(newErrors);
-        console.log(errors.goldImage);
+        setShowErrors(true); // Show validation messages only on submit
+
+        console.log(errors.fileImage);
         console.log(fileImage.goldImage);
         // If any field is invalid, return early
         if (Object.values(newErrors).includes(true)) {
@@ -332,6 +431,8 @@ const GoldLoanForm = () => {
         if (invalidRow) {
             return alert('Please fill out all fields correctly before adding a new item.');
         }
+        console.log(form.interestMode);
+
 
 
         const formData = new FormData();
@@ -363,6 +464,10 @@ const GoldLoanForm = () => {
             fileImage.goldImage = fileWithFileName; // Assign it to fileImage.image
             formData.append('goldImage', fileImage.goldImage); // Append Blob with a file name
         }
+        console.log(newItem);
+        console.log("nothing");
+        console.log(items);
+
         items.forEach((item, index) => {
             formData.append(`itemDetails[${index}].goldItem`, item.goldItem);
             formData.append(`itemDetails[${index}].netWeight`, item.netWeight);
@@ -461,14 +566,13 @@ const GoldLoanForm = () => {
                         {/* Placeholder for non-error state, this keeps the layout intact */}
                     </Typography>
                 )}
+
                 <TableContainer sx={{ mb: 2, height: 200, overflowY: 'auto', '&::-webkit-scrollbar': { width: '1px' }, '&::-webkit-scrollbar-thumb': { backgroundColor: '#888', borderRadius: '4px', '&:hover': { backgroundColor: '#555' } }, '&::-webkit-scrollbar-track': { backgroundColor: '#f1f1f1', borderRadius: '4px' } }}>
                     {/* Check if tableData is not empty */}
                     {tableData.length === 0 ? (
                         <p>No data available</p>
                     ) : (<Table stickyHeader aria-label="sticky table">
-
                         <TableHead>
-
                             <TableRow sx={{ height: '5px', '& .MuiTableCell-root': { padding: '0px' } }}>
                                 <TableCell colSpan={8} sx={{ padding: '2px', borderBottom: '1px solid #ccc' }}>
                                     {/* Left side: AddNomineeDetails and Error message */}
@@ -476,132 +580,227 @@ const GoldLoanForm = () => {
                                         <AddNomineeDetails />
 
                                     </Box>
-
                                     {/* Right side: Add Item button */}
                                     <Box mt={-5} display="flex" justifyContent="flex-end">
-                                        <Button variant="text" color="primary" startIcon={<AddIcon />} onClick={appendRow}>
-                                            Add Item
-                                        </Button>
+                                        {/* Webcam Toggle Button */}
+                                        <IconButton color="primary">
+                                            <PhotoCamera onClick={() => setUsingWebcam(!usingWebcam)} startIcon={!usingWebcam && <PhotoCamera />} sx={{ ml: 2 }} />
+                                            {usingWebcam ? '' : null}
+                                        </IconButton>
+                                        {/* File Upload Button */}
+                                        <input
+                                            type="file"
+                                            id="goldImage"
+                                            name='goldImage'
+                                            style={{ display: 'none' }}
+                                            accept="image/*" // Ensure only images can be selected
+                                        />
+                                        <IconButton color="primary" name='goldImage' onClick={handleButtonClick}>
+                                            <FileUploadIcon />
+                                        </IconButton>
                                     </Box>
-
                                 </TableCell>
-
                             </TableRow>
-
-                            <TableRow >
-                                {['Item Details', 'Qty', 'Gross Wt', 'Stone Wt', 'Dep Wt', 'Net Wt', 'Actions'].map((header) => (
-                                    <TableCell key={header} sx={{ fontSize: '10px', backgroundColor: '#e0e0e0 ', padding: '4px', borderBottom: '1px solid #ccc' }}>
+                            <TableRow>
+                                {['Item Details', 'No', 'Gross Wt', 'Stone Wt', 'Dep Wt', 'Net Wt', 'Actions'].map((header) => (
+                                    <TableCell key={header} sx={{ fontSize: '12px', backgroundColor: '#f0f0f0', padding: '4px', borderBottom: '1px solid #ccc' }}>
                                         {header}
                                     </TableCell>
                                 ))}
                             </TableRow>
                         </TableHead>
-
                         <TableBody>
-                            {items.map((item) => (
-                                <TableRow key={item.id}>
+                            {/* New Item Input Row */}
+                            <TableRow sx={{
+                                height: '10px', // Adjust row height 
+                            }}>
+                                < TableCell sx={{ fontSize: '6px', padding: '1px', borderBottom: '1px solid #ccc' }}>
 
-                                    <TableCell sx={{ fontSize: '8px', padding: '2px', borderBottom: '1px solid #ccc' }}>
-                                        <Autocomplete
-                                            options={options}
-                                            // value={item.itemDetails}
-                                            onChange={(event, newValue) => handleChangeItem(item.id, newValue?._id, 'itemDetails', newValue)}
-                                            onInputChange={(event, newValue) => setSearchTerm(newValue)}
-                                            // value={(option) => option._id}
-                                            getOptionLabel={(option) => option.goldItem} // Adjust as needed
-                                            renderInput={(params) => (
+                                    <Autocomplete
+                                        options={options}
+                                        getOptionLabel={(option) => option.goldItem || "Select"}
+                                        onChange={(event, newValue) => {
+                                            const goldItemId = newValue?._id || "";
+                                            const goldItemLabel = newValue?.goldItem || "Select";
+                                            handleChange("goldItem", goldItemId, "goldItem", goldItemId);
+                                            handleChange("type", goldItemLabel, "goldItem", goldItemId);
+                                        }}
+                                        renderInput={(params) => (
+                                            <TextField
+                                                {...params}
+                                                variant="outlined"
+                                                size="small"
+                                                placeholder="Select Gold Item"
+                                            />
+                                        )}
+                                        sx={{
+                                            '& .MuiAutocomplete-inputRoot': {
+                                                fontSize: '0.675rem',
+                                                height: 20,
+                                            },
+                                            '& .MuiInputBase-input': {
+                                                padding: '1px 1px',
+                                            },
+                                            width: 130,
+
+                                        }}
+                                    />
+
+                                </TableCell>
+
+                                {['quantity', 'grossWeight', 'stoneWeight', 'depreciation'].map((field) => (
+                                    <TableCell key={field} sx={{ fontSize: '8px', padding: '4px', borderBottom: '1px solid #ccc' }}>
+                                        <TextField
+                                            value={newItem[field] || ""}
+                                            onChange={(e) =>
+                                                handleChange(field, e.target.value, "goldItem", newItem.goldItem || "")
+                                            }
+                                            variant="outlined"
+                                            size="small"
+                                            fullWidth
+                                            sx={{
+                                                fontSize: '0.875rem',
+                                                '& .MuiOutlinedInput-root': {
+                                                    height: '20px',
+                                                    fontSize: '0.875rem',
+                                                },
+                                                '& .MuiInputBase-input': {
+                                                    padding: '1px 1px',
+                                                },
+                                            }}
+                                        />
+                                    </TableCell>
+                                ))}
+
+                                <TableCell sx={{ fontSize: '8px', padding: '4px', borderBottom: '1px solid #ccc' }}>
+                                    <TextField
+                                        value={newItem.netWeight || ""}
+                                        onChange={(e) =>
+                                            handleChange('netWeight', e.target.value, "goldItem", newItem.goldItem || "")
+                                        }
+                                        variant="outlined"
+                                        size="small"
+                                        fullWidth
+                                        sx={{
+                                            fontSize: '0.875rem',
+                                            '& .MuiOutlinedInput-root': {
+                                                height: '20px',
+                                                fontSize: '0.875rem',
+                                            },
+                                            '& .MuiInputBase-input': {
+                                                padding: '1px 1px',
+                                            },
+                                        }}
+                                    />
+                                </TableCell>
+
+                                <TableCell sx={{ padding: '4px' }}>
+                                    <IconButton
+                                        size="small"
+                                        color="primary"
+                                        onClick={handleAddRow}
+                                    >
+                                        <AddIcon fontSize="small" />
+                                    </IconButton>
+                                </TableCell>
+
+                            </TableRow>
+
+                            {/* Displaying Items */}
+                            {items.map((item) => (
+                                <TableRow
+                                    key={item.id}
+                                    onDoubleClick={() => toggleEditMode(item.id)}
+                                    sx={{
+
+                                        height: '10px', // Adjust row height
+                                        '&:hover': { backgroundColor: '#f5f5f5' }, // Optional hover effect
+                                    }}
+                                >
+                                    <TableCell sx={{ padding: '2px', fontSize: '0.65rem', height: '10px', }}>
+                                        {item.isEditing ? (
+                                            <Autocomplete
+                                                options={options}
+                                                getOptionLabel={(option) => option.goldItem || "Select"}
+                                                value={options.find((opt) => opt._id === item.goldItem) || null} // Current selected value
+                                                onChange={(event, newValue) => {
+                                                    const goldItemId = newValue?._id || "";
+                                                    handleChangeItem(item.id, goldItemId, "goldItem", newValue?.goldItem || "Select");
+                                                }}
+                                                renderInput={(params) => (
+                                                    <TextField {...params} variant="outlined" size="small" placeholder="Select Gold Item" />
+                                                )}
+
+                                                sx={{
+                                                    '& .MuiAutocomplete-inputRoot': {
+                                                        fontSize: '0.675rem',
+                                                        height: 20,
+                                                    },
+                                                    '& .MuiInputBase-input': {
+                                                        padding: '1px 1px',
+                                                    },
+                                                    width: 130,
+
+                                                }}
+                                            />
+                                        ) : (
+                                            <span style={{ fontSize: "0.6rem" }}>{item.type}</span>
+                                        )}
+                                    </TableCell>
+
+                                    {['quantity', 'grossWeight', 'stoneWeight', 'depreciation', 'netWeight'].map((field) => (
+                                        <TableCell key={field} sx={{ padding: '2px', fontSize: '0.65rem', height: '10px', }}>
+                                            {item.isEditing ? (
                                                 <TextField
-                                                    {...params}
+                                                    value={item[field]}
+                                                    onChange={(e) => handleChangeInRow(item.id, field, e.target.value)}
                                                     variant="outlined"
                                                     size="small"
                                                     fullWidth
                                                     sx={{
-                                                        fontSize: '8px', // Adjust font size for TextField
+                                                        fontSize: '0.875rem',
                                                         '& .MuiOutlinedInput-root': {
-                                                            height: '20px', // Adjust height for TextField
-                                                            fontSize: '8px', // Set input text font size
+                                                            height: '22px',
+                                                            fontSize: '0.75rem',
                                                         },
                                                         '& .MuiInputBase-input': {
-                                                            padding: '2px 2px', // Adjust padding for compact appearance
+                                                            padding: '2px 2px',
                                                         },
                                                     }}
                                                 />
+                                            ) : (
+                                                <span style={{ fontSize: '0.7rem' }}>{item[field]}</span>
                                             )}
-                                            sx={{
-                                                width: '130px', // Set width for Autocomplete component
-                                                fontSize: '8px', // Ensure font size consistency
-                                                '& .MuiAutocomplete-option': {
-                                                    fontSize: '10px', // Reduce font size for dropdown options
-                                                },
-                                                '& .MuiAutocomplete-input': {
-                                                    fontSize: '10px', // Set font size for Autocomplete input text
-                                                },
-                                            }}
-                                        />
-                                    </TableCell>
-
-                                    {['quantity', 'grossWeight', 'stoneWeight', 'depreciation'].map((field) => (
-                                        <TableCell key={field} sx={{ fontSize: '8px', padding: '2px', borderBottom: '1px solid #ccc' }}>
-                                            <TextField
-                                                type="number"
-                                                value={item[field]}
-                                                onChange={(e) => handleChangeItem(item.id, item.goldItem, field, e.target.value)}
-                                                variant="outlined"
-                                                size="small"
-                                                fullWidth
-                                                sx={{
-                                                    fontSize: '0.875rem', // Adjust font size as needed (e.g., 0.875rem for smaller text)
-                                                    '& .MuiOutlinedInput-root': {
-                                                        height: '20px', // Adjust height as needed
-                                                        fontSize: '0.875rem', // Ensure input text matches font size
-                                                    },
-                                                    '& .MuiInputBase-input': {
-                                                        padding: '2px 2px', // Adjust padding for a compact look
-                                                    },
-                                                }}
-                                            />
                                         </TableCell>
                                     ))}
 
-                                    <TableCell sx={{ fontSize: '8px', padding: '2px', borderBottom: '1px solid #ccc' }}>
-                                        <TextField
-                                            type="number"
-                                            value={item.netWeight}
-                                            onChange={(e) => handleChangeItem(item.id, item.goldItem, 'netWeight', e.target.value)}
-                                            variant="outlined"
+                                    <TableCell sx={{ padding: '0px' }}>
+                                        <IconButton
                                             size="small"
-                                            fullWidth
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter' && item.netWeight !== '') {
-                                                    appendRow();
-                                                }
-                                            }}
-                                            InputProps={{
-                                                style: {
-                                                    fontSize: '0.8rem',  // Reduces the font size
-                                                    height: '20px',      // Reduces the height
-                                                    padding: '2px'
-                                                },
-                                            }}
-                                            InputLabelProps={{
-                                                style: {
-                                                    fontSize: '0.8rem',  // Reduces the label font size
-                                                },
-                                            }}
-                                        />
-                                    </TableCell>
+                                            color="error"
+                                            onClick={() => handleDelete(item.id)}
+                                            sx={{ padding: '1px' }} // Reduce button padding
 
-                                    <TableCell sx={{ padding: '2px', borderBottom: '1px solid #ccc' }}>
-                                        <IconButton size="small" color="error" onClick={() => handleDelete(item.id)}>
+                                        >
                                             <DeleteIcon fontSize="small" />
                                         </IconButton>
+                                        {item.isEditing && (
+                                            <IconButton
+                                                size="small"
+                                                color="primary"
+                                                onClick={() => handleSaveRow(item.id)}
+                                                sx={{ padding: '1px' }} // Reduce button padding
+                                            >
+                                                <SaveIcon fontSize="small" /> {/* Add the Save icon */}
+                                            </IconButton>
+                                        )}
                                     </TableCell>
                                 </TableRow>
-
                             ))}
+
                         </TableBody>
-                    </Table>
-                    )}
+                    </Table>)}
+
                 </TableContainer>
 
                 <table style={{
@@ -613,10 +812,10 @@ const GoldLoanForm = () => {
                     <tbody>
                         <tr>
                             <td style={{ padding: '6px', border: '1px solid #ddd', fontSize: '12px' }}>No: 5</td>
-                            <td style={{ padding: '6px', border: '1px solid #ddd', fontSize: '12px' }}>Qty: {TotalQuantity.toFixed(2)}</td>
+                            <td style={{ padding: '6px', border: '1px solid #ddd', fontSize: '12px' }}>Qty: {totalQuantity.toFixed(2)}</td>
                             <td style={{ padding: '6px', border: '1px solid #ddd', fontSize: '12px' }}>Gr Wt: {totalGrossWeight.toFixed(2)}</td>
-                            <td style={{ padding: '6px', border: '1px solid #ddd', fontSize: '12px' }}>St Wt:{TotalStoneWeight.toFixed(2)}</td>
-                            <td style={{ padding: '6px', border: '1px solid #ddd', fontSize: '12px' }}>Dpt Wt: {TotalDepWeight.toFixed(2)}</td>
+                            <td style={{ padding: '6px', border: '1px solid #ddd', fontSize: '12px' }}>St Wt:{totalStoneWeight.toFixed(2)}</td>
+                            <td style={{ padding: '6px', border: '1px solid #ddd', fontSize: '12px' }}>Dpt Wt: {totalDepWeight.toFixed(2)}</td>
                             <td style={{ padding: '6px', border: '1px solid #ddd', fontSize: '12px' }}>Net Wt: {totalNetWeight.toFixed(2)}</td>
                         </tr>
                     </tbody>
@@ -662,19 +861,7 @@ const GoldLoanForm = () => {
                 {/* interest calaculation and image upload and capture */}
                 <Typography variant="subtitle1" sx={{ mb: 1 }}>Interest Calculation</Typography>
 
-                <ToggleButtonGroup
-                    color="primary"
-                    value={interestType}
-                    exclusive
-                    onChange={handleInterestChange}
-                    size="small"
-                    sx={{ mt: 1, textAlign: 'left', }}
-                >
-                    <ToggleButton value="simple">Simple</ToggleButton>
-                    <ToggleButton value="multiple">Multiple</ToggleButton>
-                    <ToggleButton value="range">Range</ToggleButton>
-                </ToggleButtonGroup>
-                <Box sx={{ textAlign: 'right', mt: -10 }}>
+                <Box sx={{ textAlign: 'right', mt: -4 }}>
                     <div>
                         <FormControlLabel
                             control={
@@ -688,23 +875,20 @@ const GoldLoanForm = () => {
                         />
                     </div>
 
-                    {/* Webcam Toggle Button */}
-                    <IconButton color="primary">
-                        <PhotoCamera onClick={() => setUsingWebcam(!usingWebcam)} startIcon={!usingWebcam && <PhotoCamera />} sx={{ ml: 2 }} />
-                        {usingWebcam ? '' : null}
-                    </IconButton>
-                    {/* File Upload Button */}
-                    <input
-                        type="file"
-                        id="goldImage"
-                        name='goldImage'
-                        style={{ display: 'none' }}
-                        accept="image/*" // Ensure only images can be selected
-                    />
-                    <IconButton color="primary" name='goldImage' onClick={handleButtonClick}>
-                        <FileUploadIcon />
-                    </IconButton>
                 </Box>
+
+                <ToggleButtonGroup
+                    color="primary"
+                    value={interestType}
+                    exclusive
+                    onChange={handleInterestChange}
+                    size="small"
+                    sx={{ mt: 0, textAlign: 'left', }}
+                >
+                    <ToggleButton value="simple">Simple</ToggleButton>
+                    <ToggleButton value="multiple">Multiple</ToggleButton>
+                    <ToggleButton value="range">Range</ToggleButton>
+                </ToggleButtonGroup>
 
                 {interestType === 'multiple' && (
                     <Box sx={{ mt: 1 }}>
@@ -714,7 +898,7 @@ const GoldLoanForm = () => {
                                 name="interestMode"
                                 value={form.interestMode}
                                 label="Mode"
-                                onChange={handleChange}
+                                onChange={handleChangeMode}
                                 sx={{ width: '50%', textAlign: 'left', font: '8px' }}
                             >
                                 <MenuItem value="days">Days</MenuItem>
@@ -738,6 +922,41 @@ const GoldLoanForm = () => {
                         )}
                     </Box>
                 )}
+
+                {interestType === 'range' && (
+                    <Box sx={{ mt: 1 }}>
+                        <FormControl fullWidth size="small">
+                            <InputLabel>Mode</InputLabel>
+                            <Select
+                                name="interestMode"
+                                value={form.interestMode}
+                                label="Mode"
+                                onChange={handleChangeMode}
+                                sx={{ width: '50%', textAlign: 'left', font: '8px' }}
+                            >
+                                <MenuItem value="days">Days</MenuItem>
+                                <MenuItem value="weekly">Weekly</MenuItem>
+                                <MenuItem value="monthly">Monthly</MenuItem>
+                                <MenuItem value="quarterly">Quarterly</MenuItem>
+                                <MenuItem value="halfyearly">Half Yearly</MenuItem>
+                            </Select>
+                        </FormControl>
+                        {form.mode && (
+                            <Typography variant="body2" sx={{ mt: 0.5, color: 'text.secondary' }}>
+                                Selected Mode: {
+                                    form.mode === 'weekly' ? 'Weekly' :
+                                        form.mode === 'monthly' ? 'Monthly' :
+                                            form.mode === 'quarterly' ? 'Quarterly' :
+                                                form.mode === 'halfyearly' ? 'Half Yearly' :
+                                                    form.mode === 'days' ? 'Days' :
+                                                        ''
+                                }
+                            </Typography>
+                        )}
+                    </Box>
+                )}
+
+
                 <Grid container justifyContent="flex-end" sx={{ mt: 2, position: 'sticky', bottom: 0, backgroundColor: 'white', zIndex: 1 }}>
                     <Grid item>
                         <Button
@@ -825,9 +1044,10 @@ const GoldLoanForm = () => {
                         </Box>
                     )}
                 </Box>
-                {errors.goldImage == '' && (
-                    <Typography sx={{ mt: 2, color: 'red', marginRight: '10%', fontSize: '0.975rem', width: '100%' }}>
-                        Gold image is required
+                {/* Validation message for goldImage */}
+                {showErrors && errors.goldImage && (
+                    <Typography sx={{ mt: 2, color: 'red', fontSize: '0.975rem' }}>
+                        Gold image or captured image is required
                     </Typography>
                 )}
                 {/* Summary Table at the bottom */}
@@ -868,64 +1088,103 @@ const GoldLoanForm = () => {
 
             <Box sx={{ flex: 1, p: 2 }}>
                 {customerData && (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh', borderRadius: 3, backgroundColor: '#f4f4f9', mt: -1 }}>
-                        <Card
+                    <Card
+                        sx={{
+                            width: { xs: '50%', sm: '365px' },
+                            borderRadius: 2,
+                            boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.1)',
+                            backgroundColor: '#ffffff',
+                            display: 'flex',
+                            flexDirection: 'row',
+                            padding: 2,
+                            gap: 2,
+                            mt: -1,
+                        }}
+                    >
+                        {/* Left Section: Avatar with Background */}
+                        <Box
                             sx={{
-                                width: { xs: '90%', sm: 400, md: 350 },
-                                padding: 1.5,
-                                borderRadius: 3,
-                                boxShadow: 10,
-                                textAlign: 'center',
+                                width: '30%',
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                backgroundColor: ' #e8f5e9',
+                                borderRadius: 2,
                             }}
                         >
-                            {/* Profile Picture */}
                             <Avatar
                                 alt="Profile"
                                 src={`http://localhost:4000${customerData.image.path}`}
-                                sx={{ width: 100, height: 100, margin: '0 auto', border: '4px solid #0073e6', mb: 1, objectFit: 'cover', }}
+                                sx={{
+                                    width: 90,
+                                    height: 100,
+                                    border: '4px solid #ffffff',
+                                    objectFit: 'cover',
+                                }}
                             />
+                        </Box>
 
-                            {/* 5-Star Rating */}
-                            <Rating
-                                name="profile-rating"
-                                value={customerData.rating}
-                                onChange={handleRatingChange}
-                                precision={0.5}
-                                sx={{ mb: 1 }}
-                            />
-                            {/* Profile Name */}
-                            <Typography variant="h6" fontWeight="bold" color="text.primary">
-                                {customerData.firstName} {customerData.lastName}
-                            </Typography>
-                            {/* Location */}
-                            <Box display="flex" alignItems="center" justifyContent="center" color="text.secondary" mt={1}>
-                                <LocationOnIcon fontSize="small" sx={{ mr: 0.5 }} />
-                                <Typography variant="body2">{customerData.state}, INDIA</Typography>
+                        {/* Right Section: Details */}
+                        <Box
+                            sx={{
+                                flex: 1,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'space-between',
+                                padding: 1,
+                            }}
+                        >
+                            {/* Header */}
+                            <Box>
+                                <Typography
+                                    variant="body1"
+                                    fontWeight="bold"
+                                    sx={{ color: '#004d40' }}
+                                >
+                                    {customerData.firstName} {customerData.lastName}
+                                </Typography>
+                                <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                    sx={{ mb: 1 }}
+                                >
+                                    {customerData.state},INDIA
+                                </Typography>
                             </Box>
-                            <Divider sx={{ my: 1 }} />
+
+                            {/* Rating */}
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                <Rating
+                                    name="profile-rating"
+                                    value={customerData.rating}
+                                    onChange={handleRatingChange}
+                                    precision={0.5}
+                                />
+                            </Box>
+
                             {/* Contact Information */}
-                            <CardContent sx={{ textAlign: 'left' }}>
-                                <Box display="flex" alignItems="center" mb={1}>
-                                    <LocationOnIcon sx={{ color: 'text.secondary', mr: 0.5 }} />
-                                    <Typography variant="body2">
-                                        <strong>Address:</strong> {customerData.address}, {customerData.place}, {customerData.pin}
-                                    </Typography>
-                                </Box>
-                                <Box display="flex" alignItems="center" mb={1}>
-                                    <PhoneIcon sx={{ color: 'text.secondary', mr: 0.5 }} />
-                                    <Typography variant="body2">
-                                        <strong>Mobile:</strong> {customerData.primaryNumber}
-                                    </Typography>
-                                </Box>
-                                <Box display="flex" alignItems="center" mb={1}>
-                                    <EmailIcon sx={{ color: 'text.secondary', mr: 0.5 }} />
-                                    <Typography variant="body2">
-                                        <strong>Email:</strong> {customerData.email}
-                                    </Typography>
-                                </Box>
-                            </CardContent>
-                        </Card>
-                    </Box>
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: 1,
+                                    color: 'text.secondary',
+                                }}
+                            >
+                                <Typography variant="body2" sx={{ fontSize: 11.5 }}>
+                                    <strong>Address:</strong> {customerData.address},{' '}
+                                    {customerData.place}, {customerData.pin}
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontSize: 11.5 }}>
+                                    <strong>Mobile:</strong> {customerData.primaryNumber}
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontSize: 11.5 }}>
+                                    <strong>Email:</strong> {customerData.email}
+                                </Typography>
+                            </Box>
+                        </Box>
+                    </Card>
+
                 )}
 
                 {/* Nominee Details */}

@@ -3,14 +3,88 @@ import { Grid, Button, Typography, CircularProgress, Box, TextField } from '@mui
 import { DataGrid } from '@mui/x-data-grid';
 import { CustomerForm } from '../../Forms';
 import { useNavigate } from 'react-router-dom';
-import ItemDetailsTable from '../../Forms/ItemDetailsTable ';
 import { ROUTES } from '../../constant/route';
 
 export default function GlMaster() {
     const [customers, setCustomers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [searchName, setSearchName] = useState('');
+    const [searchAddress, setSearchAddress] = useState('');
+    const [searchPhone, setSearchPhone] = useState('');
+    const [searchEmail, setSearchEmail] = useState('');
     const navigate = useNavigate();
+
+    // Define columns for the DataGrid
+    const columns = [
+        { field: 'id', headerName: 'SL No.', width: 57 },
+        { field: 'firstName', headerName: 'First Name', width: 150 },
+        { field: 'lastName', headerName: 'Last Name', width: 150 },
+        { field: 'address', headerName: 'Address', flex: 8 },
+        // { field: 'address', headerName: 'Address', width: 400 },
+        { field: 'primaryNumber', headerName: 'Mobile', width: 120 },
+        { field: 'email', headerName: 'Email', width: 200 }, // Assuming you have an email field
+        {
+            field: 'goldLoan',
+            headerName: 'Action',
+            width: 100,
+            renderCell: (params) => (
+                <Button
+                    variant="contained"
+                    sx={{
+                        backgroundColor: '#FFD700',
+                        color: '#000',
+                        '&:hover': { backgroundColor: '#FFC107' },
+                        width: '100%',
+                        fontSize: '8px', // Adjust font size (e.g., 12px or another value you prefer)
+                        height: '25px', // Adjust button height (e.g., 35px or another value you prefer)
+                        padding: '2px 4px', // Adjust padding to maintain proportion
+                    }}
+                    onClick={() => handleGoldLoan(params.row.customId)}
+                >
+                    Gold Loan
+                </Button>
+            ),
+        },
+
+    ];
+
+    // Filter customers based on the search term
+    // const filteredCustomers = useMemo(() => {
+    //     if (!searchTerm) return customers;
+    //     return customers.filter(customer => {
+    //         const searchQuery = searchTerm.toLowerCase();
+    //         return (
+    //             customer.firstName.toLowerCase().includes(searchQuery) ||
+    //             customer.lastName.toLowerCase().includes(searchQuery) ||
+    //             customer.address.toLowerCase().includes(searchQuery) ||
+    //             customer.primaryNumber.includes(searchQuery) || // Assuming mobile is in primaryNumber
+    //             (customer.email && customer.email.toLowerCase().includes(searchQuery)) // Check for email
+    //         );
+    //     })
+    // }, [searchTerm, customers]);
+
+    const filteredCustomers = useMemo(() => {
+        return customers.filter((customer) => {
+            const matchesName = searchName
+                ? (
+                    customer.firstName.toLowerCase().includes(searchName.toLowerCase()) ||
+                    customer.lastName.toLowerCase().includes(searchName.toLowerCase())
+                )
+                : true;
+            const matchesAddress = searchAddress
+                ? customer.address.toLowerCase().includes(searchAddress.toLowerCase())
+                : true;
+            const matchesPhone = searchPhone
+                ? customer.primaryNumber.includes(searchPhone)
+                : true;
+            const matchesEmail = searchEmail
+                ? customer.email?.toLowerCase().includes(searchEmail.toLowerCase())
+                : true;
+            return matchesName && matchesAddress && matchesPhone && matchesEmail;
+        });
+    }, [searchName, searchAddress, searchPhone, searchEmail, customers]);
+
 
     // Fetch customer data from the API
     const fetchCustomers = async () => {
@@ -41,82 +115,78 @@ export default function GlMaster() {
         navigate(ROUTES.CUSTOMER_GOLD_LOAN.replace(":customerId", customerId));
     };
 
-    // Define columns for the DataGrid
-    const columns = [
-        { field: 'id', headerName: 'SL No.', width: 100 },
-        { field: 'firstName', headerName: 'First Name', width: 150 },
-        { field: 'lastName', headerName: 'Last Name', width: 150 },
-        { field: 'address', headerName: 'Address', flex: 1 },
-        { field: 'primaryNumber', headerName: 'Mobile', width: 120 },
-        { field: 'email', headerName: 'Email', width: 150 }, // Assuming you have an email field
-        {
-            field: 'goldLoan',
-            headerName: 'Action',
-            width: 150,
-            renderCell: (params) => (
-                <Button
-                    variant="contained"
-                    sx={{
-                        backgroundColor: '#FFD700',
-                        color: '#000',
-                        '&:hover': { backgroundColor: '#FFC107' },
-                        width: '100%',
-                        fontSize: '8px', // Adjust font size (e.g., 12px or another value you prefer)
-                        height: '30px', // Adjust button height (e.g., 35px or another value you prefer)
-                        padding: '2px 2px', // Adjust padding to maintain proportion
-                    }}
-                    onClick={() => handleGoldLoan(params.row.customId)}
-                >
-                    Gold Loan
-                </Button>
-            ),
-        },
-    ];
-
-    // Filter customers based on the search term
-    const filteredCustomers = useMemo(() => {
-        if (!searchTerm) return customers;
-        return customers.filter(customer => {
-            const searchQuery = searchTerm.toLowerCase();
-            return (
-                customer.firstName.toLowerCase().includes(searchQuery) ||
-                customer.lastName.toLowerCase().includes(searchQuery) ||
-                customer.address.toLowerCase().includes(searchQuery) ||
-                customer.primaryNumber.includes(searchTerm) || // Assuming mobile is in primaryNumber
-                (customer.email && customer.email.toLowerCase().includes(searchQuery)) // Check for email
-            );
-        })
-    }, [searchTerm, customers]);
-
     if (loading) {
         return <CircularProgress />;
     }
 
     return (
 
-
         <Box sx={{ padding: { xs: 1, sm: 2, md: 3 } }}>
             <Grid container justifyContent="space-between" alignItems="center" sx={{ mb: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
-                <ItemDetailsTable />
+                {/* <ItemDetailsTable /> */}
                 {/* Typography for Customer List Heading */}
                 <Typography
                     variant="h4"
                     sx={{ fontSize: { xs: '1.5rem', sm: '2rem' }, flexShrink: 0 }}
                 >
-                    Customer List
+                    CUSTOMER LIST
                 </Typography>
 
                 {/* Search Bar */}
                 <Box sx={{ flexGrow: 1, mx: 2, textAlign: 'center' }}>
                     <TextField
                         variant="outlined"
-                        placeholder="Search by Name, Address, Mobile, or Email"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="Search by Name"
+                        value={searchName}
+                        onChange={(e) => setSearchName(e.target.value)}
                         fullWidth
                         sx={{
                             maxWidth: '600px', // Limit the max width
                             width: '100%', // Ensure it takes up the available space
+                        }}
+                        InputProps={{
+                            sx: {
+                                padding: '0', // Reduce padding inside the input
+                                height: '36px', // Set the desired height
+                            },
+                        }}
+                    />
+                </Box>{/* Search Bar */}
+                <Box sx={{ flexGrow: 1, mx: 2, textAlign: 'left' }}>
+                    <TextField
+                        variant="outlined"
+                        placeholder="Search by Address"
+                        value={searchAddress}
+                        onChange={(e) => setSearchAddress(e.target.value)}
+                        fullWidth
+                        sx={{
+                            maxWidth: '600px', // Limit the max width
+                            width: '100%', // Ensure it takes up the available space
+                        }}
+                        InputProps={{
+                            sx: {
+                                padding: '0', // Reduce padding inside the input
+                                height: '36px', // Set the desired height
+                            },
+                        }}
+                    />
+                </Box>
+                <Box sx={{ flexGrow: 1, mx: 2, textAlign: 'left' }}>
+                    <TextField
+                        variant="outlined"
+                        placeholder="Search by Phone"
+                        value={searchPhone}
+                        onChange={(e) => setSearchPhone(e.target.value)}
+                        fullWidth
+                        sx={{
+                            maxWidth: '600px', // Limit the max width
+                            width: '100%', // Ensure it takes up the available space
+                        }}
+                        InputProps={{
+                            sx: {
+                                padding: '0', // Reduce padding inside the input
+                                height: '36px', // Set the desired height
+                            },
                         }}
                     />
                 </Box>
@@ -132,7 +202,7 @@ export default function GlMaster() {
 
             <Box
                 sx={{
-                    height: 400,
+                    height: 480,
                     width: '100%',
                     '& .MuiDataGrid-root': {
                         backgroundColor: 'white',
@@ -154,6 +224,7 @@ export default function GlMaster() {
                         },
                         '& .MuiDataGrid-columnHeaders': { fontSize: { xs: '0.6rem', sm: '.8rem' } },
                     }}
+                    rowHeight={30}
                 />
             </Box>
         </Box>

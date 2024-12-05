@@ -1,5 +1,3 @@
-// src/api.js
-
 const API_URL = 'http://localhost:4000/'; // Replace with your actual API endpoint
 
 export const submitData = async (data) => {

@@ -1,0 +1,11 @@
+.ag-theme-alpine .ag-row {
+    line-height: 1;
+    /* Reduce line spacing */
+}
+
+.ag-theme-alpine .ag-cell {
+    padding: 2px;
+    /* Reduce cell padding */
+    font-size: 10px;
+    /* Smaller font size */
+}
