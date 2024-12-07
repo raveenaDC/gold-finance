@@ -20,7 +20,7 @@ export default function CustomerForm({ onCustomerAdded }) {
     const [usingAadharcam, setUsingAadharcam] = useState(false); // Toggle between file upload and webcam
     const [usingSigncam, setUsingSigncam] = useState(false); // Toggle between file upload and webcam
     const [usingWebcam, setUsingWebcam] = useState(false); // Toggle between file upload and webcam
-    const [fileImage, setFileImage] = useState({ image: null, signature: null, aadharImage: null, capture: null, sCapture: null, aCapture: null }); // State to store the uploaded image and signature
+    const [fileImage, setFileImage] = useState({ image: null, signature: null, aadharImage: null, capture: null, sCapture: null, aCapture: [] }); // State to store the uploaded image and signature
 
     const [formData, setFormData] = useState({
         firstName: '',
