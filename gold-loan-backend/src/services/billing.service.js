@@ -19,7 +19,8 @@ export async function createGoldLoanBilling(req, res, next) {
         let { goldLoanId,
             billDate,
             billNo,
-            amount
+            amount,
+            paymentMode
         } = req.body;
 
         const existLoan = await models.goldLoanModel.findById(goldLoanId)
@@ -37,7 +38,8 @@ export async function createGoldLoanBilling(req, res, next) {
             goldLoanId,
             billDate,
             billNo,
-            payment: amount
+            payment: amount,
+            paymentMode
         });
         existLoan.amountPaid = amount;
         await existLoan.save();
@@ -74,7 +76,7 @@ export async function viewAllGoldLoanBilling(req, res, next) {
         };
 
         let billDetails = await models.billingModel.find(query)
-            .select('goldLoanId payment billDate billNo createdAt')
+            .select('goldLoanId payment paymentMode billDate billNo createdAt')
             .populate({
                 path: 'goldLoanId',
                 select: 'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode insurance processingFee otherCharges packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt',
@@ -121,7 +123,7 @@ export async function viewGoldLoanBillingById(req, res) {
             )
         }
         const bill = await models.billingModel.findById(billId)
-            .select('goldLoanId payment billDate billNo createdAt')
+            .select('goldLoanId payment paymentMode billDate billNo createdAt')
             .populate({
                 path: 'goldLoanId',
                 select: 'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode insurance processingFee otherCharges packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt',

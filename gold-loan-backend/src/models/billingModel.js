@@ -5,6 +5,7 @@ const billingSchema = new Schema(
         billNo: String,
         billDate: Date,
         goldLoanId: { type: Schema.Types.ObjectId, ref: 'goldLoan' },
+        paymentMode: String,
         payment: {
             type: Number,
             default: 0,
