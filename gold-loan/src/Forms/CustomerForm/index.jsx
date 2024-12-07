@@ -21,17 +21,17 @@ export default function CustomerForm({ onCustomerAdded }) {
     const [usingAadharcam, setUsingAadharcam] = useState(false); // Toggle between file upload and webcam
     const [usingSigncam, setUsingSigncam] = useState(false); // Toggle between file upload and webcam
     const [usingWebcam, setUsingWebcam] = useState(false); // Toggle between file upload and webcam
-    const [fileImage, setFileImage] = useState({ image: null, signature: null, aadharImage: null, capture: null, sCapture: null, aCapture: null }); // State to store the uploaded image and signature
+    const [fileImage, setFileImage] = useState({ image: null, signature: null, aadharImage: [], capture: null, sCapture: null, aCapture: [], passBookImage: null }); // State to store the uploaded image and signature
 
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
         address: '',
-        careOf: '',
+        city: '',
         place: '',
         state: '',
         district: '',
-        zip: '',
+        pin: '',
         aadhar: '',
         primaryNumber: '',
         secondaryNumber: '',
@@ -41,8 +41,11 @@ export default function CustomerForm({ onCustomerAdded }) {
         bankAccount: '',
         ifsc: '',
         bankName: '',
-        email: '', // Add email field
-
+        upId: '',
+        gender: '',
+        email: '', // Add email field       
+        dateOfBirth: '',
+        createdDate: '',
     });
 
     const [errors, setErrors] = useState({});
@@ -50,6 +53,7 @@ export default function CustomerForm({ onCustomerAdded }) {
     const fileInputcamRef = useRef(null); // Reference to the file input
     const fileInputSignRef = useRef(null); // Reference to the file input    
     const fileInputaadharRef = useRef(null);
+    const fileInputpassBookRef = useRef(null);
 
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
@@ -70,15 +74,55 @@ export default function CustomerForm({ onCustomerAdded }) {
 
     // Handle Signaturecam capture
     const captureAadhar = useCallback(() => {
-        const imageSrc = webcamRef.current.getScreenshot(); // Capture image from webcam as Base64
-        setFileImage({ ...fileImage, aCapture: imageSrc });  // Set Base64 image
-        setUsingAadharcam(false); // Hide the webcam after capture
+        if (!webcamRef.current) return;
+        const imageSrc = webcamRef.current.getScreenshot(); // Capture image from webcam\
+        console.log("fileImage.aCapture, fileImage.aCapture.length");
+        console.log(fileImage.aCapture, fileImage.aCapture.length);
+        if (fileImage.aCapture != null) {
+            if (fileImage.aCapture.length < 2) {
+                setFileImage((prev) => ({
+                    ...prev,
+                    aCapture: [...prev.aCapture, imageSrc], // Append image
+                }));
+                setUsingAadharcam(false); // Hide webcam
+            }
+        } else {
+            alert("You can only capture 2 images at a time.");
+        }
     }, [webcamRef, fileImage]);
-
     // handle image change
     const handleimagechange = (e) => {
         const { name, files } = e.target;
         setFileImage({ ...fileImage, [name]: files[0] });
+    };
+
+    const handleMutipleImage = (event) => {
+        const files = Array.from(event.target.files).filter((file) =>
+            file.type.startsWith("image/")
+        );
+        console.log("files.length === 0");
+        console.log(files, files.length);
+
+        if (files.length === 0) {
+            alert("Please upload valid image files.");
+            return;
+        }
+        setFileImage((prevState) => ({
+            ...prevState,
+            aadharImage: [...prevState.aadharImage, ...files],
+        }));
+    };
+    const handleGenderChange = (event) => {
+        const { name, value } = event.target;
+        setFormData((prevData) => ({
+            ...prevData,
+            [name]: value,
+        }));
+        // Optional: Clear any errors on change
+        setErrors((prevErrors) => ({
+            ...prevErrors,
+            [name]: '',
+        }));
     };
 
     //handle from input change
@@ -130,16 +174,24 @@ export default function CustomerForm({ onCustomerAdded }) {
         setFileImage({ ...fileImage, sCapture: null }); // Clear the captured signature
     };
 
-    // Function to handle closing the image
-    const handleCloseAadhar = () => {
-        setFileImage({ ...fileImage, aadharImage: null }); // Clear the uploaded image
+
+    // Handle removal of an image
+    const handleCloseAadhar = (index) => {
+        setFileImage((prevState) => ({
+            ...prevState,
+            aadharImage: prevState.aadharImage.filter((_, i) => i !== index), // Remove specific image
+        }));
+
         if (fileInputaadharRef.current) {
-            fileInputaadharRef.current.value = ""; // Clear the input value
+            fileInputaadharRef.current.value = ''; // Clear the file input's value
         }
     };
 
-    const handleCloseACapture = () => {
-        setFileImage({ ...fileImage, aCapture: null }); // Clear the captured image
+    const handleCloseACapture = (index) => {
+        setFileImage((prev) => ({
+            ...prev,
+            aCapture: prev.aCapture.filter((_, i) => i !== index),
+        }));
     };
 
     const commonTextFieldSx = {
@@ -170,8 +222,11 @@ export default function CustomerForm({ onCustomerAdded }) {
             formErrors.lastName = "Last Name is required";
         } else if (formData.lastName.length < 1 || formData.lastName.length > 30) {
             formErrors.lastName = "Last name must be between 1 and 30 characters";
+            console.log(formData.lastName, formData.lastName.length, formData.lastName.length);
+
         } else if (!/^[a-zA-Z\s.]+$/.test(formData.lastName)) {
             formErrors.lastName = "Last name is invalid";
+
         }
 
         // Address validation
@@ -181,7 +236,7 @@ export default function CustomerForm({ onCustomerAdded }) {
         if (!formData.nearBy.trim()) formErrors.nearBy = "Near By location  is required";
 
         // Care of validation
-        if (!formData.careOf.trim()) formErrors.careOf = "CareOf is required";
+        if (!formData.city.trim()) formErrors.city = "City is required";
 
         // place validation
         if (!formData.place.trim()) formErrors.place = "Place is required";
@@ -194,10 +249,10 @@ export default function CustomerForm({ onCustomerAdded }) {
 
 
         // Zip Code validation
-        if (!formData.zip.trim()) {
-            formErrors.zip = "Zip Code is required";
-        } else if (!/^\d{6}$/.test(formData.zip)) {
-            formErrors.zip = "Zip Code must be 6 digits";
+        if (!formData.pin.trim()) {
+            formErrors.pin = "Zip Code is required";
+        } else if (!/^\d{6}$/.test(formData.pin)) {
+            formErrors.pin = "Zip Code must be 6 digits";
         }
 
         // Aadhar Number verification
@@ -233,6 +288,11 @@ export default function CustomerForm({ onCustomerAdded }) {
         } else if (!/^[a-zA-Z\s]{3,50}$/.test(formData.bankName)) {
             formErrors.bankName = "Bank name must be 3 to 50 characters long and contain only alphabets and spaces";
         }
+        if (!formData.upId) {
+            formErrors.upId = "UPID is required";
+        } else if (!/^[a-zA-Z0-9.\-_]{2,}@[a-zA-Z]{2,}$/.test(formData.upId)) {
+            formErrors.upId = "UPID must be contain only alphabets and spaces";
+        }
 
         // Primary Mobile Number validation
         if (!formData.primaryNumber) {
@@ -262,11 +322,13 @@ export default function CustomerForm({ onCustomerAdded }) {
             formErrors.signature = "Either upload a signature or capture one with the webcam";
         }
 
-        if (!fileImage.aadharImage && !fileImage.aCapture) {
-            formErrors.aadharImage = "Either upload an Aadhar image or capture one with the webcam";
-        }
+        // if (!fileImage.aadharImage && !fileImage.aCapture) {
+        //     formErrors.aadharImage = "Either upload an Aadhar image or capture one with the webcam";
+        // }
 
         setErrors(formErrors);
+        console.log(Object.keys(formErrors), Object.keys(formErrors).length);
+
         return Object.keys(formErrors).length === 0;
     };
 
@@ -284,14 +346,14 @@ export default function CustomerForm({ onCustomerAdded }) {
         data.append('firstName', formData.firstName);
         data.append('lastName', formData.lastName);
         data.append('address', formData.address);
-        data.append('careOf', formData.careOf);
+        data.append('city', formData.city);
         data.append('place', formData.place);
         data.append('state', formData.state);
         data.append('nearBy', formData.nearBy);
         data.append('aadhar', formData.aadhar);
-        data.append('zip', formData.zip);
+        data.append('pin', formData.pin);
         data.append('primaryNumber', formData.primaryNumber);
-        data.append('secondaryNumber', formData.secondaryNumber);
+        if (formData.secondaryNumber != '') { data.append('secondaryNumber', formData.secondaryNumber); }
         data.append('gst', formData.gst);
         data.append('district', formData.district);
         data.append('bankAccount', formData.bankAccount);
@@ -299,9 +361,16 @@ export default function CustomerForm({ onCustomerAdded }) {
         data.append('bankUserName', formData.bankUserName);
         data.append('ifsc', formData.ifsc);
         data.append('email', formData.email);
+        data.append('upId', formData.upId);
+        data.append('createdDate', formData.createdDate);
+        data.append('gender', formData.gender);
+        data.append('dateOfBirth', formData.dateOfBirth);
         data.append('image', fileImage.image);
         data.append('signature', fileImage.signature);
-        data.append('aadharImage', fileImage.aadharImage);
+        data.append('passBookImage', fileImage.passBookImage);
+        fileImage.aadharImage.forEach((aadharImage, index) => {
+            data.append('aadharImage', aadharImage); // Append each image to the form data
+        });
 
         // Add captured image if available (convert Base64 to Blob and append)
         if (fileImage.capture) {
@@ -323,15 +392,18 @@ export default function CustomerForm({ onCustomerAdded }) {
             fileImage.signature = fileWithFileName; // Assign it to fileImage.image
             data.append('signature', fileWithFileName); // Append the signature file
         }
+        console.log(fileImage.aCapture, fileImage.aCapture.length);
 
         // Handle captured signature (convert Base64 to Blob)
-        if (fileImage.aCapture) {
-            let blob = base64ToBlob(fileImage.aCapture, 'image/jpeg');
-            const timestamp = new Date().toISOString().replace(/[-:.]/g, '');
-            const filename = `webcam_aadhar_${timestamp}.jpg`;
-            const fileWithFileName = new File([blob], filename, { type: 'image/jpeg' });
-            fileImage.aadharImage = fileWithFileName; // Assign it to fileImage.image
-            data.append('aadharImage', fileWithFileName); // Append the signature file
+        if (fileImage.aCapture.length) {
+            fileImage.aCapture.forEach((capture, index) => {
+                const blob = base64ToBlob(capture, 'image/jpeg');
+                const timestamp = new Date().toISOString().replace(/[-:.]/g, '');
+                const filename = `webcam_aadhar_${timestamp}_${index + 1}.jpg`;
+                const fileWithFileName = new File([blob], filename, { type: 'image/jpeg' });
+                data.append('aadharImage', fileWithFileName);
+
+            });
         }
 
 
@@ -351,11 +423,11 @@ export default function CustomerForm({ onCustomerAdded }) {
                 firstName: '',
                 lastName: '',
                 address: '',
-                careOf: '',
+                city: '',
                 place: '',
                 district: '',
                 state: '',
-                zip: '',
+                pin: '',
                 aadhar: '',
                 primaryNumber: '',
                 secondaryNumber: '',
@@ -373,8 +445,9 @@ export default function CustomerForm({ onCustomerAdded }) {
                 signature: null,
                 capture: null,
                 sCapture: null,
-                aadharImage: null,
-                aCapture: null,
+                aadharImage: [],
+                aCapture: [],
+                passBookImage: null
             }); // Clear uploaded image
             // setFileSignature(null); // Clear uploaded signature
             if (onCustomerAdded) {
@@ -455,6 +528,28 @@ export default function CustomerForm({ onCustomerAdded }) {
                         {/* Form Content */}
                         <form noValidate autoComplete="off" onSubmit={handleSubmit}>
                             <Grid container spacing={1}>
+
+                                <Grid item xs={12} sm={6}>
+                                    <TextField
+                                        fullWidth
+                                        id="createdDate"
+                                        name="createdDate"
+                                        label="created Date"
+                                        type="date" // Enables both typing and picking a date
+                                        variant="outlined"
+                                        required
+                                        value={formData.createdDate} // Controlled component value
+                                        onChange={handleChange} // Update state on change
+                                        error={!!errors.dob} // Display error state if applicable
+                                        helperText={errors.dob} // Error message
+                                        sx={commonTextFieldSx} // Apply common styles for consistency
+                                        size="small"
+                                        InputLabelProps={{
+                                            shrink: true, // Ensures the label doesn't overlap the input
+                                        }}
+                                    />
+                                </Grid>
+
                                 {/* First Name */}
                                 <Grid item xs={12} sm={7}>
                                     <TextField
@@ -490,16 +585,18 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         size="small"
                                     />
                                 </Grid>
+
+                                {/* dateOfBirth */}
                                 <Grid item xs={12} sm={6}>
                                     <TextField
                                         fullWidth
-                                        id="dob"
-                                        name="dob"
+                                        id="dateOfBirth"
+                                        name="dateOfBirth"
                                         label="Date of Birth"
                                         type="date" // Enables both typing and picking a date
                                         variant="outlined"
                                         required
-                                        value={formData.dob} // Controlled component value
+                                        value={formData.dateOfBirth} // Controlled component value
                                         onChange={handleChange} // Update state on change
                                         error={!!errors.dob} // Display error state if applicable
                                         helperText={errors.dob} // Error message
@@ -511,6 +608,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                     />
                                 </Grid>
 
+                                {/* gender */}
                                 <Grid item xs={12} sm={6}>
                                     <TextField
                                         select // Enables dropdown functionality
@@ -521,7 +619,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         variant="outlined"
                                         required
                                         value={formData.gender} // Controlled component value
-                                        onChange={handleChange} // Update state on change
+                                        onChange={handleGenderChange} // Update state on change
                                         error={!!errors.gender} // Display error state if applicable
                                         helperText={errors.gender} // Error message
                                         sx={commonTextFieldSx} // Apply common styles for consistency
@@ -552,7 +650,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         size="small"
                                     />
                                 </Grid>
-                                {/* place/City */}
+                                {/* place*/}
                                 <Grid item xs={12} sm={6}>
                                     <TextField
                                         fullWidth
@@ -569,19 +667,19 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         size="small"
                                     />
                                 </Grid>
-                                {/* care Of */}
+                                {/* city */}
                                 <Grid item xs={12} sm={6}>
                                     <TextField
                                         fullWidth
-                                        id="careOf"
-                                        name="careOf"
+                                        id="city"
+                                        name="city"
                                         label="City"
                                         variant="outlined"
                                         required
-                                        value={formData.careOf}
+                                        value={formData.city}
                                         onChange={handleChange}
-                                        error={!!errors.careOf} // Add error prop
-                                        helperText={errors.careOf} // Display error message
+                                        error={!!errors.city} // Add error prop
+                                        helperText={errors.city} // Display error message
                                         sx={commonTextFieldSx} // Apply common style
                                         size="small"
                                     />
@@ -627,15 +725,15 @@ export default function CustomerForm({ onCustomerAdded }) {
                                 <Grid item xs={12} sm={6}>
                                     <TextField
                                         fullWidth
-                                        id="zip"
-                                        name="zip"
+                                        id="pin"
+                                        name="pin"
                                         label="Zip Code"
                                         variant="outlined"
                                         required
-                                        value={formData.zip}
+                                        value={formData.pin}
                                         onChange={handleChange}
-                                        error={!!errors.zip} // Add error prop
-                                        helperText={errors.zip} // Display error message
+                                        error={!!errors.pin} // Add error prop
+                                        helperText={errors.pin} // Display error message
                                         sx={commonTextFieldSx} // Apply common style
                                         size="small"
                                     />
@@ -648,7 +746,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         fullWidth
                                         id="nearBy"
                                         name="nearBy"
-                                        label="Near By location"
+                                        label="LandMark"
                                         variant="outlined"
                                         value={formData.nearBy}
                                         onChange={handleChange}
@@ -767,7 +865,8 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         name="aadharImage"
                                         accept="image/*"
                                         type="file"
-                                        onChange={handleimagechange} // Handle file change
+                                        multiple
+                                        onChange={handleMutipleImage} // Handle file change
                                     />
 
                                     <IconButton
@@ -784,27 +883,43 @@ export default function CustomerForm({ onCustomerAdded }) {
 
 
                                     {/* Display uploaded Aadhar */}
-                                    {fileImage.aadharImage && !fileImage.aCapture && (
-                                        <Box mt={2} style={{ position: 'relative', right: 0, }} >
-                                            <img src={URL.createObjectURL(fileImage.aadharImage)} alt="Uploaded Aadhar" style={{ width: '100px' }} />
-                                            <IconButton
-                                                onClick={handleCloseAadhar}
-                                                style={{ position: 'absolute', top: 0, left: 105, padding: '0' }}
-                                            >
-                                                <CloseIcon />
-                                            </IconButton>
+                                    {fileImage.aadharImage.length > 0 && (
+                                        <Box mt={2} style={{ position: 'relative', right: 0 }}>
+                                            {fileImage.aadharImage.map((image, index) => (
+                                                <div key={index} style={{ position: 'relative', display: 'inline-block', margin: '5px' }}>
+                                                    <img
+                                                        src={URL.createObjectURL(image)}
+                                                        alt="Uploaded Aadhar"
+                                                        style={{ width: '100px' }}
+                                                    />
+                                                    <IconButton
+                                                        onClick={() => handleCloseAadhar(index)}
+                                                        style={{ position: 'absolute', top: 0, right: 0, padding: '0' }}
+                                                    >
+                                                        <CloseIcon />
+                                                    </IconButton>
+                                                </div>
+                                            ))}
                                         </Box>
                                     )}
 
+
                                     {fileImage.aCapture && (
                                         <Box mt={2} position="relative">
-                                            <img src={fileImage.aCapture} alt="Captured Aadhar" style={{ width: '100px' }} />
-                                            <IconButton
-                                                onClick={handleCloseACapture}
-                                                style={{ position: 'absolute', top: 0, right: 0, padding: '0' }}
-                                            >
-                                                <CloseIcon />
-                                            </IconButton>
+                                            {fileImage.aCapture.map((img, index) => (
+                                                <Box key={index} position="relative" display="inline-block" mx={1}>
+                                                    <img src={img} alt={`Captured Aadhar ${index + 1}`} style={{ width: '100px' }} />
+                                                    <IconButton
+                                                        onClick={() => handleCloseACapture(index)}
+                                                        style={{
+                                                            position: 'absolute', top: 0, right: 0, padding: '0',
+                                                            backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                                                        }}
+                                                    >
+                                                        <CloseIcon />
+                                                    </IconButton>
+                                                </Box>
+                                            ))}
                                         </Box>
                                     )}
 
@@ -912,37 +1027,40 @@ export default function CustomerForm({ onCustomerAdded }) {
                                                         size="small"
                                                     />
                                                 </Grid>
-                                                {/* Account Number */}
+                                                {/* upId */}
                                                 <Grid item xs={12} sm={6}>
                                                     <TextField
                                                         fullWidth
-                                                        id="bankAccount"
-                                                        name="bankAccount"
-                                                        label="Account Number"
+                                                        id="upId"
+                                                        name="upId"
+                                                        label="UPI ID"
                                                         variant="outlined"
-                                                        required
-                                                        value={formData.bankAccount}
+                                                        value={formData.upId}
                                                         onChange={handleChange}
-                                                        error={!!errors.bankAccount} // Add error prop
-                                                        helperText={errors.bankAccount} // Display error message
+                                                        error={!!errors.upId} // Add error prop
+                                                        helperText={errors.upId} // Display error message
                                                         sx={commonTextFieldSx} // Apply common style
                                                         size="small"
                                                     />
                                                 </Grid>
 
                                                 <Grid item xs={12} sm={6}>
-                                                    <button
-                                                        style={{ fontSize: '16px', cursor: 'pointer' }}
-                                                        onClick={() => document.getElementById('image-upload').click()} // Trigger file input click on button click
+                                                    <Button
+                                                        variant="contained"
+                                                        component="label"
+
                                                     >
-                                                        Upload Image
-                                                    </button>
-                                                    <input
-                                                        type="file"
-                                                        id="image-upload"
-                                                        style={{ display: 'none' }}
-                                                    // onChange={handleImageChange} // Function to handle image selection
-                                                    />
+                                                        file upload
+                                                        <input
+                                                            ref={fileInputpassBookRef} // Attach the ref here
+                                                            type="file"
+                                                            name="passBook"
+                                                            hidden
+                                                            accept="image/*"
+                                                            capture="environment" // Enables capture from the camera
+                                                            onChange={handleimagechange} // Attach the file change handler
+                                                        />
+                                                    </Button>
                                                 </Grid>
 
 

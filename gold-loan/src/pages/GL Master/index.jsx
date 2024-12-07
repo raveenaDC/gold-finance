@@ -13,6 +13,12 @@ export default function GlMaster() {
     const [searchAddress, setSearchAddress] = useState('');
     const [searchPhone, setSearchPhone] = useState('');
     const [searchEmail, setSearchEmail] = useState('');
+    const [pagination, setPagination] = useState({
+        activePage: 1,
+        total: 0,
+        pageLimit: 10,
+    });
+
     const navigate = useNavigate();
 
     // Define columns for the DataGrid
@@ -49,6 +55,11 @@ export default function GlMaster() {
 
     ];
 
+    const handlePageChange = (newPage) => {
+        setPagination((prev) => ({ ...prev, activePage: newPage + 1 })); // `newPage` is 0-indexed
+        fetchCustomers(newPage + 1, pagination.pageLimit);
+    };
+
     // Filter customers based on the search term
     // const filteredCustomers = useMemo(() => {
     //     if (!searchTerm) return customers;
@@ -63,6 +74,7 @@ export default function GlMaster() {
     //         );
     //     })
     // }, [searchTerm, customers]);
+
 
     const filteredCustomers = useMemo(() => {
         return customers.filter((customer) => {
@@ -87,12 +99,12 @@ export default function GlMaster() {
 
 
     // Fetch customer data from the API
-    const fetchCustomers = async () => {
+    const fetchCustomers = async (page, limit) => {
         try {
-            const response = await fetch('http://localhost:4000/customer/details/view');
+            const response = await fetch(`http://localhost:4000/customer/details/view?page=${page}&limit=${limit}`);
             const data = await response.json();
+            console.log(data);
 
-            // Map data to add unique `id` if not present
             const itemsWithId = data.data.items.map((item, index) => ({
                 ...item,
                 customId: item._id,
@@ -100,6 +112,11 @@ export default function GlMaster() {
             }));
 
             setCustomers(itemsWithId);
+            setPagination({
+                activePage: data.data.pagination.activePage,
+                total: data.data.pagination.total,
+                pageLimit: data.data.pagination.pageLimit,
+            });
             setLoading(false);
         } catch (error) {
             console.error("Error fetching customer data:", error);
@@ -210,12 +227,16 @@ export default function GlMaster() {
                 }}
             >
                 <DataGrid
-                    rows={filteredCustomers}
+                    rows={customers}
                     columns={columns}
-                    pageSize={5}
-                    rowsPerPageOptions={[5]}
+                    pageSize={pagination.pageLimit}
+                    rowCount={pagination.total}
+                    pagination
+                    paginationMode="server"
+                    onPageChange={handlePageChange}
                     checkboxSelection={false}
                     getRowId={(row) => row.id}
+                    loading={loading}
                     sx={{
                         '& .MuiDataGrid-cell': {
                             fontSize: { xs: '0.8rem', sm: '0.8rem' }, // Font size for different screen sizes

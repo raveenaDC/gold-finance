@@ -31,6 +31,8 @@ export const submitDocument = async (data) => {
         if (!response.ok) {
             // Parse error response if available
             const errorData = await response.json();
+            console.log(errorData);
+
             throw new Error(errorData.message || "Failed to submit data");
         }
 

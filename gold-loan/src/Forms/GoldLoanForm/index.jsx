@@ -31,7 +31,7 @@ import { getgolditemdetails } from '../../services/goldItems/goldItems.service';
 
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
-import ItemDetailsTable from '../../Forms/ItemDetailsTable ';
+
 
 
 const GoldLoanForm = () => {
@@ -48,7 +48,7 @@ const GoldLoanForm = () => {
         otherCharges: '',
         range: '',
         interestMode: 'simple',
-        interestRate: '14',
+        interestPercentage: '14',
         companyGoldRate: '4000',
     });
 
@@ -445,10 +445,10 @@ const GoldLoanForm = () => {
         formData.append('goldImage', fileImage.goldImage);
         formData.append("nomineeId", nId);
         formData.append("otherCharges", form.otherCharges);
-        formData.append("interestRate", form.interestRate);
+        formData.append("totalNetWeight", totalNetWeight);
+        formData.append("interestPercentage", form.interestPercentage);
         formData.append("paymentMode", paymentMode);
         formData.append("companyGoldRate", form.companyGoldRate);
-        formData.append("totalNetWeight", form.totalNetWeight)
         formData.append("glNo", glNo);  // Example for GL Number
         formData.append("voucherNo", voucherNo);  // Example for Voucher Number
         formData.append("customerId", customerId);
@@ -486,6 +486,8 @@ const GoldLoanForm = () => {
 
 
             let res = await submitDocument(response);
+            console.log(res);
+
             alert(res.message);
 
             if (res.status === 201) {

@@ -13,9 +13,9 @@ export default [
     body('companyGoldRate')
         .notEmpty()
         .withMessage('Company gold rate is required'),
-    body('interestRate')
+    body('interestPercentage')
         .notEmpty()
-        .withMessage('Interest rate number is required'),
+        .withMessage('Interest percentage number is required'),
     body('interestMode')
         .notEmpty()
         .withMessage('Interest mode number is required'),
