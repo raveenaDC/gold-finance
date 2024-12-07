@@ -5,10 +5,11 @@ const billingSchema = new Schema(
         billNo: String,
         billDate: Date,
         goldLoanId: { type: Schema.Types.ObjectId, ref: 'goldLoan' },
-        // amountPaid: {
-        //     type: Number,
-        //     default: 0,
-        // },
+        paymentMode: String,
+        payment: {
+            type: Number,
+            default: 0,
+        },
         memberId: { type: Schema.Types.ObjectId, ref: 'member' },
 
     },
