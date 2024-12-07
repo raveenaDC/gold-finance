@@ -174,26 +174,27 @@ export async function addGoldLoan(req, res, next) {
 
         switch (interestMode) {
             case 'monthly':
-                balancePrice = principleAmount + interestCalculation;
+                balancePrice = parseFloat(principleAmount) + parseFloat(interestCalculation);
                 break;
             case 'yearly':
-                balancePrice = principleAmount + interestCalculation * 12;
+                balancePrice = parseFloat(principleAmount) + (parseFloat(interestCalculation) * 12);
                 break;
             case 'quarterly':
-                balancePrice = principleAmount + interestCalculation * 3;
+                balancePrice = parseFloat(principleAmount) + (parseFloat(interestCalculation) * 3);
                 break;
             case 'halfyearly':
-                balancePrice = principleAmount + interestCalculation * 6;
+                balancePrice = parseFloat(principleAmount) + (parseFloat(interestCalculation) * 6);
                 break;
             case 'days':
-                balancePrice = principleAmount + ((interestCalculation * 12) / 365);
+                balancePrice = parseFloat(principleAmount) + ((parseFloat(interestCalculation) * 12) / 365);
                 break;
             case 'weekly':
-                balancePrice = principleAmount + ((interestCalculation * 12) / 365) * 7;
+                balancePrice = parseFloat(principleAmount) + (((parseFloat(interestCalculation) * 12) / 365) * 7);
                 break;
             default:
                 throw new Error("Invalid interest mode");
         }
+        let cutBalancePrice = parseFloat(balancePrice.toFixed(3));
 
         const loan = await models.goldLoanModel.create({
             glNo,
@@ -216,7 +217,7 @@ export async function addGoldLoan(req, res, next) {
             otherCharges,
             appraiser,
             principleAmount,
-            balanceAmount: balancePrice,
+            balanceAmount: cutBalancePrice,
             //currentGoldValue,
             profitOrLoss: profitLossAmount,
         });
@@ -287,26 +288,27 @@ export async function updateGoldLoanById(req, res) {
 
         switch (interestMode) {
             case 'monthly':
-                balancePrice = principleAmount + interestCalculation;
+                balancePrice = parseFloat(principleAmount) + parseFloat(interestCalculation);
                 break;
             case 'yearly':
-                balancePrice = principleAmount + interestCalculation * 12;
+                balancePrice = parseFloat(principleAmount) + (parseFloat(interestCalculation) * 12);
                 break;
             case 'quarterly':
-                balancePrice = principleAmount + interestCalculation * 3;
+                balancePrice = parseFloat(principleAmount) + (parseFloat(interestCalculation) * 3);
                 break;
             case 'halfyearly':
-                balancePrice = principleAmount + interestCalculation * 6;
+                balancePrice = parseFloat(principleAmount) + (parseFloat(interestCalculation) * 6);
                 break;
             case 'days':
-                balancePrice = principleAmount + ((interestCalculation * 12) / 365);
+                balancePrice = parseFloat(principleAmount) + ((parseFloat(interestCalculation) * 12) / 365);
                 break;
             case 'weekly':
-                balancePrice = principleAmount + ((interestCalculation * 12) / 365) * 7;
+                balancePrice = parseFloat(principleAmount) + (((parseFloat(interestCalculation) * 12) / 365) * 7);
                 break;
             default:
                 throw new Error("Invalid interest mode");
         }
+        let cutBalancePrice = parseFloat(balancePrice.toFixed(3));
 
         const updateGoldList = await models.goldLoanModel.findByIdAndUpdate(
             loanId,
@@ -326,7 +328,7 @@ export async function updateGoldLoanById(req, res) {
                 otherCharges,
                 appraiser,
                 principleAmount,
-                balanceAmount: balancePrice,
+                balanceAmount: cutBalancePrice,
                 //currentGoldValue,
                 profitOrLoss: profitLossAmount,
                 goldImage, image: images.item,
