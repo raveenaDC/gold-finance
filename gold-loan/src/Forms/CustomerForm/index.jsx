@@ -1054,7 +1054,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                                         <input
                                                             ref={fileInputpassBookRef} // Attach the ref here
                                                             type="file"
-                                                            name="passBook"
+                                                            name="passBookImage"
                                                             hidden
                                                             accept="image/*"
                                                             capture="environment" // Enables capture from the camera
