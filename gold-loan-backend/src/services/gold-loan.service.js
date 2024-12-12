@@ -64,7 +64,10 @@ export async function viewGoldLoan(req, res) {
 
         let loanList = await models.goldLoanModel.find(query).select(
             'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode insurance  processingFee otherCharges packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt'
-        ).collation({ locale: 'en', strength: 2 });
+        ).populate({
+            path: 'itemDetails.goldItem', // Path to populate
+            select: 'goldImage goldItem'   // Fields from the `goldItem` schema to include
+        }).collation({ locale: 'en', strength: 2 });
 
         if (orderBy === 'glNo') {
             loanList.sort((a, b) => a.glNo.localeCompare(b.glNo) * order);
@@ -396,7 +399,7 @@ export async function viewGoldLoanById(req, res) {
         }
         const loan = await models.goldLoanModel.findById(loanId).select(
             'glNo voucherNo purchaseDate totalNetWeight goldRate companyGoldRate itemDetails interestPercentage interestRate interestMode customerId memberId nomineeId paymentMode insurance  processingFee otherCharges packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt'
-        );
+        ).populate('itemDetails.goldItem');;
         if (!loan) {
             return responseHelper(
                 res, httpStatus.NOT_FOUND,
