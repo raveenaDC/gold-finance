@@ -66,7 +66,7 @@ export async function viewGoldLoan(req, res) {
             'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode insurance  processingFee otherCharges packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt'
         ).populate({
             path: 'itemDetails.goldItem', // Path to populate
-            select: 'goldImage goldItem'   // Fields from the `goldItem` schema to include
+            select: 'goldItem'   // Fields from the `goldItem` schema to include
         }).collation({ locale: 'en', strength: 2 });
 
         if (orderBy === 'glNo') {
@@ -399,7 +399,7 @@ export async function viewGoldLoanById(req, res) {
         }
         const loan = await models.goldLoanModel.findById(loanId).select(
             'glNo voucherNo purchaseDate totalNetWeight goldRate companyGoldRate itemDetails interestPercentage interestRate interestMode customerId memberId nomineeId paymentMode insurance  processingFee otherCharges packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt'
-        ).populate('itemDetails.goldItem');;
+        ).populate('itemDetails.goldItem', 'goldItem');
         if (!loan) {
             return responseHelper(
                 res, httpStatus.NOT_FOUND,
