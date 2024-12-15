@@ -91,6 +91,14 @@ const goldLoanSchema = new Schema(
             type: Number,
             default: 0,
         },
+        totalChargesAndBalanceAmount: {
+            type: Number,
+            default: 0,
+        },
+        totalCharges: {
+            type: Number,
+            default: 0,
+        },
         currentGoldValue: {
             type: Number,
             default: 0,
