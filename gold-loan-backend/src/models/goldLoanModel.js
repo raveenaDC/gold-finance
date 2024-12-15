@@ -49,6 +49,10 @@ const goldLoanSchema = new Schema(
             type: Number,
             default: 0
         },
+        totalInterestRate: {
+            type: Number,
+            default: 0
+        },
         totalNetWeight: {
             type: Number,
             default: 0
