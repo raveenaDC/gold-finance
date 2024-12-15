@@ -16,3 +16,33 @@ export const getgolditemdetails = async () => {
         return { isSuccess: false, items: null }
     }
 }
+
+export const getcustomergoldloandetails = async (customerId) => {
+    try {
+        const response = await fetch(API_BASE_URL + API_ENDPOINT.GET_CUSTOMER_GOLD_LOAN_DETAILS.replace("[customerId]", customerId));
+        const data = await response.json();
+        console.log("get customer woe", data.data.loanDetails);
+        return { items: data.data.loanDetails };
+    }
+    catch (e) {
+        console.error('Error fetching gold loan details:', e);
+
+    }
+}
+
+export const getgolddetailtable = async (loanId) => {
+    try {
+        const response = await fetch(API_BASE_URL + API_ENDPOINT.GET_GOLD_DETAIL_TABLE.replace("[loanId]", loanId));
+        const data = await response.json();
+        console.log("***********");
+        console.log("get customer nothing", data.data);
+        console.log("***********");
+        return { items: data.data };
+    }
+    catch (e) {
+        console.error('Error fetching gold table details:', e);
+
+    }
+
+}
+

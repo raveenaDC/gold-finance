@@ -27,7 +27,7 @@ import { useParams } from 'react-router-dom';
 import { submitDocument } from '../../api';
 import { useNominee } from '../../configure/NomineeContext';
 import { getCustomerDetails, updateCustomerRating } from '../../services/customer/customer.service';
-import { getgolditemdetails } from '../../services/goldItems/goldItems.service';
+import { getgolditemdetails, getcustomergoldloandetails } from '../../services/goldItems/goldItems.service';
 
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -74,6 +74,7 @@ const GoldLoanForm = () => {
     const [interestType, setInterestType] = useState('simple');
     const [loading, setLoading] = useState(false);
     const [tableData, setTableData] = useState([]);
+    const [loanDetails, setLoanDetails] = useState([]);
 
     const glNo = useSelector((state) => state.glNo.glNo);
     const voucherNo = useSelector((state) => state.voucherNo.voucherNo);
@@ -332,9 +333,20 @@ const GoldLoanForm = () => {
         }
     };
 
+    const fetchCustomerGoldDetailsData = async () => {
+        try {
+            const response = await getcustomergoldloandetails(customerId);
+            const items = response.items || []; // Safely extract the items array
+            setLoanDetails(items); // Store the items in the state
+        } catch (error) {
+            console.error('Error fetching customer details:', error);
+        }
+    };
+
     useEffect(() => {
         fetchGoldItems();
         fetchCustomerData();
+        fetchCustomerGoldDetailsData();
     }, [customerId]);
 
     // Display GL number when form loads
@@ -1065,20 +1077,25 @@ const GoldLoanForm = () => {
 
                             <TableBody>
                                 <TableRow>
-                                    <TableCell>Total Net Weight</TableCell>
-                                    <TableCell>{totalNetWeight.toFixed(2)}</TableCell>
+                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Current Gold Rate</TableCell>
+                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{goldRate}</TableCell>
                                 </TableRow>
                                 <TableRow>
-                                    <TableCell>Recommended Amount</TableCell>
-                                    <TableCell>{recommendedAmount.toFixed(2)}</TableCell>
+                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Gold Loan Rate</TableCell>
+                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{goldRate}</TableCell>
                                 </TableRow>
                                 <TableRow>
-                                    <TableCell>Gold Rate</TableCell>
-                                    <TableCell>{goldRate}</TableCell>
+                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Max Gold Value</TableCell>
+                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{totalNetWeight.toFixed(2)}</TableCell>
                                 </TableRow>
                                 <TableRow>
-                                    <TableCell>Total Charges</TableCell>
-                                    <TableCell>{totalCharges}</TableCell>
+                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Max Gold Loan Value</TableCell>
+                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{recommendedAmount.toFixed(2)}</TableCell>
+                                </TableRow>
+
+                                <TableRow>
+                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Total Charges</TableCell>
+                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{totalCharges}</TableCell>
                                 </TableRow>
                             </TableBody>
                         </Table>
@@ -1178,7 +1195,7 @@ const GoldLoanForm = () => {
                                     {customerData.place}, {customerData.pin}
                                 </Typography>
                                 <Typography variant="body2" sx={{ fontSize: 11.5 }}>
-                                    <strong>Mobile:</strong> {customerData.primaryNumber}
+                                    <strong>Mobile:</strong> {customerData.primaryNumber}, {customerData.secondaryNumber}
                                 </Typography>
                                 <Typography variant="body2" sx={{ fontSize: 11.5 }}>
                                     <strong>Email:</strong> {customerData.email}
@@ -1189,32 +1206,129 @@ const GoldLoanForm = () => {
 
                 )}
 
-                {/* Nominee Details */}
 
-                <Box sx={{ maxWidth: 600, margin: '0 auto', mt: 1, textAlign: { xs: 'center', sm: 'left' }, px: { xs: 2, sm: 0 } }}>
-                    <TableContainer component={Paper} sx={{ mb: 0 }}>
+
+                <Box sx={{ maxWidth: 360, margin: '0 auto', mt: 1, textAlign: { xs: 'center', sm: 'left' }, px: { xs: 2, sm: 0 } }}>
+                    <TableContainer
+                        component={Paper}
+                        sx={{
+                            mb: 0,
+                            overflow: 'auto', // Enable scrolling
+                            whiteSpace: 'nowrap',
+                            textOverflow: 'ellipsis',
+                            maxHeight: '400px',
+                            '&::-webkit-scrollbar': {
+                                width: '4px', // Thin scrollbar width
+                                height: '4px', // Thin scrollbar height
+                            },
+                            '&::-webkit-scrollbar-thumb': {
+                                backgroundColor: '#888', // Scrollbar thumb color
+                                borderRadius: '2px', // Rounded corners
+                            },
+                            '&::-webkit-scrollbar-thumb:hover': {
+                                backgroundColor: '#555', // Thumb color on hover
+                            },
+                            '&::-webkit-scrollbar-track': {
+                                backgroundColor: '#f1f1f1', // Track color
+                            },
+                        }}
+                    >
                         <Table>
                             <TableBody>
                                 <TableRow sx={{ padding: '2px 0' }}>
-                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: .1 }}>Table Name</TableCell>
-                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: .1 }}>Value</TableCell>
+                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Table Name</TableCell>
+                                    {loanDetails.map((detail, index) => (
+                                        <TableCell key={index} sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Value</TableCell>
+                                    ))}
+                                </TableRow>
+                                <TableRow sx={{ padding: '0px 0' }}>
+                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Date</TableCell>
+                                    {loanDetails.map((detail, index) => (
+                                        <TableCell key={index} sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>
+                                            {new Date(detail.createdAt).toISOString().split('T')[0]}
+                                        </TableCell>
+                                    ))}
                                 </TableRow>
                                 <TableRow sx={{ padding: '2px 0' }}>
-                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: .1 }}>Total Net Weight</TableCell>
-                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: .1 }}>{totalNetWeight.toFixed(2)}</TableCell>
+                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>GL Number</TableCell>
+                                    {loanDetails.map((detail, index) => (
+                                        <TableCell key={index} sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{detail.glNo}</TableCell>
+                                    ))}
+                                </TableRow>
+
+                                <TableRow sx={{ padding: '0px 0' }}>
+                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Principle Amount</TableCell>
+                                    {loanDetails.map((detail, index) => (
+                                        <TableCell key={index} sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{detail.principleAmount}</TableCell>
+                                    ))}
                                 </TableRow>
                                 <TableRow sx={{ padding: '0px 0' }}>
-                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: .1 }}>Recommended Amount</TableCell>
-                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: .1 }}>{recommendedAmount.toFixed(2)}</TableCell>
+                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Principle Paid</TableCell>
+                                    {loanDetails.map((detail, index) => (
+                                        <TableCell key={index} sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{detail.amountPaid}</TableCell>
+                                    ))}
                                 </TableRow>
                                 <TableRow sx={{ padding: '0px 0' }}>
-                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: .1 }}>Gold Rate</TableCell>
-                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: .1 }}>{goldRate}</TableCell>
+                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Interest Rate</TableCell>
+                                    {loanDetails.map((detail, index) => (
+                                        <TableCell key={index} sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>
+                                            {Number(detail.interestRate).toFixed(2)}
+                                        </TableCell>
+                                    ))}
                                 </TableRow>
                                 <TableRow sx={{ padding: '0px 0' }}>
-                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: .1 }}>Total Charges</TableCell>
-                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: .1 }}>{totalCharges}</TableCell>
+                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}> Total Charges</TableCell>
+                                    {/* {loanDetails.map((detail, index) => (
+                                        <TableCell key={index} sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{detail.totalNetWeight}</TableCell>
+                                    ))} */}
                                 </TableRow>
+                                <TableRow sx={{ padding: '0px 0' }}>
+                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Balance Amount</TableCell>
+                                    {loanDetails.map((detail, index) => (
+                                        <TableCell key={index} sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>
+                                            {Number(detail.balanceAmount).toFixed(2)}
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                                <TableRow sx={{ padding: '0px 0' }}>
+                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Total Net (wt)</TableCell>
+                                    {loanDetails.map((detail, index) => (
+                                        <TableCell key={index} sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{detail.totalNetWeight}</TableCell>
+                                    ))}
+                                </TableRow>
+
+                                <TableRow sx={{ padding: '0px 0' }}>
+                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Profit/Loss</TableCell>
+                                    {loanDetails.map((detail, index) => {
+                                        const balanceAmount = Number(detail.balanceAmount);
+                                        const profitOrLoss = Number(detail.profitOrLoss);
+
+                                        // Determine the color based on the conditions
+                                        let color = 'black'; // Default (neutral)
+                                        if (balanceAmount < .3 * profitOrLoss) {
+                                            color = 'green'; // Significant profit (> 30% above balanceAmount)
+                                        } else if (balanceAmount > 0.8 * profitOrLoss) {
+                                            color = 'red'; // Moderate profit (20%-30% above balanceAmount)
+                                        } else if (balanceAmount < 0.8 * profitOrLoss) {
+                                            color = 'orange'; // Loss (< 80% of balanceAmount)
+                                        }
+
+                                        return (
+                                            <TableCell
+                                                key={index}
+                                                sx={{
+                                                    fontSize: '0.675rem',
+                                                    lineHeight: 0.1,
+                                                    color: color,
+                                                    fontWeight: 'bold', // Optional for emphasis
+                                                }}
+                                            >
+                                                {profitOrLoss.toFixed(2)}
+                                            </TableCell>
+                                        );
+                                    })}
+                                </TableRow>
+
                             </TableBody>
                         </Table>
                     </TableContainer>

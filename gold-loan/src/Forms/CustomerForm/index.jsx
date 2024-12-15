@@ -21,7 +21,9 @@ export default function CustomerForm({ onCustomerAdded }) {
     const [usingAadharcam, setUsingAadharcam] = useState(false); // Toggle between file upload and webcam
     const [usingSigncam, setUsingSigncam] = useState(false); // Toggle between file upload and webcam
     const [usingWebcam, setUsingWebcam] = useState(false); // Toggle between file upload and webcam
+
     const [fileImage, setFileImage] = useState({ image: null, signature: null, aadharImage: [], capture: null, sCapture: null, aCapture: [], passBookImage: null }); // State to store the uploaded image and signature
+
 
     const [formData, setFormData] = useState({
         firstName: '',
@@ -529,29 +531,8 @@ export default function CustomerForm({ onCustomerAdded }) {
                         <form noValidate autoComplete="off" onSubmit={handleSubmit}>
                             <Grid container spacing={1}>
 
-                                <Grid item xs={12} sm={6}>
-                                    <TextField
-                                        fullWidth
-                                        id="createdDate"
-                                        name="createdDate"
-                                        label="created Date"
-                                        type="date" // Enables both typing and picking a date
-                                        variant="outlined"
-                                        required
-                                        value={formData.createdDate} // Controlled component value
-                                        onChange={handleChange} // Update state on change
-                                        error={!!errors.dob} // Display error state if applicable
-                                        helperText={errors.dob} // Error message
-                                        sx={commonTextFieldSx} // Apply common styles for consistency
-                                        size="small"
-                                        InputLabelProps={{
-                                            shrink: true, // Ensures the label doesn't overlap the input
-                                        }}
-                                    />
-                                </Grid>
-
                                 {/* First Name */}
-                                <Grid item xs={12} sm={7}>
+                                <Grid item xs={12} sm={6}>
                                     <TextField
                                         fullWidth
                                         id="firstName"
@@ -569,7 +550,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                 </Grid>
 
                                 {/* Last Name */}
-                                <Grid item xs={12} sm={5}>
+                                <Grid item xs={12} sm={6}>
                                     <TextField
                                         fullWidth
                                         id="lastName"
@@ -584,53 +565,6 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         sx={commonTextFieldSx} // Apply common style
                                         size="small"
                                     />
-                                </Grid>
-
-                                {/* dateOfBirth */}
-                                <Grid item xs={12} sm={6}>
-                                    <TextField
-                                        fullWidth
-                                        id="dateOfBirth"
-                                        name="dateOfBirth"
-                                        label="Date of Birth"
-                                        type="date" // Enables both typing and picking a date
-                                        variant="outlined"
-                                        required
-                                        value={formData.dateOfBirth} // Controlled component value
-                                        onChange={handleChange} // Update state on change
-                                        error={!!errors.dob} // Display error state if applicable
-                                        helperText={errors.dob} // Error message
-                                        sx={commonTextFieldSx} // Apply common styles for consistency
-                                        size="small"
-                                        InputLabelProps={{
-                                            shrink: true, // Ensures the label doesn't overlap the input
-                                        }}
-                                    />
-                                </Grid>
-
-                                {/* gender */}
-                                <Grid item xs={12} sm={6}>
-                                    <TextField
-                                        select // Enables dropdown functionality
-                                        fullWidth
-                                        id="gender"
-                                        name="gender"
-                                        label="Gender"
-                                        variant="outlined"
-                                        required
-                                        value={formData.gender} // Controlled component value
-                                        onChange={handleGenderChange} // Update state on change
-                                        error={!!errors.gender} // Display error state if applicable
-                                        helperText={errors.gender} // Error message
-                                        sx={commonTextFieldSx} // Apply common styles for consistency
-                                        size="small"
-                                    >
-                                        {/* Dropdown options */}
-                                        <MenuItem value="">Select Gender</MenuItem>
-                                        <MenuItem value="male">Male</MenuItem>
-                                        <MenuItem value="female">Female</MenuItem>
-                                        <MenuItem value="other">Other</MenuItem>
-                                    </TextField>
                                 </Grid>
 
                                 {/* Address */}
@@ -757,6 +691,53 @@ export default function CustomerForm({ onCustomerAdded }) {
                                     />
                                 </Grid>
 
+                                {/* dateOfBirth */}
+                                <Grid item xs={12} sm={6}>
+                                    <TextField
+                                        fullWidth
+                                        id="dateOfBirth"
+                                        name="dateOfBirth"
+                                        label="Date of Birth"
+                                        type="date" // Enables both typing and picking a date
+                                        variant="outlined"
+                                        required
+                                        value={formData.dateOfBirth} // Controlled component value
+                                        onChange={handleChange} // Update state on change
+                                        error={!!errors.dob} // Display error state if applicable
+                                        helperText={errors.dob} // Error message
+                                        sx={commonTextFieldSx} // Apply common styles for consistency
+                                        size="small"
+                                        InputLabelProps={{
+                                            shrink: true, // Ensures the label doesn't overlap the input
+                                        }}
+                                    />
+                                </Grid>
+
+                                {/* gender */}
+                                <Grid item xs={12} sm={6}>
+                                    <TextField
+                                        select // Enables dropdown functionality
+                                        fullWidth
+                                        id="gender"
+                                        name="gender"
+                                        label="Gender"
+                                        variant="outlined"
+                                        required
+                                        value={formData.gender} // Controlled component value
+                                        onChange={handleGenderChange} // Update state on change
+                                        error={!!errors.gender} // Display error state if applicable
+                                        helperText={errors.gender} // Error message
+                                        sx={commonTextFieldSx} // Apply common styles for consistency
+                                        size="small"
+                                    >
+                                        {/* Dropdown options */}
+                                        <MenuItem value="">Select Gender</MenuItem>
+                                        <MenuItem value="male">Male</MenuItem>
+                                        <MenuItem value="female">Female</MenuItem>
+                                        <MenuItem value="other">Other</MenuItem>
+                                    </TextField>
+                                </Grid>
+
                                 {/* Primary Mobile Number */}
                                 <Grid item xs={12} sm={6}>
                                     <TextField
@@ -824,6 +805,27 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         onChange={handleChange}
                                         sx={commonTextFieldSx} // Apply common style
                                         size="small"
+                                    />
+                                </Grid>
+
+                                <Grid item xs={12} sm={6} >
+                                    <TextField
+                                        fullWidth
+                                        id="createdDate"
+                                        name="createdDate"
+                                        label="created Date"
+                                        type="date" // Enables both typing and picking a date
+                                        variant="outlined"
+                                        required
+                                        value={formData.createdDate} // Controlled component value
+                                        onChange={handleChange} // Update state on change
+                                        error={!!errors.dob} // Display error state if applicable
+                                        helperText={errors.dob} // Error message
+                                        sx={commonTextFieldSx} // Apply common styles for consistency
+                                        size="small"
+                                        InputLabelProps={{
+                                            shrink: true, // Ensures the label doesn't overlap the input
+                                        }}
                                     />
                                 </Grid>
 
