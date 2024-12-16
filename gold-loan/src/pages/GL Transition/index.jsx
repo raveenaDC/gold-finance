@@ -11,6 +11,7 @@ import Draggable from 'react-draggable';
 
 
 import SendIcon from '@mui/icons-material/Send';
+import PrintIcon from "@mui/icons-material/Print";
 
 import { useSelector, useDispatch } from 'react-redux';
 import { incrementBillNumber } from '../../Redux/billNumberSlice';
@@ -107,6 +108,46 @@ export default function GoldLoanBill() {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
     };
+
+    const handlePrint = () => {
+        const printSection = document.getElementById("print-section");
+
+        // Temporarily hide specific elements (checkboxes and buttons)
+        const checkboxes = printSection.querySelectorAll(".MuiCheckbox-root");
+        const buttons = printSection.querySelectorAll(".MuiIconButton-root, .submit-button-class"); // Adjust class names as needed
+
+        checkboxes.forEach(el => el.style.display = "none");
+        buttons.forEach(el => el.style.display = "none");
+
+        // Get the content for printing
+        const printContent = printSection.innerHTML;
+        const printWindow = window.open("", "_blank");
+
+        printWindow.document.open();
+        printWindow.document.write(`
+          <html>
+            <head>
+              <title>Print</title>
+              <style>
+                body { font-family: Arial, sans-serif; margin: 20px; }
+                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                table, th, td { border: 1px solid black; }
+                th, td { padding: 8px; text-align: left; }
+              </style>
+            </head>
+            <body>
+              ${printContent}
+            </body>
+          </html>
+        `);
+        printWindow.document.close();
+        printWindow.print();
+
+        // Restore visibility of checkboxes and buttons
+        checkboxes.forEach(el => el.style.display = "");
+        buttons.forEach(el => el.style.display = "");
+    };
+
 
 
     // Fetch customer data based on GL Number
@@ -220,7 +261,7 @@ export default function GoldLoanBill() {
 
                         <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
 
-                            <Box display="flex" alignItems="center" gap={1}>
+                            <Box display="flex" alignItems="center" gap={1} >
                                 <Typography variant="body2" fontWeight="bold">
                                     Receipt No:
                                 </Typography>
@@ -228,41 +269,42 @@ export default function GoldLoanBill() {
                             </Box>
 
                             {/* Gold Loan Details */}
-                            <Typography variant="h6" fontWeight="bold">
+                            <Typography variant="h6" fontWeight="bold" >
                                 Gold Loan Details
                             </Typography>
 
                             {/* Date */}
                             <Box display="flex" alignItems="center" gap={1}>
-                                <Typography variant="body2" fontWeight="bold">
-                                    Date
-                                </Typography>
                                 <TextField
                                     type="date"
                                     size="small"
+                                    label="DATE"
                                     value={selectedDate}
                                     onChange={(e) => setSelectedDate(e.target.value)}
-                                    InputLabelProps={{ shrink: true }}
                                     sx={{
                                         '& .MuiInputLabel-root': {
-                                            fontSize: '12.5px',
+                                            fontSize: '14px', // Increased label font size
+                                            fontWeight: 'bold', // Made label bold
                                             marginBottom: '0px',
                                         },
                                         '& .MuiInputBase-root': {
-                                            fontSize: '12.5px',
+                                            fontSize: '14px',
                                             paddingTop: '0px',
                                             paddingBottom: '0px',
                                         }
+                                    }}
+                                    InputLabelProps={{
+                                        shrink: true, // Ensures the label doesn't overlap the input
                                     }}
                                 />
                             </Box>
                         </Box>
 
                         {/* Horizontal Fields Layout */}
-                        <Grid container spacing={2} alignItems="center">
+                        <Grid container spacing={1.5} alignItems="center" id="print-section" >
                             {/* GL Number */}
                             <Grid item xs={6} md={3}>
-                                <Typography variant="body2" fontWeight="bold">GL Number</Typography>
+                                {/* <Typography variant="body2" fontWeight="bold">GL Number</Typography> */}
                                 <Autocomplete
                                     options={glOptions}
                                     getOptionLabel={(option) => option.glNo || "Select"}
@@ -272,18 +314,23 @@ export default function GoldLoanBill() {
                                             {...params}
                                             variant="outlined"
                                             size="small"
+                                            label="GL NUMBER"
                                             placeholder="Select GL Number"
                                             fullWidth
                                             sx={{
                                                 '& .MuiInputLabel-root': {
-                                                    fontSize: '12.5px',
+                                                    fontSize: '14px', // Increased label font size
+                                                    fontWeight: 'bold', // Made label bold
                                                     marginBottom: '0px',
                                                 },
                                                 '& .MuiInputBase-root': {
-                                                    fontSize: '12.5px',
+                                                    fontSize: '14px',
                                                     paddingTop: '0px',
                                                     paddingBottom: '0px',
                                                 }
+                                            }}
+                                            InputLabelProps={{
+                                                shrink: true, // Ensures the label doesn't overlap the input
                                             }}
                                         />
                                     )}
@@ -292,55 +339,63 @@ export default function GoldLoanBill() {
 
                             {/* Date */}
                             <Grid item xs={6} md={3}>
-                                <Typography variant="body2" fontWeight="bold">Period Start</Typography>
+
                                 <TextField
                                     type="date"
                                     size="small"
+                                    label="PERIOD START"
                                     fullWidth
                                     value={selectedDate}
                                     onChange={(e) => setSelectedDate(e.target.value)}
-                                    InputLabelProps={{ shrink: true }}
                                     sx={{
                                         '& .MuiInputLabel-root': {
-                                            fontSize: '12.5px',
+                                            fontSize: '14px', // Increased label font size
+                                            fontWeight: 'bold', // Made label bold
                                             marginBottom: '0px',
                                         },
                                         '& .MuiInputBase-root': {
-                                            fontSize: '12.5px',
+                                            fontSize: '14px',
                                             paddingTop: '0px',
                                             paddingBottom: '0px',
                                         }
+                                    }}
+                                    InputLabelProps={{
+                                        shrink: true, // Ensures the label doesn't overlap the input
                                     }}
                                 />
                             </Grid>
 
                             {/* Date */}
                             <Grid item xs={6} md={3}>
-                                <Typography variant="body2" fontWeight="bold">Period End</Typography>
+                                {/* <Typography variant="body2" fontWeight="bold">Period End</Typography> */}
                                 <TextField
                                     type="date"
                                     size="small"
+                                    label="PERIOD END"
                                     fullWidth
                                     value={selectedDate}
                                     onChange={(e) => setSelectedDate(e.target.value)}
-                                    InputLabelProps={{ shrink: true }}
                                     sx={{
                                         '& .MuiInputLabel-root': {
-                                            fontSize: '12.5px',
+                                            fontSize: '14px', // Increased label font size
+                                            fontWeight: 'bold', // Made label bold
                                             marginBottom: '0px',
                                         },
                                         '& .MuiInputBase-root': {
-                                            fontSize: '12.5px',
+                                            fontSize: '14px',
                                             paddingTop: '0px',
                                             paddingBottom: '0px',
                                         }
+                                    }}
+                                    InputLabelProps={{
+                                        shrink: true, // Ensures the label doesn't overlap the input
                                     }}
                                 />
                             </Grid>
 
                             {/* Payment Mode */}
                             <Grid item xs={6} md={3}>
-                                <Typography variant="body2" fontWeight="bold">Payment Mode</Typography>
+                                {/* <Typography variant="body2" fontWeight="bold">Payment Mode</Typography> */}
                                 <Autocomplete
                                     options={paymentModes}
                                     renderInput={(params) => (
@@ -348,18 +403,23 @@ export default function GoldLoanBill() {
                                             {...params}
                                             variant="outlined"
                                             size="small"
+                                            label="PAYMENT MODE"
                                             placeholder="Payment Mode"
                                             fullWidth
                                             sx={{
                                                 '& .MuiInputLabel-root': {
-                                                    fontSize: '12.5px',
+                                                    fontSize: '14px', // Increased label font size
+                                                    fontWeight: 'bold', // Made label bold
                                                     marginBottom: '0px',
                                                 },
                                                 '& .MuiInputBase-root': {
-                                                    fontSize: '12.5px',
+                                                    fontSize: '14px',
                                                     paddingTop: '0px',
                                                     paddingBottom: '0px',
                                                 }
+                                            }}
+                                            InputLabelProps={{
+                                                shrink: true, // Ensures the label doesn't overlap the input
                                             }}
                                         />
                                     )}
@@ -368,185 +428,225 @@ export default function GoldLoanBill() {
 
                             {/* Interest Rate */}
                             <Grid item xs={6} md={3}>
-                                <Typography variant="body2" fontWeight="bold">Interest Rate (%)</Typography>
                                 <TextField
                                     name="interestRate"
                                     value={formData.interestRate}
                                     onChange={handleChange}
                                     size="small"
+                                    label="INTEREST RATE"
                                     fullWidth
-                                    placeholder="Enter interest rate"
+                                    placeholder="Enter Interest Rate"
                                     sx={{
                                         '& .MuiInputLabel-root': {
-                                            fontSize: '12.5px',
+                                            fontSize: '14px', // Increased label font size
+                                            fontWeight: 'bold', // Made label bold
                                             marginBottom: '0px',
                                         },
                                         '& .MuiInputBase-root': {
-                                            fontSize: '12.5px',
+                                            fontSize: '14px',
                                             paddingTop: '0px',
                                             paddingBottom: '0px',
                                         }
                                     }}
+                                    InputLabelProps={{
+                                        shrink: true, // Ensures the label doesn't overlap the input
+                                    }}
                                 />
                             </Grid>
 
+
                             {/* Principal Paid */}
                             <Grid item xs={6} md={3}>
-                                <Typography variant="body2" fontWeight="bold">Principal Paid</Typography>
+                                {/* <Typography variant="body2" fontWeight="bold">Principal Paid</Typography> */}
                                 <TextField
                                     name="principalPaid"
                                     value={formData.principalPaid}
                                     onChange={handleChange}
+                                    label="PRINCIPAL PAID"
                                     size="small"
                                     fullWidth
-                                    placeholder="Enter amount"
+                                    placeholder="Enter Amount"
                                     sx={{
                                         '& .MuiInputLabel-root': {
-                                            fontSize: '12.5px',
+                                            fontSize: '14px', // Increased label font size
+                                            fontWeight: 'bold', // Made label bold
                                             marginBottom: '0px',
                                         },
                                         '& .MuiInputBase-root': {
-                                            fontSize: '12.5px',
+                                            fontSize: '14px',
                                             paddingTop: '0px',
                                             paddingBottom: '0px',
                                         }
+                                    }}
+                                    InputLabelProps={{
+                                        shrink: true, // Ensures the label doesn't overlap the input
                                     }}
                                 />
                             </Grid>
 
                             {/*Insurance */}
                             <Grid item xs={6} md={3}>
-                                <Typography variant="body2" fontWeight="bold">Insurance</Typography>
+                                {/* <Typography variant="body2" fontWeight="bold">Insurance</Typography> */}
                                 <TextField
                                     name="insurance"
                                     value={formData.insurance}
                                     onChange={handleChange}
                                     size="small"
+                                    label="INSURANCE"
                                     fullWidth
-                                    placeholder="Enter insurance"
+                                    placeholder="Enter Insurance"
                                     sx={{
                                         '& .MuiInputLabel-root': {
-                                            fontSize: '12.5px',
+                                            fontSize: '14px', // Increased label font size
+                                            fontWeight: 'bold', // Made label bold
                                             marginBottom: '0px',
                                         },
                                         '& .MuiInputBase-root': {
-                                            fontSize: '12.5px',
+                                            fontSize: '14px',
                                             paddingTop: '0px',
                                             paddingBottom: '0px',
                                         }
+                                    }}
+                                    InputLabelProps={{
+                                        shrink: true, // Ensures the label doesn't overlap the input
                                     }}
                                 />
                             </Grid>
                             {/* processing Fee */}
                             <Grid item xs={6} md={3}>
-                                <Typography variant="body2" fontWeight="bold">Processing Fee</Typography>
+                                {/* <Typography variant="body2" fontWeight="bold">Processing Fee</Typography> */}
                                 <TextField
                                     name="processingFee"
                                     value={formData.processingFee}
                                     onChange={handleChange}
+                                    label="PROCESSING FEE"
                                     size="small"
                                     fullWidth
-                                    placeholder="Enter total processing fee"
+                                    placeholder="Enter Processing Fee"
                                     sx={{
                                         '& .MuiInputLabel-root': {
-                                            fontSize: '12.5px',
+                                            fontSize: '14px', // Increased label font size
+                                            fontWeight: 'bold', // Made label bold
                                             marginBottom: '0px',
                                         },
                                         '& .MuiInputBase-root': {
-                                            fontSize: '12.5px',
+                                            fontSize: '14px',
                                             paddingTop: '0px',
                                             paddingBottom: '0px',
                                         }
+                                    }}
+                                    InputLabelProps={{
+                                        shrink: true, // Ensures the label doesn't overlap the input
                                     }}
                                 />
                             </Grid>{/*PackingFee */}
                             <Grid item xs={6} md={3}>
-                                <Typography variant="body2" fontWeight="bold">PackingFee</Typography>
+                                {/* <Typography variant="body2" fontWeight="bold">PackingFee</Typography> */}
                                 <TextField
                                     name="packingFee"
                                     value={formData.packingFee}
                                     onChange={handleChange}
+                                    label="PACKING FEE"
                                     size="small"
                                     fullWidth
-                                    placeholder="Enter total packing fee"
+                                    placeholder="Enter Packing Fee"
                                     sx={{
                                         '& .MuiInputLabel-root': {
-                                            fontSize: '12.5px',
+                                            fontSize: '14px', // Increased label font size
+                                            fontWeight: 'bold', // Made label bold
                                             marginBottom: '0px',
                                         },
                                         '& .MuiInputBase-root': {
-                                            fontSize: '12.5px',
+                                            fontSize: '14px',
                                             paddingTop: '0px',
                                             paddingBottom: '0px',
                                         }
+                                    }}
+                                    InputLabelProps={{
+                                        shrink: true, // Ensures the label doesn't overlap the input
                                     }}
                                 />
                             </Grid>{/*Appraiser */}
                             <Grid item xs={6} md={3}>
-                                <Typography variant="body2" fontWeight="bold">Appraiser</Typography>
+                                {/* <Typography variant="body2" fontWeight="bold">Appraiser</Typography> */}
                                 <TextField
                                     name="appraiser"
                                     value={formData.appraiser}
                                     onChange={handleChange}
+                                    label="APPRAISER"
                                     size="small"
                                     fullWidth
-                                    placeholder="Enter total appraiser"
+                                    placeholder="Enter Appraiser"
                                     sx={{
                                         '& .MuiInputLabel-root': {
-                                            fontSize: '12.5px',
+                                            fontSize: '14px', // Increased label font size
+                                            fontWeight: 'bold', // Made label bold
                                             marginBottom: '0px',
                                         },
                                         '& .MuiInputBase-root': {
-                                            fontSize: '12.5px',
+                                            fontSize: '14px',
                                             paddingTop: '0px',
                                             paddingBottom: '0px',
                                         }
                                     }}
+                                    InputLabelProps={{
+                                        shrink: true, // Ensures the label doesn't overlap the input
+                                    }}
                                 />
                             </Grid>{/* Additional Charges */}
                             <Grid item xs={6} md={3}>
-                                <Typography variant="body2" fontWeight="bold">Additional Charges</Typography>
+                                {/* <Typography variant="body2" fontWeight="bold">Additional Charges</Typography> */}
                                 <TextField
                                     name="otherCharges"
                                     value={formData.otherCharges}
                                     onChange={handleChange}
+                                    label="OTHER CHARGES"
                                     size="small"
                                     fullWidth
-                                    placeholder="Enter additional Charges"
+                                    placeholder="Enter Other Charges"
                                     sx={{
                                         '& .MuiInputLabel-root': {
-                                            fontSize: '12.5px',
+                                            fontSize: '14px', // Increased label font size
+                                            fontWeight: 'bold', // Made label bold
                                             marginBottom: '0px',
                                         },
                                         '& .MuiInputBase-root': {
-                                            fontSize: '12.5px',
+                                            fontSize: '14px',
                                             paddingTop: '0px',
                                             paddingBottom: '0px',
                                         }
+                                    }}
+                                    InputLabelProps={{
+                                        shrink: true, // Ensures the label doesn't overlap the input
                                     }}
                                 />
                             </Grid>
 
                             {/* Total Amount */}
                             <Grid item xs={6} md={3}>
-                                <Typography variant="body2" fontWeight="bold">Total Amount</Typography>
+                                {/* <Typography variant="body2" fontWeight="bold">Total Amount</Typography> */}
                                 <TextField
                                     name="totalAmount"
                                     value={formData.totalAmount}
                                     onChange={handleChange}
+                                    label="TOTAL AMOUNT"
                                     size="small"
                                     fullWidth
-                                    placeholder="Enter total amount"
+                                    placeholder="Enter Total Amount"
                                     sx={{
                                         '& .MuiInputLabel-root': {
-                                            fontSize: '12.5px',
+                                            fontSize: '14px', // Increased label font size
+                                            fontWeight: 'bold', // Made label bold
                                             marginBottom: '0px',
                                         },
                                         '& .MuiInputBase-root': {
-                                            fontSize: '12.5px',
+                                            fontSize: '14px',
                                             paddingTop: '0px',
                                             paddingBottom: '0px',
                                         }
+                                    }}
+                                    InputLabelProps={{
+                                        shrink: true, // Ensures the label doesn't overlap the input
                                     }}
                                 />
                             </Grid>
@@ -559,28 +659,52 @@ export default function GoldLoanBill() {
                                             checked={showTable}
                                             onChange={handleCheckboxChange}
                                             color="primary"
+                                            sx={{
+                                                color: 'darkolivegreen', // Default color for the checkbox
+                                                '&.Mui-checked': { color: 'teal' }, // Checked state color
+                                                '&:hover': { backgroundColor: 'rgba(0, 128, 128, 0.1)' }, // Teal hover effect
+                                            }}
                                         />
                                     }
-                                    label={<Typography sx={{ color: 'chocolate' }}>Interest Call Details</Typography>}
+                                    label={<Typography sx={{
+                                        color: '#2F4F4F', // Dark slate gray for text
+                                        fontSize: 11.5,
+
+                                    }}>INTEREST CALL DETAILS</Typography>}
                                 />
                             </Grid>
 
                             <Grid item xs={6} md={3.7}>
-
                                 <FormControlLabel
                                     control={
                                         <Checkbox
                                             checked={showHistoryTable}
                                             onChange={handleHistoryTableChange}
-                                            color="primary"
+                                            sx={{
+                                                color: 'darkolivegreen', // Default color for the checkbox
+                                                '&.Mui-checked': { color: 'teal' }, // Checked state color
+                                                '&:hover': { backgroundColor: 'rgba(0, 128, 128, 0.1)' }, // Teal hover effect
+                                            }}
                                         />
                                     }
-                                    label={<Typography sx={{ color: 'chocolate' }} >Interest History Details</Typography>}
-                                />
+                                    label={
+                                        <Typography
+                                            sx={{
+                                                color: '#2F4F4F', // Dark slate gray for text
+                                                fontSize: 11.5,
 
+                                            }}
+                                        >
+                                            INTEREST HISTORY DETAILS
+                                        </Typography>
+                                    }
+                                />
                             </Grid>
 
-                            <Grid item xs={6} md={3}>
+
+
+
+                            <Grid item xs={6} md={2.4}>
 
                                 <FormControlLabel
                                     control={
@@ -588,22 +712,47 @@ export default function GoldLoanBill() {
                                             checked={showPledgeTable}
                                             onChange={handlePledgeCheckboxChange}
                                             color="primary"
-
+                                            sx={{
+                                                color: 'darkolivegreen', // Default color for the checkbox
+                                                '&.Mui-checked': { color: 'teal' }, // Checked state color
+                                                '&:hover': { backgroundColor: 'rgba(0, 128, 128, 0.1)' }, // Teal hover effect
+                                            }}
                                         />
                                     }
-                                    label={<Typography sx={{ color: 'chocolate' }}>View Pledge</Typography>}
+                                    label={<Typography sx={{
+                                        color: '#2F4F4F', // Dark slate gray for text
+                                        fontSize: 11.5,
+
+                                    }}>VIEW PLEDGE</Typography>}
                                 />
 
                             </Grid>
 
+                            <Grid item xs={6} md={.2}>
+                                <IconButton
+                                    color="teal"
+                                    size="large"
+                                    onClick={handlePrint}
+                                    sx={{
+
+                                        fontSize: "0.675rem",
+                                        width: "50px",
+                                        height: "50px",
+                                        justifyContent: "center",
+                                        alignItems: "center",
+                                    }}
+                                >
+                                    <PrintIcon />
+                                </IconButton>
+                            </Grid>
+
                             {/* Submit Button */}
 
-                            <Grid item xs={12} md={2} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-
+                            <Grid item xs={6} md={2.4} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
 
                                 <Tooltip title="Submit Form" arrow>
                                     <IconButton
-                                        color="primary"
+                                        color="darkolivegreen"
                                         size="large"
                                         onClick={handleSubmit}
                                         sx={{
@@ -613,7 +762,7 @@ export default function GoldLoanBill() {
                                             display: 'flex',
                                             justifyContent: 'space-between', // Adjusts spacing between text and icon
                                             alignItems: 'center',
-                                            width: '100%',
+                                            width: '70%',
                                             height: '30px',
                                             padding: '0 8px', // Adds padding for alignment
                                         }}
@@ -622,6 +771,7 @@ export default function GoldLoanBill() {
                                         <SendIcon />
                                     </IconButton>
                                 </Tooltip>
+
                             </Grid>
 
                         </Grid>

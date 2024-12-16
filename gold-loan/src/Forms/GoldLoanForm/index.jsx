@@ -466,6 +466,7 @@ const GoldLoanForm = () => {
         formData.append("customerId", customerId);
         formData.append("purchaseDate", purchaseDate);
         formData.append("goldRate", goldRate);
+        formData.append("totalCharges", totalCharges);
         // Add the image (either captured or selected)
         if (fileImage.capture) {
             let blob = base64ToBlob(fileImage.capture, 'image/jpeg'); // Convert Base64 to Blob
