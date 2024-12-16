@@ -2,7 +2,6 @@ import React, { useState, useRef, useCallback } from 'react';
 import Webcam from 'react-webcam';
 import { Box, Button, TextField, Grid, Typography, Modal, IconButton, Container, MenuItem, } from '@mui/material';
 
-
 import CloseIcon from '@mui/icons-material/Close';
 import signatureIcon from '../../assets/signatureIcon.png';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
@@ -48,6 +47,8 @@ export default function CustomerForm({ onCustomerAdded }) {
         email: '', // Add email field       
         dateOfBirth: '',
         createdDate: '',
+        panCardName: '',
+        panCardNumber: '',
     });
 
     const [errors, setErrors] = useState({});
@@ -328,6 +329,21 @@ export default function CustomerForm({ onCustomerAdded }) {
         //     formErrors.aadharImage = "Either upload an Aadhar image or capture one with the webcam";
         // }
 
+        // Pan card Name Verification
+        if (!formData.panCardName) {
+            formErrors.panCardName = "Pan card name is required";
+        } else if (!/^[a-zA-Z\s]{3,50}$/.test(formData.panCardName)) {
+            formErrors.bankName = "Pan Cad name must be 3 to 50 characters long and contain only alphabets and spaces";
+        }
+
+        // PAN Card Number Validation
+        if (!formData.panCardNumber) {
+            formErrors.panCardNumber = "PAN card number is required";
+        } else if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.panCardNumber)) {
+            formErrors.panCardNumber = "Invalid PAN card number format. It should be in the format ABCDE1234F";
+        }
+
+
         setErrors(formErrors);
         console.log(Object.keys(formErrors), Object.keys(formErrors).length);
 
@@ -367,6 +383,8 @@ export default function CustomerForm({ onCustomerAdded }) {
         data.append('createdDate', formData.createdDate);
         data.append('gender', formData.gender);
         data.append('dateOfBirth', formData.dateOfBirth);
+        data.append('panCardName', formData.panCardName);
+        data.append('panCardNumber', formData.panCardNumber);
         data.append('image', fileImage.image);
         data.append('signature', fileImage.signature);
         data.append('passBookImage', fileImage.passBookImage);
@@ -439,6 +457,8 @@ export default function CustomerForm({ onCustomerAdded }) {
                 bankAccount: '',
                 ifsc: '',
                 bankName: '',
+                panCardName: '',
+                panCardNumber: '',
                 email: '', // Clear email field
 
             });
@@ -486,7 +506,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                         sx={{
                             width: '49%',
                             maxHeight: '88vh', // Set a maximum height for the modal
-                            backgroundColor: 'hsla(0, 0%, 90%, 1)',
+                            backgroundColor: 'rgb(255, 255, 255)',
                             borderRadius: 2,
                             p: 3,
                             boxShadow: 24,
@@ -499,18 +519,19 @@ export default function CustomerForm({ onCustomerAdded }) {
                             // opacity: 0.6, // Slight transparency on the modal content itself
                             // Custom scrollbar styles
                             '&::-webkit-scrollbar': {
-                                width: '8px', // Width of the scrollbar
+                                width: '2px', // Width of the scrollbar
                             },
                             '&::-webkit-scrollbar-thumb': {
                                 backgroundColor: '#888', // Color of the scrollbar thumb
-                                borderRadius: '4px', // Rounded corners on the thumb
+                                borderRadius: '5px', // Rounded corners on the thumb
                             },
                             '&::-webkit-scrollbar-thumb:hover': {
+
                                 backgroundColor: '#555', // Color when hovering over the scrollbar thumb
                             },
                             '&::-webkit-scrollbar-track': {
                                 backgroundColor: '#f1f1f1', // Background color of the scrollbar track
-                                borderRadius: '4px', // Rounded corners on the track
+                                borderRadius: '8px', // Rounded corners on the track
                             },
                         }}
                     >
@@ -956,7 +977,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                             id="panel1-header"
                                             sx={{ marginTop: 1 }}
                                         >
-                                            Please enter bank details
+                                            Bank & Pan details
 
                                         </AccordionSummary>
                                         <AccordionDetails>
@@ -1063,6 +1084,46 @@ export default function CustomerForm({ onCustomerAdded }) {
                                                             onChange={handleimagechange} // Attach the file change handler
                                                         />
                                                     </Button>
+                                                </Grid>
+                                                {/* Pan card Details Heading */}
+                                                <Grid item xs={12}>
+                                                    <Typography sx={{ fontSize: 14, borderBottom: '1px solid #979797', marginTop: .5, marginBottom: .5, color: '#626161' }}>
+                                                        Pan card Details
+                                                    </Typography>
+                                                </Grid>
+
+                                                {/*Pancardname */}
+                                                <Grid item xs={12} sm={6}>
+                                                    <TextField
+                                                        fullWidth
+                                                        id="panCardName"
+                                                        name="panCardName"
+                                                        label="Pan Card Name"
+                                                        variant="outlined"
+                                                        required
+                                                        value={formData.panCardName}
+                                                        onChange={handleChange}
+                                                        error={!!errors.panCardName} // Add error prop
+                                                        helperText={errors.panCardName} // Display error message
+                                                        sx={commonTextFieldSx} // Apply common style
+                                                        size="small"
+                                                    />
+                                                </Grid>
+                                                {/* pan card number */}
+                                                <Grid item xs={12} sm={6}>
+                                                    <TextField
+                                                        fullWidth
+                                                        id="panCardNumber"
+                                                        name="panCardNumber"
+                                                        label="Pan Card Number"
+                                                        variant="outlined"
+                                                        value={formData.panCardNumber}
+                                                        onChange={handleChange}
+                                                        error={!!errors.panCardNumber} // Add error prop
+                                                        helperText={errors.panCardNumber} // Display error message
+                                                        sx={commonTextFieldSx} // Apply common style
+                                                        size="small"
+                                                    />
                                                 </Grid>
 
 
