@@ -31,6 +31,23 @@ const itemArrayMapping = (goldItems) => {
     return itemLists;
 };
 
+const findTotalPrinciplePaid = async (goldId) => {
+    let billPaid = await models.billingModel.find({ goldLoanId: goldId });
+    let principlePaid = billPaid.reduce((total, bill) => {
+        return total + (bill.payment || 0);
+    }, 0);
+    let latestBill = await models.billingModel
+        .findOne({ goldLoanId: goldId })
+        .sort({ billDate: -1 })
+        .lean();
+    console.log(latestBill);
+
+    let lastTransaction = latestBill ? latestBill.billDate : null;
+
+    return { principlePaid, lastTransaction };
+};
+
+
 export async function viewGoldLoan(req, res) {
     try {
 
@@ -63,8 +80,11 @@ export async function viewGoldLoan(req, res) {
         }
 
         let loanList = await models.goldLoanModel.find(query).select(
-            'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode insurance  processingFee otherCharges packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt'
-        ).collation({ locale: 'en', strength: 2 });
+            'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage totalCharges totalChargesAndBalanceAmount interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode insurance  processingFee otherCharges packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt'
+        ).populate({
+            path: 'itemDetails.goldItem', // Path to populate
+            select: 'goldItem'   // Fields from the `goldItem` schema to include
+        }).collation({ locale: 'en', strength: 2 });
 
         if (orderBy === 'glNo') {
             loanList.sort((a, b) => a.glNo.localeCompare(b.glNo) * order);
@@ -74,23 +94,6 @@ export async function viewGoldLoan(req, res) {
             loanList.sort((a, b) => (a.createdAt - b.createdAt) * order); // Default sorting by createdAt
         }
 
-        if (search) {
-            // Define a function to calculate relevance score
-            const calculateRelevance = (loanSet) => {
-                const fields = ['glNo'];
-                let relevance = 0;
-                fields.forEach((field) => {
-                    if (
-                        loanSet[field] &&
-                        loanSet[field].toLowerCase().startsWith(search.toLowerCase())
-                    ) {
-                        relevance++;
-                    }
-                });
-                return relevance;
-            };
-            loanList.sort((a, b) => calculateRelevance(b) - calculateRelevance(a));
-        }
         if (loanList.length == 0) {
             return responseHelper(
                 res,
@@ -99,7 +102,6 @@ export async function viewGoldLoan(req, res) {
                 'Gold loan details are empty'
             );
         }
-        // console.log(customerList);
 
         const paginationResult = await paginateData(loanList, page, pageLimit);
         //apply orderBy and order
@@ -135,6 +137,7 @@ export async function addGoldLoan(req, res, next) {
             insurance,
             processingFee,
             packingFee,
+            totalCharges,
             otherCharges,
             appraiser,
             memberId,//need to remove
@@ -168,28 +171,42 @@ export async function addGoldLoan(req, res, next) {
 
         let profitLossAmount = totalNetWeight * goldRate
         let interestCalculation = principleAmount * (interestPercentage / 100);
-
+        let day = (interestCalculation * 12) / 365;
         //BALANCE AMOUNT CALCULATION
-        let balancePrice;
+        let balancePrice, tInterestRate;
 
         switch (interestMode) {
             case 'monthly':
-                balancePrice = parseFloat(principleAmount) + parseFloat(interestCalculation);
+                balancePrice = parseFloat(principleAmount) + (parseFloat(day) * 30);
+                tInterestRate = interestCalculation;
                 break;
             case 'yearly':
                 balancePrice = parseFloat(principleAmount) + (parseFloat(interestCalculation) * 12);
+                tInterestRate = interestCalculation * 12;
                 break;
             case 'quarterly':
-                balancePrice = parseFloat(principleAmount) + (parseFloat(interestCalculation) * 3);
+                balancePrice = parseFloat(principleAmount) + (parseFloat(day) * 90);
+                tInterestRate = interestCalculation * 3;
                 break;
             case 'halfyearly':
-                balancePrice = parseFloat(principleAmount) + (parseFloat(interestCalculation) * 6);
+                balancePrice = parseFloat(principleAmount) + (parseFloat(day) * 180);
+                tInterestRate = interestCalculation * 6;
                 break;
             case 'days':
-                balancePrice = parseFloat(principleAmount) + ((parseFloat(interestCalculation) * 12) / 365);
+                balancePrice = parseFloat(principleAmount) + parseFloat(day);
+                tInterestRate = day;
                 break;
             case 'weekly':
-                balancePrice = parseFloat(principleAmount) + (((parseFloat(interestCalculation) * 12) / 365) * 7);
+                balancePrice = parseFloat(principleAmount) + (parseFloat(day) * 7);
+                tInterestRate = day * 7;
+                break;
+            case 'range_one[0-30]':
+                balancePrice = parseFloat(principleAmount) + (parseFloat(day) * 30);
+                tInterestRate = interestCalculation;
+                break;
+            case 'range_two[0-30]':
+                balancePrice = parseFloat(principleAmount) + (parseFloat(day) * 30);
+                tInterestRate = interestCalculation;
                 break;
             default:
                 throw new Error("Invalid interest mode");
@@ -214,9 +231,11 @@ export async function addGoldLoan(req, res, next) {
             insurance,
             processingFee,
             packingFee,
+            totalInterestRate: tInterestRate,
             otherCharges,
             appraiser,
             principleAmount,
+            totalChargesAndBalanceAmount: parseFloat(balanceAmount) + parseFloat(totalCharges),
             balanceAmount: cutBalancePrice,
             //currentGoldValue,
             profitOrLoss: profitLossAmount,
@@ -253,6 +272,7 @@ export async function updateGoldLoanById(req, res) {
             processingFee,
             packingFee,
             otherCharges,
+            totalCharges,
             appraiser,
             principleAmount,
             paymentMode,
@@ -282,28 +302,34 @@ export async function updateGoldLoanById(req, res) {
         }
         let profitLossAmount = totalNetWeight * goldRate
         let interestCalculation = principleAmount * (interestPercentage / 100);
-
+        let day = (interestCalculation * 12) / 365;
         //BALANCE AMOUNT CALCULATION
         let balancePrice;
 
         switch (interestMode) {
             case 'monthly':
-                balancePrice = parseFloat(principleAmount) + parseFloat(interestCalculation);
+                balancePrice = parseFloat(principleAmount) + (parseFloat(day) * 30);
                 break;
             case 'yearly':
                 balancePrice = parseFloat(principleAmount) + (parseFloat(interestCalculation) * 12);
                 break;
             case 'quarterly':
-                balancePrice = parseFloat(principleAmount) + (parseFloat(interestCalculation) * 3);
+                balancePrice = parseFloat(principleAmount) + (parseFloat(day) * 90);
                 break;
             case 'halfyearly':
-                balancePrice = parseFloat(principleAmount) + (parseFloat(interestCalculation) * 6);
+                balancePrice = parseFloat(principleAmount) + (parseFloat(day) * 180);
                 break;
             case 'days':
-                balancePrice = parseFloat(principleAmount) + ((parseFloat(interestCalculation) * 12) / 365);
+                balancePrice = parseFloat(principleAmount) + parseFloat(day);
                 break;
             case 'weekly':
-                balancePrice = parseFloat(principleAmount) + (((parseFloat(interestCalculation) * 12) / 365) * 7);
+                balancePrice = parseFloat(principleAmount) + (parseFloat(day) * 7);
+                break;
+            case 'range_one[0-30]':
+                balancePrice = parseFloat(principleAmount) + (parseFloat(day) * 30);
+                break;
+            case 'range_two[0-30]':
+                balancePrice = parseFloat(principleAmount) + (parseFloat(day) * 30);
                 break;
             default:
                 throw new Error("Invalid interest mode");
@@ -327,6 +353,7 @@ export async function updateGoldLoanById(req, res) {
                 packingFee,
                 otherCharges,
                 appraiser,
+                totalChargesAndBalanceAmount: parseFloat(balanceAmount) + parseFloat(totalCharges),
                 principleAmount,
                 balanceAmount: cutBalancePrice,
                 //currentGoldValue,
@@ -384,7 +411,7 @@ export async function updateGoldStatus(req, res, next) {
 
 
 
-export async function viewGoldLoanById(req, res) {
+export async function viewGoldLoanById(req, res, next) {
     try {
         const { loanId } = req.params
         if (!loanId) {
@@ -394,24 +421,32 @@ export async function viewGoldLoanById(req, res) {
                 'Loan ID is required',
             )
         }
-        const loan = await models.goldLoanModel.findById(loanId).select(
-            'glNo voucherNo purchaseDate totalNetWeight goldRate companyGoldRate itemDetails interestPercentage interestRate interestMode customerId memberId nomineeId paymentMode insurance  processingFee otherCharges packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt'
-        );
-        if (!loan) {
+        let loans = await models.goldLoanModel.findById(loanId).select(
+            'glNo voucherNo purchaseDate totalNetWeight goldRate companyGoldRate itemDetails totalCharges totalChargesAndBalanceAmount interestPercentage interestRate interestMode customerId memberId nomineeId paymentMode insurance  processingFee otherCharges packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt'
+        ).populate('itemDetails.goldItem', 'goldItem');
+        if (!loans) {
             return responseHelper(
                 res, httpStatus.NOT_FOUND,
                 true,
                 'Gold loan not found',
             )
         }
+
+        const { principlePaid, lastTransaction } = await findTotalPrinciplePaid(loans._id);
+
+        let balancePrincipleAmount = parseFloat(loans.principleAmount) - parseFloat(principlePaid);
+
+        let loan = { ...loans.toObject(), principlePaid, lastTransaction: lastTransaction == null ? loans.purchaseDate : lastTransaction, balancePrincipleAmount };
+
         return responseHelper(
-            res, httpStatus.OK,
+            res,
+            httpStatus.OK,
             false,
             'loan details',
             loan
-        )
+        );
 
-    } catch {
+    } catch (error) {
         return next(new Error(error));
     }
 }

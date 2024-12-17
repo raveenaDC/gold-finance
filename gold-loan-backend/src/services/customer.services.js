@@ -92,7 +92,7 @@ export async function customerView(req, res, next) {
         }
 
         let customerList = await models.customerModel.find(query).select(
-            'firstName lastName  address district place state rating  pin nearBy  primaryNumber dateOfBirth gender upId createdDate passBookImage city secondaryNumber aadhar email image signature aadharImage bankUserName bankAccount ifsc bankName createdAt '
+            'firstName lastName  address district place state rating  pin nearBy  primaryNumber dateOfBirth gender upId createdDate passBookImage city secondaryNumber totalCharges panCardName panCardNumber aadhar email image signature aadharImage bankUserName bankAccount ifsc bankName createdAt '
         ).collation({ locale: 'en', strength: 2 });
 
         if (orderBy === 'firstName') {
@@ -167,6 +167,7 @@ export async function createCustomer(req, res, next) {
             dateOfBirth,
             gender,
             upId,
+            totalCharges, panCardName, panCardNumber,
             createdDate,
             bankUserName,
             bankAccount,
@@ -211,6 +212,7 @@ export async function createCustomer(req, res, next) {
             upId,
             createdDate,
             gst,
+            totalCharges, panCardName, panCardNumber,
             secondaryNumber,
             aadhar,
             email,
@@ -265,6 +267,7 @@ export async function updateCustomer(req, res, next) {
             createdDate,
             rating,
             email,
+            totalCharges, panCardName, panCardNumber,
             bankUserName,
             bankAccount,
             ifsc,
@@ -334,6 +337,7 @@ export async function updateCustomer(req, res, next) {
                 secondaryNumber,
                 aadhar,
                 gst,
+                totalCharges, panCardName, panCardNumber,
                 dateOfBirth,
                 gender,
                 upId,
@@ -378,7 +382,7 @@ export async function customerViewById(req, res) {
             )
         }
         const customer = await models.customerModel.findById(customerId).select(
-            'firstName lastName  address place district state rating pin nearBy  primaryNumber dateOfBirth gender upId createdDate passBookImage city secondaryNumber aadhar email image signature aadharImage bankUserName bankAccount ifsc  bankName createdAt'
+            'firstName lastName  address place district state rating pin nearBy  primaryNumber dateOfBirth gender upId createdDate totalCharges panCardName panCardNumber passBookImage city secondaryNumber aadhar email image signature aadharImage bankUserName bankAccount ifsc  bankName createdAt'
         );
         if (!customer) {
             return responseHelper(

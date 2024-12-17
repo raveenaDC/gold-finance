@@ -5,21 +5,19 @@ import { paginateData } from '../utils/pagination-data.js';
 
 const defaultPageLimit = process.env.PAGE_LIMIT;
 
-const transFormImageUploadResponseArray = (imageResponseArray) => {
-    return imageResponseArray.map((image) => ({
-        name: image.originalname,
-        fileName: image.filename,
-        path: `/cdn/uploads/images/${image.filename}`,
-        uploadedDate: new Date(),
-    }));
-};
-
 export async function createGoldLoanBilling(req, res, next) {
     try {
         let { goldLoanId,
             billDate,
             billNo,
-            amount,
+            interestRate,
+            insurance,
+            processingFee,
+            packingFee,
+            appraiser,
+            otherCharges,
+            totalCharges,
+            principlePaid,
             paymentMode
         } = req.body;
 
@@ -38,10 +36,33 @@ export async function createGoldLoanBilling(req, res, next) {
             goldLoanId,
             billDate,
             billNo,
-            payment: amount,
+            insurance,
+            processingFee,
+            packingFee,
+            appraiser,
+            otherCharges,
+            principleInterestRate: interestRate,
+            payment: principlePaid,
             paymentMode
         });
-        existLoan.amountPaid = amount;
+
+        let minusInterestRate = parseFloat(existLoan.totalInterestRate) - parseFloat(interestRate);
+        let minusPrincipleAmount = parseFloat(existLoan.principleAmount) - parseFloat(principlePaid);
+        let newBalanceAmount = parseFloat(minusPrincipleAmount) + parseFloat(minusInterestRate)
+
+        existLoan.insurance = parseFloat(existLoan.insurance) + parseFloat(insurance);
+        existLoan.processingFee = parseFloat(existLoan.processingFee) + parseFloat(processingFee);
+        existLoan.packingFee = parseFloat(existLoan.packingFee) + parseFloat(packingFee);
+        existLoan.appraiser = parseFloat(existLoan.appraiser) + parseFloat(appraiser);
+        existLoan.otherCharges = parseFloat(existLoan.otherCharges) + parseFloat(otherCharges);
+
+        existLoan.totalCharges = totalCharges;
+        existLoan.totalChargesAndBalanceAmount = parseFloat(newBalanceAmount) + parseFloat(totalCharges);
+        // existLoan.principleAmount = minusPrincipleAmount;
+        existLoan.totalInterestRate = minusInterestRate;
+        existLoan.balanceAmount = newBalanceAmount;
+        existLoan.amountPaid = parseFloat(existLoan.amountPaid) + parseFloat(principlePaid);
+
         await existLoan.save();
         return responseHelper(
             res,
@@ -62,13 +83,13 @@ export async function viewAllGoldLoanBilling(req, res, next) {
         pageLimit = parseInt(pageLimit || defaultPageLimit);
         const page = parseInt(req.query.page) || 1;
         order = order == 'asc' ? 1 : -1;
-
+        let query = { isCanceled: false }
         const goldLoans = await models.goldLoanModel.find({
             glNo: { $regex: new RegExp(search, 'i') }
         }).select('_id');
 
         const goldLoanIds = goldLoans.map(loan => loan._id);
-        const query = {
+        query = {
             $or: [
                 { billNo: { $regex: new RegExp(search, 'i') } },
                 { goldLoanId: { $in: goldLoanIds } }
@@ -76,7 +97,7 @@ export async function viewAllGoldLoanBilling(req, res, next) {
         };
 
         let billDetails = await models.billingModel.find(query)
-            .select('goldLoanId payment paymentMode billDate billNo createdAt')
+            .select('goldLoanId principleInterestRate payment paymentMode billDate billNo insurance processingFee packingFee appraise otherCharges createdAt')
             .populate({
                 path: 'goldLoanId',
                 select: 'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode insurance processingFee otherCharges packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt',
@@ -112,6 +133,39 @@ export async function viewAllGoldLoanBilling(req, res, next) {
 
 }
 
+export async function viewGoldLoanBillingDetails(req, res, next) {
+    try {
+        let { goldLoanId } = req.params
+
+        let billDetails = await models.billingModel.find({ goldLoanId, isCanceled: false })
+            .select('goldLoanId principleInterestRate payment paymentMode billDate insurance processingFee packingFee appraise otherCharges billNo createdAt')
+            .populate({
+                path: 'goldLoanId',
+                select: 'glNo purchaseDate  interestPercentage interestRate  interestMode  insurance processingFee otherCharges packingFee appraiser principleAmount amountPaid',
+                populate: {
+                    path: 'customerId',
+                    select: 'firstName lastName primaryNumber email image'
+                }
+            });
+
+        if (billDetails.length == 0) {
+            return responseHelper(
+                res,
+                httpStatus.NOT_FOUND,
+                true,
+                'Transaction details are empty'
+            );
+        }
+
+        return responseHelper(res, httpStatus.OK, false, 'Gold loan transaction list', {
+            billData: billDetails
+        });
+    } catch (error) {
+        return next(new Error(error));
+    }
+
+}
+
 export async function viewGoldLoanBillingById(req, res) {
     try {
         const { billId } = req.params
@@ -123,7 +177,7 @@ export async function viewGoldLoanBillingById(req, res) {
             )
         }
         const bill = await models.billingModel.findById(billId)
-            .select('goldLoanId payment paymentMode billDate billNo createdAt')
+            .select('goldLoanId principleInterestRate payment paymentMode billDate insurance processingFee packingFee appraise otherCharges billNo createdAt')
             .populate({
                 path: 'goldLoanId',
                 select: 'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode insurance processingFee otherCharges packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt',
@@ -149,4 +203,36 @@ export async function viewGoldLoanBillingById(req, res) {
     } catch {
         return next(new Error(error));
     }
+}
+
+export async function cancelBillingDetails(req, res, next) {
+    try {
+        let { isCanceled } = req.body;
+        const { billId } = req.params;
+
+        const bill = await models.goldLoanModel.findById(billId);
+        if (!bill) {
+            return responseHelper(res, httpStatus.NOT_FOUND, true, 'Bill details not found');
+        }
+
+        const updateBillList = await models.billingModel.findByIdAndUpdate(
+            billId,
+            { isCanceled },
+            { new: true, }
+        );
+        let message;
+        if (isCanceled) { message = 'Bill transaction is closed' }
+        else { message = 'Bill transaction is opened' }
+
+        return responseHelper(
+            res,
+            httpStatus.OK,
+            false,
+            message,
+            { item: updateBillList }
+        );
+    } catch (error) {
+        return next(new Error(error));
+    }
+
 }

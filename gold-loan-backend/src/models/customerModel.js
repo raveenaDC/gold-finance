@@ -21,6 +21,7 @@ const customerSchema = new Schema(
         createdDate: Date,
         email: String,
         gst: String,
+        totalCharges: Number,
         rating: {
             type: Number,
             default: 0
@@ -43,6 +44,8 @@ const customerSchema = new Schema(
             path: { type: String, default: '/cdn/images/user.png' },
             uploadedDate: Date,
         },
+        panCardNumber: String,
+        panCardName: String,
         bankUserName: String,
         bankAccount: Number,
         ifsc: String,

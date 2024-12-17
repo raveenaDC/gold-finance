@@ -99,6 +99,12 @@ export default [
     .if(body('dateOfBirth').exists())
     .notEmpty()
     .withMessage('Date of Birth is required'),
+  body('panCardNumber')
+    .if(body('panCardNumber').exists())
+    .notEmpty()
+    .withMessage('PAN Card Number is required')
+    .matches(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/)
+    .withMessage('Invalid PAN Card number format,(e.g., ABCDE1234F)'),
   body('upId')
     .if(body('upId').exists())
     .notEmpty()
