@@ -18,7 +18,6 @@ const billingSchema = new Schema(
             type: Number,
             default: 0
         },
-        paymentMode: String,
         processingFee: {
             type: Number,
             default: 0

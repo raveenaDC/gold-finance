@@ -6,6 +6,7 @@ import initializeRoutes from './routes/index.js';
 import path from 'path'
 import mongoDb from './connection/mongo-db.js';
 import { getCurrentWorkingFolder } from './utils/get-current-working-folder.helper.js';
+import * as cronFine from './cron-utility/goldLoanFineUtility.js'
 
 dotenv.config();
 const app = express();
@@ -24,6 +25,9 @@ async function main() {
         //   Initialize  express.static(path.join(dirname, '../', 'public')) before the app.all('*', ...)  (initializeRoutes(app);)
 
         app.use('/cdn', express.static(path.join(dirname, '../', 'public')));
+
+        cronFine.cronFineCalculation();
+
         initializeRoutes(app);
 
         app.listen(port, (err) => {
