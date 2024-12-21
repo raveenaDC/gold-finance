@@ -1,7 +1,8 @@
 import React from 'react';
-import { Grid, Paper, TableContainer } from '@mui/material';
+import { Grid, Paper, TableContainer, Typography, Box } from '@mui/material';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { LineChart } from '@mui/x-charts/LineChart';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
 const ChartContainer = ({ children, width, height }) => (
     <TableContainer
@@ -19,10 +20,175 @@ const ChartContainer = ({ children, width, height }) => (
     </TableContainer>
 );
 
+const data = [
+    { name: 'Group A', value: 2 },
+    { name: 'Group B', value: 5.5 },
+    { name: 'Group C', value: 2 },
+
+];
+
+const COLORS = ['#694D75', '#C7C5A0', '#D5BF40',];
+
 export default function MainPage() {
     return (
         <Grid container spacing={2} sx={{ padding: '20px' }}>
             {/* BarChart Section */}
+            <Grid item xs={12} sm={3}>
+                <Box
+                    component={Paper}
+                    sx={{
+
+                        width: '100%',
+                        height: 100,
+                        backgroundColor: '#D5BF40',
+                        boxShadow: 3,
+                        borderRadius: 2,
+                        padding: 2,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                >
+                    <Typography
+                        variant="h6"
+                        gutterBottom
+                        sx={{
+                            // fontWeight: 'bold',
+                            color: '#000000',
+                            textAlign: 'center',
+                        }}
+                    >
+                        Customers
+                    </Typography>
+                    <Typography
+                        variant="h3"
+                        sx={{
+                            // fontWeight: 'bold',
+                            color: '#000000',
+                        }}
+                    >
+                        3356
+                    </Typography>
+                </Box>
+            </Grid>
+
+            <Grid item xs={12} sm={3}>
+                <Box
+                    sx={{
+                        width: '100%',
+                        height: 100,
+                        backgroundColor: '#694D75',
+                        boxShadow: 3,
+                        borderRadius: 2,
+                        padding: 2,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                >
+                    <Typography
+                        variant="h6"
+                        gutterBottom
+                        sx={{
+                            // fontWeight: 'bold',
+                            color: '#ffffff',
+                            textAlign: 'center',
+                        }}
+                    >
+                        Active Customers
+                    </Typography>
+                    <Typography
+                        variant="h3"
+                        sx={{
+                            // fontWeight: 'bold',
+                            color: '#ffffff',
+                        }}
+                    >
+                        2356
+                    </Typography>
+                </Box>
+            </Grid>
+
+            <Grid item xs={12} sm={3}>
+                <Box
+                    sx={{
+                        width: '100%',
+                        height: 100,
+                        backgroundColor: '#689689',
+                        boxShadow: 3,
+                        borderRadius: 2,
+                        padding: 2,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                >
+                    <Typography
+                        variant="h6"
+                        gutterBottom
+                        sx={{
+                            // fontWeight: 'bold',
+                            color: '#000000',
+                            textAlign: 'center',
+                        }}
+                    >
+                        Amount in Bank
+                    </Typography>
+                    <Typography
+                        variant="h3"
+                        sx={{
+                            // fontWeight: 'bold',
+                            color: '#000000',
+                        }}
+                    >
+                        3356
+                    </Typography>
+                </Box>
+            </Grid>
+            <Grid item xs={12} sm={3}>
+                <Box
+                    sx={{
+                        width: '100%',
+                        height: 100,
+                        backgroundColor: '#E87461',
+                        boxShadow: 3,
+                        borderRadius: 2,
+                        padding: 2,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                >
+                    <Typography
+                        variant="h6"
+                        gutterBottom
+                        sx={{
+                            // fontWeight: 'bold',
+                            color: '#000000',
+                            textAlign: 'center',
+                        }}
+                    >
+                        Cash in Hand
+
+                    </Typography>
+                    <Typography
+                        variant="h3"
+                        sx={{
+                            // fontWeight: 'bold',
+                            color: '#000000',
+                        }}
+                    >
+                        3356
+                    </Typography>
+                </Box>
+            </Grid>
+            <Grid item xs={12}>
+            </Grid>
+
             <Grid item xs={12} sm={4}>
                 <ChartContainer width={400} height={300}>
                     <BarChart
@@ -38,21 +204,35 @@ export default function MainPage() {
                 </ChartContainer>
             </Grid>
 
-            {/* LineChart Section */}
-            <Grid item xs={12} sm={3}>
-                <ChartContainer width={300} height={300}>
-                    <LineChart
-                        xAxis={[{ data: [1, 2, 3, 5, 8, 10] }]}
-                        series={[{ data: [2, 5.5, 2, 8.5, 1.5, 5] }]}
-                        width={300}
-                        height={300}
-                    />
+            {/* PieChart Section */}
+            <Grid item xs={12} sm={4}>
+                <ChartContainer width={400} height={300}>
+                    <ResponsiveContainer width={380} height={280}>
+                        <PieChart>
+                            <Pie
+                                data={data}
+                                dataKey="value"
+                                nameKey="name"
+                                cx="50%"
+                                cy="50%"
+                                outerRadius={100}
+                                fill="#8884d8"
+                                label
+                                paddingAngle={5}  // Adds space between the slices
+                            >
+                                {data.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                ))}
+                            </Pie>
+                            <Tooltip />
+                        </PieChart>
+                    </ResponsiveContainer>
                 </ChartContainer>
             </Grid>
 
             {/* Additional BarChart Section */}
-            <Grid item xs={12} sm={3}>
-                <ChartContainer width={400} height={300}>
+            <Grid item xs={12} sm={4}>
+                <ChartContainer width={420} height={300}>
                     <BarChart
                         xAxis={[{ scaleType: 'band', data: ['group A', 'group B', 'group C'] }]}
                         series={[
@@ -65,6 +245,6 @@ export default function MainPage() {
                     />
                 </ChartContainer>
             </Grid>
-        </Grid>
+        </Grid >
     );
 }

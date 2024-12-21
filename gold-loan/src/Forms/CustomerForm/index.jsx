@@ -426,7 +426,6 @@ export default function CustomerForm({ onCustomerAdded }) {
             });
         }
 
-
         try {
 
             const customerData = {

@@ -7,6 +7,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import Avatar from '@mui/material/Avatar';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import { RateSetting } from '../index';
 import { ROUTES } from '../../constant/route';
 
 
@@ -127,7 +128,7 @@ export default function Navbar({ handleDrawerOpen, open }) {
                             open={Boolean(anchorElUtilities)}
                             onClose={handleClose}
                         >
-                            <MenuItem onClick={handleClose}>Rate Setting</MenuItem>
+                            <MenuItem ><RateSetting /></MenuItem>
                             <MenuItem onClick={handleClose}>Interest Plan</MenuItem>
                             <MenuItem onClick={handleClose}>Create Financial Year</MenuItem>
                             <MenuItem onClick={handleClose}>Set Financial Year</MenuItem>
@@ -165,6 +166,6 @@ export default function Navbar({ handleDrawerOpen, open }) {
                     </Box>
                 </Toolbar>
             </AppBar>
-        </Box>
+        </Box >
     );
 }

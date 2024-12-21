@@ -107,11 +107,12 @@ const GoldLoanForm = () => {
 
     // Function to auto-calculate Net Weight
     const calculateNetWeight = (quantity, grossWeight, stoneWeight, depreciation) => {
-        const qty = parseFloat(quantity) || 0;
+
         const grossWt = parseFloat(grossWeight) || 0;
         const stoneWt = parseFloat(stoneWeight) || 0;
         const depWt = parseFloat(depreciation) || 0;
-        return grossWt - (stoneWt + depWt);
+        const netWeight = grossWt - (stoneWt + depWt);
+        return netWeight
     };
 
     // Add a new row to the table

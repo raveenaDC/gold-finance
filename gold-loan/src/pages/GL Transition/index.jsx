@@ -17,6 +17,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { incrementBillNumber } from '../../Redux/billNumberSlice';
 
 
+
+
 import { getCustomerDetails, updateCustomerRating } from '../../services/customer/customer.service';
 import { getcustomergoldloandetails, getgolddetailtable } from '../../services/goldItems/goldItems.service';
 
@@ -1060,6 +1062,8 @@ export default function GoldLoanBill() {
                                 </TableBody>
                             </Table>
                         </TableContainer>
+
+
 
 
                     </Box>
