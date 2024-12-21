@@ -40,7 +40,6 @@ const findTotalPrinciplePaid = async (goldId) => {
         .findOne({ goldLoanId: goldId })
         .sort({ billDate: -1 })
         .lean();
-    console.log(latestBill);
 
     let lastTransaction = latestBill ? latestBill.billDate : null;
 
@@ -234,8 +233,9 @@ export async function addGoldLoan(req, res, next) {
             totalInterestRate: tInterestRate,
             otherCharges,
             appraiser,
+            totalCharges,
             principleAmount,
-            totalChargesAndBalanceAmount: parseFloat(balanceAmount) + parseFloat(totalCharges),
+            totalChargesAndBalanceAmount: parseFloat(cutBalancePrice) + parseFloat(totalCharges),
             balanceAmount: cutBalancePrice,
             //currentGoldValue,
             profitOrLoss: profitLossAmount,
@@ -245,6 +245,25 @@ export async function addGoldLoan(req, res, next) {
             loan.goldImage = transFormImageUploadResponseArray(goldImage)[0];
         }
         await loan.save();
+        if (loan._id) {
+            await models.fineGoldLoanModel.create({
+                goldLoanId: loan._id,
+                interestPercentage,
+                interestRate: interestCalculation,
+                interestMode,
+                insurance,
+                processingFee,
+                packingFee,
+                totalInterestRate: tInterestRate,
+                otherCharges,
+                totalCharges,
+                appraiser,
+                principleAmount,
+                totalChargesAndBalanceAmount: parseFloat(cutBalancePrice) + parseFloat(totalCharges),
+                balanceAmount: cutBalancePrice
+            });
+        }
+
         return responseHelper(
             res,
             httpStatus.CREATED,
