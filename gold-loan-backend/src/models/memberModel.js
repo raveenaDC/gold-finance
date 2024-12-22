@@ -24,7 +24,8 @@ const memberSchema = new Schema(
             logoutTime: Date
         }],
         isAccess: { type: Boolean, default: false },
-        state: String
+        state: String,
+        member_token: String
     },
     { timestamps: true }
 );

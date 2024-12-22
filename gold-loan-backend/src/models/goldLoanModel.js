@@ -75,6 +75,7 @@ const goldLoanSchema = new Schema(
             type: Number,
             default: 0
         },
+        nextDueDate: { type: Date },
         appraiser: {
             type: Number,
             default: 0

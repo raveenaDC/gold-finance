@@ -804,7 +804,7 @@ export default function GoldLoanBill() {
                                                             height: '24px',
                                                         }}
                                                     >
-                                                        <TableCell align="center" sx={{ padding: '4px' }}>{detail.goldItem}</TableCell>
+                                                        <TableCell align="center" sx={{ padding: '4px' }}>{detail.goldItem.goldItem}</TableCell>
                                                         <TableCell align="center" sx={{ padding: '4px' }}>{detail.quantity}</TableCell>
                                                         <TableCell align="center" sx={{ padding: '4px' }}>{detail.grossWeight.toFixed(2)}</TableCell>
                                                         <TableCell align="center" sx={{ padding: '4px' }}>{detail.stoneWeight}</TableCell>
