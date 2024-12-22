@@ -4,7 +4,8 @@ import * as middlewares from '../middleware/index.js';
 const router = express.Router();
 
 router.get('/view', middlewares.memberAuthentication, memberServices.viewMembers)
-router.post('/login/api', memberServices.loginMembers)
+router.post('/login/api', memberServices.loginMembers);
+router.post('/logout/api/page', middlewares.memberAuthentication, memberServices.logoutMembers)
 router.get('/:memberId/view', memberServices.viewMemberById)
 router.patch('/:memberId/access/deny', memberServices.denyMember)
 router.patch('/:memberId/update', middlewares.handleMulterErrors(

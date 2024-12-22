@@ -98,6 +98,36 @@ export async function loginMembers(req, res, next) {
     }
 }
 
+export async function logoutMembers(req, res, next) {
+    try {
+        let { member_token } = req.member;
+
+        if (!member_token) {
+            return responseHelper(
+                res, httpStatus.BAD_REQUEST,
+                true,
+                'Invalid request: No member token provided'
+            );
+        }
+
+        let user = await models.memberModel.findOne({ member_token })
+        user.member_token = '';
+        await user.save();
+
+        return responseHelper(
+            res, httpStatus.OK,
+            false,
+            'Logout successfully',
+        )
+
+
+    } catch (error) {
+        console.log(error);
+
+        return next(new Error(error));
+    }
+}
+
 export async function viewMembers(req, res) {
     try {
 

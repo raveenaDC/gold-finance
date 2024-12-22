@@ -102,9 +102,9 @@ export async function homePageDataCounts(req, res, next) {
 
         //six month issued month amount 00-180
 
-        let sixAmountEndDate = new Date(); Amount
+        let sixAmountEndDate = new Date();
         let sixAmountStartDate = new Date();
-        sixStartDate.setMonth(sixStartDate.getMonth() - 6);
+        sixAmountStartDate.setMonth(sixAmountStartDate.getMonth() - 6);
 
         let sixAmountGlCountMonth = await models.goldLoanModel.find({
             purchaseDate: { $gte: sixAmountStartDate, $lte: sixAmountEndDate }
@@ -112,7 +112,7 @@ export async function homePageDataCounts(req, res, next) {
 
         let amountSum = 0;
 
-        glCountMonth.forEach(amount => {
+        sixAmountGlCountMonth.forEach(amount => {
             amountSum += amount.principleAmount;
         });
 
@@ -127,7 +127,7 @@ export async function homePageDataCounts(req, res, next) {
         });
         let closedAmountSum = 0;
 
-        glCountMonth.forEach(amount => {
+        sixMonthCloseGlCountMonth.forEach(amount => {
             closedAmountSum += amount.principleAmount;
         });
 
@@ -148,7 +148,7 @@ export async function homePageDataCounts(req, res, next) {
         sixCustomerCloseStartDate.setMonth(sixCustomerCloseStartDate.getMonth() - 6);
 
         let sixCustomerCloseGlCountMonth = await models.goldLoanModel.find({
-            createdDate: { $gte: sixCustomerCloseStartDate, $lte: sixCustomerCloseEndDate }, isClosed: false
+            purchaseDate: { $gte: sixCustomerCloseStartDate, $lte: sixCustomerCloseEndDate }, isClosed: false
         });
 
         let customerActive = sixCustomerCloseGlCountMonth.map(customer => customer.customerId.toString());
@@ -161,7 +161,22 @@ export async function homePageDataCounts(req, res, next) {
             {
                 userCount: customer.length || 0,
                 activeCustomer: uniqueArray.length || 0,
-                inactiveCustomer: inactiveArrayArray.length || 0
+                inactiveCustomer: inactiveArray.length || 0,
+                glFirstMonth: glCountMonth.length || 0,
+                glSecondMonth: glCountSecondMonth.length || 0,
+                glFirstMonthPrice: sum || 0,
+                glSecondMonthPrice: total || 0,
+                closeGlFirstMonth: closeGlCountMonth.length || 0,
+                closeGlSecondMonth: closeGlCountSecondMonth.length || 0,
+                closedGlFirstMonthPrice: closeTotal || 0,
+                closedGlSecondMonthPrice: closeSum || 0,
+                glSixMonth: sixGlCountMonth.length || 0,
+                glSixCloseMonth: sixCloseGlCountMonth.length || 0,
+                glSixMonthPrice: amountSum || 0,
+                glClosedSixMonthPrice: closedAmountSum || 0,
+                glCustomerSixMonth: sixCustomerGlCountMonth.length || 0,
+                glCustomerSixMonthActive: customerUniqueArray.length || 0,
+
             }
 
         );
