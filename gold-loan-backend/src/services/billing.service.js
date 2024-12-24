@@ -46,24 +46,45 @@ export async function createGoldLoanBilling(req, res, next) {
             paymentMode
         });
 
-        let minusInterestRate = parseFloat(existLoan.totalInterestRate) - parseFloat(interestRate);
-        let minusPrincipleAmount = parseFloat(existLoan.principleAmount) - parseFloat(principlePaid);
-        let newBalanceAmount = parseFloat(minusPrincipleAmount) + parseFloat(minusInterestRate)
+        const fineHistory = await models.fineGoldLoanModel
+            .findOne({ goldLoanId })
+            .sort({ createdAt: -1 });
 
-        existLoan.insurance = parseFloat(existLoan.insurance) + parseFloat(insurance);
-        existLoan.processingFee = parseFloat(existLoan.processingFee) + parseFloat(processingFee);
-        existLoan.packingFee = parseFloat(existLoan.packingFee) + parseFloat(packingFee);
-        existLoan.appraiser = parseFloat(existLoan.appraiser) + parseFloat(appraiser);
-        existLoan.otherCharges = parseFloat(existLoan.otherCharges) + parseFloat(otherCharges);
+        const loanDetails = fineHistory && fineHistory.isFine && fineHistory.balanceAmount != 0
+            ? fineHistory
+            : existLoan;
 
-        existLoan.totalCharges = totalCharges;
-        existLoan.totalChargesAndBalanceAmount = parseFloat(newBalanceAmount) + parseFloat(totalCharges);
-        // existLoan.principleAmount = minusPrincipleAmount;
-        existLoan.totalInterestRate = minusInterestRate;
-        existLoan.balanceAmount = newBalanceAmount;
-        existLoan.amountPaid = parseFloat(existLoan.amountPaid) + parseFloat(principlePaid);
+        const minusInterestRate = parseFloat(loanDetails.totalInterestRate) - parseFloat(interestRate);
+        const minusPrincipleAmount = parseFloat(loanDetails.principleAmount) - parseFloat(principlePaid);
+        const newBalanceAmount = parseFloat(minusPrincipleAmount) + parseFloat(minusInterestRate);
+        const updatedTotalChargesAndBalance = parseFloat(newBalanceAmount) + parseFloat(totalCharges);
 
-        await existLoan.save();
+        const updateCharges = (record) => {
+            record.insurance = parseFloat(record.insurance) + parseFloat(insurance);
+            record.processingFee = parseFloat(record.processingFee) + parseFloat(processingFee);
+            record.packingFee = parseFloat(record.packingFee) + parseFloat(packingFee);
+            record.appraiser = parseFloat(record.appraiser) + parseFloat(appraiser);
+            record.otherCharges = parseFloat(record.otherCharges) + parseFloat(otherCharges);
+            record.totalCharges = totalCharges;
+            record.totalChargesAndBalanceAmount = updatedTotalChargesAndBalance;
+            record.totalInterestRate = minusInterestRate;
+            record.balanceAmount = newBalanceAmount;
+            record.amountPaid = parseFloat(record.amountPaid) + parseFloat(principlePaid);
+        };
+
+        if (fineHistory && fineHistory.isFine) {
+            updateCharges(fineHistory);
+            await fineHistory.save();
+        } else {
+            updateCharges(existLoan);
+            await existLoan.save();
+        }
+        if (fineHistory.balanceAmount == 0) {
+            fineHistory.isFine = false;
+            await fineHistory.save();
+        }
+
+
         return responseHelper(
             res,
             httpStatus.CREATED,

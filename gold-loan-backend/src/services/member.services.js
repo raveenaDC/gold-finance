@@ -2,9 +2,10 @@ import * as models from '../models/index.js'
 import httpStatus from 'http-status';
 import { responseHelper } from '../utils/response.helper.js';
 import { paginateData } from '../utils/pagination-data.js';
-import { generatePasswordHash } from '../utils/encryption.helper.js';
+import { generatePasswordHash, comparePassword } from '../utils/encryption.helper.js';
 import { generateRandomPassword } from '../utils/generate-random-password.helper.js';
 import { sendMail } from '../utils/mail.helper.js';
+import randomstring from 'randomstring';
 import { createAccountTemplate } from '../registry/mail-templates/create-account.template.js';
 
 const defaultPageLimit = process.env.PAGE_LIMIT;
@@ -17,6 +18,115 @@ const transFormImageUploadResponseArray = (imageResponseArray) => {
         uploadedDate: new Date(),
     }));
 };
+
+
+export async function loginMembers(req, res, next) {
+    try {
+
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return responseHelper(
+                res, httpStatus.NOT_FOUND,
+                true,
+                'Email or password required',
+            )
+        }
+
+        let member = await models.memberModel.findOne({ email: email });
+        if (!member) {
+            return responseHelper(
+                res, httpStatus.NOT_FOUND,
+                true,
+                'The email not found',
+            )
+        }
+
+
+        let passwordCompare = await comparePassword(password, member.password);
+        if (!passwordCompare) {
+            return responseHelper(
+                res,
+                httpStatus.UNAUTHORIZED,
+                true,
+                'Invalid credentials'
+            );
+        }
+        if (!member.isAccess) {
+            return responseHelper(
+                res,
+                httpStatus.CONFLICT,
+                true,
+                'You have no access to the system.Please contact the administrator'
+            );
+        }
+
+        let token = randomstring.generate({
+            length: 12,
+            charset: 'alphanumeric'
+        });
+        member.member_token = token;
+        await member.save();
+        let userDetails = {
+            member_token: token,
+            firstName: member.firstName,
+            lastName: member.lastName,
+            email: member.email,
+            role: member.role,
+            address: member.address || '',
+            aadhar: member.aadhar || '',
+            phone: member.phone || '',
+            pin: member.pin || '',
+            city: member.city || '',
+            state: member.state || '',
+            landMark: member.landMark || '',
+            image: member.memberImage
+        }
+        return responseHelper(
+            res,
+            httpStatus.OK,
+            false,
+            'User details',
+            userDetails
+
+        );
+
+    } catch (error) {
+        console.log(error);
+
+        return next(new Error(error));
+    }
+}
+
+export async function logoutMembers(req, res, next) {
+    try {
+        let { member_token } = req.member;
+
+        if (!member_token) {
+            return responseHelper(
+                res, httpStatus.BAD_REQUEST,
+                true,
+                'Invalid request: No member token provided'
+            );
+        }
+
+        let user = await models.memberModel.findOne({ member_token })
+        user.member_token = '';
+        await user.save();
+
+        return responseHelper(
+            res, httpStatus.OK,
+            false,
+            'Logout successfully',
+        )
+
+
+    } catch (error) {
+        console.log(error);
+
+        return next(new Error(error));
+    }
+}
 
 export async function viewMembers(req, res) {
     try {
@@ -109,6 +219,7 @@ export async function createMember(req, res) {
             phone,
             pin,
             city,
+            state,
             landMark } = req.body;
         let { memberImage } = req.files;
 
@@ -135,6 +246,7 @@ export async function createMember(req, res) {
             phone,
             pin,
             city,
+            state,
             landMark
         });
 
@@ -177,6 +289,7 @@ export async function updateMember(req, res) {
             phone,
             pin,
             city,
+            state,
             landMark } = req.body;
         let { memberImage } = req.files;
         const { memberId } = req.params;
@@ -208,6 +321,7 @@ export async function updateMember(req, res) {
                 aadhar,
                 phone,
                 pin,
+                state,
                 city,
                 landMark, memberImage: images.item
             },

@@ -101,8 +101,53 @@ export async function viewGoldLoan(req, res) {
                 'Gold loan details are empty'
             );
         }
+        const loanData = [];
+        for (const loan of loanList) {
+            const fineHistory = await models.fineGoldLoanModel
+                .findOne({ goldLoanId: loan._id })
+            const loanDetails = fineHistory && fineHistory.isFine && fineHistory.balanceAmount != 0
+                ? {
+                    totalInterestRate: fineHistory.totalInterestRate,
+                    principleAmount: fineHistory.principleAmount,
+                    totalChargesAndBalanceAmount: fineHistory.totalChargesAndBalanceAmount,
+                    balanceAmount: fineHistory.balanceAmount,
+                }
+                : {
+                    totalInterestRate: loan.totalInterestRate,
+                    principleAmount: loan.principleAmount,
+                    totalChargesAndBalanceAmount: loan.totalChargesAndBalanceAmount,
+                    balanceAmount: loan.balanceAmount,
+                };
 
-        const paginationResult = await paginateData(loanList, page, pageLimit);
+
+            loanData.push({
+                ...loanDetails,
+                glNo: loan.glNo,
+                purchaseDate: loan.purchaseDate,
+                voucherNo: loan.voucherNo,
+                goldRate: loan.goldRate,
+                companyGoldRate: loan.companyGoldRate,
+                interestPercentage: loan.interestPercentage,
+                interestRate: loan.interestRate,
+                totalNetWeight: loan.totalNetWeight,
+                interestMode: loan.interestMode,
+                insurance: loan.insurance,
+                paymentMode: loan.paymentMode,
+                processingFee: loan.processingFee,
+                packingFee: loan.packingFee,
+                appraiser: loan.appraiser,
+                otherCharges: loan.otherCharges,
+                amountPaid: loan.amountPaid,
+                totalCharges: loan.totalCharges,
+                profitOrLoss: loan.profitOrLoss,
+                goldImage: loan.goldImage,
+                isClosed: loan.isClosed,
+            });
+        }
+
+
+
+        const paginationResult = await paginateData(loanData, page, pageLimit);
         //apply orderBy and order
         paginationResult.pagination.orderBy = orderBy;
         paginationResult.pagination.order = order;
@@ -254,7 +299,7 @@ export async function addGoldLoan(req, res, next) {
                 insurance,
                 processingFee,
                 packingFee,
-                totalInterestRate: tInterestRate,
+                totalInterestRate: parseFloat(tInterestRate.toFixed(3)),
                 otherCharges,
                 totalCharges,
                 appraiser,
@@ -428,45 +473,115 @@ export async function updateGoldStatus(req, res, next) {
 
 }
 
-
-
 export async function viewGoldLoanById(req, res, next) {
     try {
-        const { loanId } = req.params
+        const { loanId } = req.params;
+
         if (!loanId) {
             return responseHelper(
-                res, httpStatus.NOT_FOUND,
+                res,
+                httpStatus.BAD_REQUEST,
                 true,
-                'Loan ID is required',
-            )
+                'Loan ID is required'
+            );
         }
-        let loans = await models.goldLoanModel.findById(loanId).select(
-            'glNo voucherNo purchaseDate totalNetWeight goldRate companyGoldRate itemDetails totalCharges totalChargesAndBalanceAmount interestPercentage interestRate interestMode customerId memberId nomineeId paymentMode insurance  processingFee otherCharges packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt'
-        ).populate('itemDetails.goldItem', 'goldItem');
+
+        const loans = await models.goldLoanModel.findById(loanId);
         if (!loans) {
             return responseHelper(
-                res, httpStatus.NOT_FOUND,
+                res,
+                httpStatus.NOT_FOUND,
                 true,
-                'Gold loan not found',
-            )
+                'Gold loan not found'
+            );
         }
 
+        const fineHistory = await models.fineGoldLoanModel
+            .findOne({ goldLoanId: loanId })
+            .sort({ createdAt: -1 });
+
+        const loanDetails = fineHistory && fineHistory.isFine && fineHistory.balanceAmount != 0
+            ? {
+                totalInterestRate: fineHistory.totalInterestRate,
+                principleAmount: fineHistory.principleAmount,
+                totalChargesAndBalanceAmount: fineHistory.totalChargesAndBalanceAmount,
+                balanceAmount: fineHistory.balanceAmount,
+            }
+            : {
+                totalInterestRate: loans.totalInterestRate,
+                principleAmount: loans.principleAmount,
+                totalChargesAndBalanceAmount: loans.totalChargesAndBalanceAmount,
+                balanceAmount: loans.balanceAmount,
+            };
+
+        const goldItemIds = loans.itemDetails.map((item) => item.goldItem);
+
+        const goldItems = await models.goldItemModel.find({ _id: { $in: goldItemIds } });
+
+        const enrichedItemDetails = loans.itemDetails.map((item) => {
+            const goldItemDetails = goldItems.find(
+                (goldItem) => goldItem._id.toString() === item.goldItem.toString()
+            );
+
+            return {
+                ...item.toObject(),
+                goldItemDetails,
+            };
+        });
+
+        let fineDetails = await models.fineGoldLoanModel.find({ goldLoanId: loanId })
+
+        const loanData = {
+            ...loanDetails,
+            glNo: loans.glNo,
+            purchaseDate: loans.purchaseDate,
+            voucherNo: loans.voucherNo,
+            goldRate: loans.goldRate,
+            companyGoldRate: loans.companyGoldRate,
+            interestPercentage: loans.interestPercentage,
+            interestRate: loans.interestRate,
+            totalNetWeight: loans.totalNetWeight,
+            interestMode: loans.interestMode,
+            itemDetails: enrichedItemDetails,
+            customerId: loans.customerId,
+            memberId: loans.memberId,
+            nomineeId: loans.nomineeId,
+            insurance: loans.insurance,
+            paymentMode: loans.paymentMode,
+            processingFee: loans.processingFee,
+            packingFee: loans.packingFee,
+            nextDueDate: loans.nextDueDate,
+            appraiser: loans.appraiser,
+            otherCharges: loans.otherCharges,
+            amountPaid: loans.amountPaid,
+            totalCharges: loans.totalCharges,
+            currentGoldValue: loans.currentGoldValue,
+            profitOrLoss: loans.profitOrLoss,
+            goldImage: loans.goldImage,
+            isClosed: loans.isClosed,
+            fineDetails: fineDetails
+        };
+
         const { principlePaid, lastTransaction } = await findTotalPrinciplePaid(loans._id);
+        const balancePrincipleAmount = parseFloat(loanDetails.principleAmount) - parseFloat(principlePaid);
 
-        let balancePrincipleAmount = parseFloat(loans.principleAmount) - parseFloat(principlePaid);
+        const loan = {
+            ...loanData,
+            principlePaid,
+            lastTransaction: lastTransaction || loans.purchaseDate,
+            balancePrincipleAmount,
+        };
 
-        let loan = { ...loans.toObject(), principlePaid, lastTransaction: lastTransaction == null ? loans.purchaseDate : lastTransaction, balancePrincipleAmount };
-
+        // Send response
         return responseHelper(
             res,
             httpStatus.OK,
             false,
-            'loan details',
-            loan
+            'Loan details retrieved successfully',
+            finalLoan
         );
-
     } catch (error) {
-        return next(new Error(error));
+        return next(new Error(error.message || 'An error occurred while fetching loan details.'));
     }
 }
 
