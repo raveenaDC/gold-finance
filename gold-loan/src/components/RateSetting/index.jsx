@@ -8,8 +8,17 @@ import {
 } from '@mui/material';
 
 const RateSettingModal = () => {
+
+    const getTodayDate = () => {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
     const [open, setOpen] = useState(false);
-    const [date, setDate] = useState('');
+    const [date, setDate] = useState(getTodayDate());
     const [goldRate, setGoldRate] = useState('');
     const [goldLoanRate, setGoldLoanRate] = useState('');
 

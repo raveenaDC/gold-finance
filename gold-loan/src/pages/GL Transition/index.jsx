@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
     Grid, TextField, Card, Avatar, Box, Typography, Autocomplete, Button, Checkbox,
-    FormControlLabel, Rating, Table, TableBody, TableCell, TableHead, TableRow, TableContainer, Paper, IconButton, Tooltip
+    FormControlLabel, Rating, Table, TableBody, TableCell, TableHead, TableRow,
+    TableContainer, Paper, IconButton, Tooltip, Modal
 } from '@mui/material';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -48,6 +49,23 @@ export default function GoldLoanBill() {
         'Debit Card',
     ];
 
+    const [chequeDetails, setChequeDetails] = useState({ name: '', goldNumber: '' });
+    const [selectedMode, setSelectedMode] = useState('');
+    const [selectedPaymentMode, setSelectedPaymentMode] = useState('');
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const handleInputChange = (field, value) => {
+        setChequeDetails((prevDetails) => ({
+            ...prevDetails,
+            [field]: value,
+        }));
+    };
+
+    const handleOkClick = () => {
+        console.log('Cheque Details Submitted:', chequeDetails);
+        // Add your logic for handling the OK button click
+    };
+
     const [rating, setRating] = useState(0); // State to store the rating value
     const [glNumber, setGlNumber] = useState(''); // GL Number state
     const [customerId, setCustomerId] = useState(''); // Customer ID linked to GL Number
@@ -84,12 +102,23 @@ export default function GoldLoanBill() {
     const handleHistoryTableChange = (event) => {
         setShowHistoryTable(event.target.checked);
     };
+    const handlePaymentModeChange = (event, value) => {
+        setSelectedPaymentMode(value);
+        if (value) {
+            setIsModalOpen(true); // Open the modal when a payment mode is selected
+        }
+    };
+
+    // const handleCloseModal = () => {
+    //     setIsModalOpen(false);
+    // };
 
 
     const handleCloseModal = () => {
         setShowTable(false);
         setShowPledgeTable(false);
         setShowHistoryTable(false);
+        setIsModalOpen(false);
     };
 
     // Handle GL number change
@@ -400,6 +429,7 @@ export default function GoldLoanBill() {
                                 {/* <Typography variant="body2" fontWeight="bold">Payment Mode</Typography> */}
                                 <Autocomplete
                                     options={paymentModes}
+                                    onChange={handlePaymentModeChange}
                                     renderInput={(params) => (
                                         <TextField
                                             {...params}
@@ -410,22 +440,61 @@ export default function GoldLoanBill() {
                                             fullWidth
                                             sx={{
                                                 '& .MuiInputLabel-root': {
-                                                    fontSize: '14px', // Increased label font size
-                                                    fontWeight: 'bold', // Made label bold
+                                                    fontSize: '14px',
+                                                    fontWeight: 'bold',
                                                     marginBottom: '0px',
                                                 },
                                                 '& .MuiInputBase-root': {
                                                     fontSize: '14px',
                                                     paddingTop: '0px',
                                                     paddingBottom: '0px',
-                                                }
+                                                },
                                             }}
                                             InputLabelProps={{
-                                                shrink: true, // Ensures the label doesn't overlap the input
+                                                shrink: true,
                                             }}
                                         />
                                     )}
                                 />
+                                {/* Conditionally render cheque details box */}
+                                {selectedMode === 'Cheque' && (
+                                    <Box
+                                        sx={{
+                                            border: '1px solid #ccc',
+                                            borderRadius: '8px',
+                                            padding: '16px',
+                                            marginTop: '16px',
+                                        }}
+                                    >
+                                        <TextField
+                                            label="Name"
+                                            variant="outlined"
+                                            size="small"
+                                            fullWidth
+                                            margin="normal"
+                                            value={chequeDetails.name}
+                                            onChange={(e) => handleInputChange('name', e.target.value)}
+                                        />
+                                        <TextField
+                                            label="Gold Number"
+                                            variant="outlined"
+                                            size="small"
+                                            fullWidth
+                                            margin="normal"
+                                            value={chequeDetails.goldNumber}
+                                            onChange={(e) => handleInputChange('goldNumber', e.target.value)}
+                                        />
+                                        <Button
+                                            variant="contained"
+                                            color="primary"
+                                            fullWidth
+                                            onClick={handleOkClick}
+                                            sx={{ marginTop: '16px' }}
+                                        >
+                                            OK
+                                        </Button>
+                                    </Box>
+                                )}
                             </Grid>
 
                             {/* Interest Rate */}
@@ -806,7 +875,7 @@ export default function GoldLoanBill() {
                                                             height: '24px',
                                                         }}
                                                     >
-                                                        <TableCell align="center" sx={{ padding: '4px' }}>{detail.goldItem}</TableCell>
+                                                        <TableCell align="center" sx={{ padding: '4px' }}>{detail.goldItem.goldItem}</TableCell>
                                                         <TableCell align="center" sx={{ padding: '4px' }}>{detail.quantity}</TableCell>
                                                         <TableCell align="center" sx={{ padding: '4px' }}>{detail.grossWeight.toFixed(2)}</TableCell>
                                                         <TableCell align="center" sx={{ padding: '4px' }}>{detail.stoneWeight}</TableCell>
@@ -1008,9 +1077,9 @@ export default function GoldLoanBill() {
                                     </TableRow>
                                     <TableRow sx={{ padding: '0px 0' }}>
                                         <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}> Total Charges</TableCell>
-                                        {/* {loanDetails.map((detail, index) => (
-                                        <TableCell key={index} sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{detail.totalNetWeight}</TableCell>
-                                    ))} */}
+                                        {loanDetails.map((detail, index) => (
+                                            <TableCell key={index} sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{detail.totalCharges}</TableCell>
+                                        ))}
                                     </TableRow>
                                     <TableRow sx={{ padding: '0px 0' }}>
                                         <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Balance Amount</TableCell>
@@ -1057,6 +1126,13 @@ export default function GoldLoanBill() {
                                                 </TableCell>
                                             );
                                         })}
+                                    </TableRow>
+
+                                    <TableRow sx={{ padding: '0px 0' }}>
+                                        <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Single Gram (RS)</TableCell>
+                                        {loanDetails.map((detail, index) => (
+                                            <TableCell key={index} sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>N/A</TableCell>
+                                        ))}
                                     </TableRow>
 
                                 </TableBody>
@@ -1237,6 +1313,50 @@ export default function GoldLoanBill() {
                     </DialogActions>
 
                 </Dialog>
+
+                <Modal open={isModalOpen} onClose={handleCloseModal}>
+                    <Box
+                        sx={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: 300,
+                            bgcolor: 'background.paper',
+                            border: '2px solid #000',
+                            boxShadow: 24,
+                            p: 4,
+                            borderRadius: 2,
+                        }}
+                    >
+                        <h3>Payment Details</h3>
+                        <div>
+                            <p><strong>Selected Mode:</strong> {selectedPaymentMode}</p>
+                            <TextField
+                                fullWidth
+                                label="Name"
+                                variant="outlined"
+                                size="small"
+                                sx={{ mb: 2 }}
+                            />
+                            <TextField
+                                fullWidth
+                                label="Gold Number"
+                                variant="outlined"
+                                size="small"
+                                sx={{ mb: 2 }}
+                            />
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                fullWidth
+                                onClick={handleCloseModal}
+                            >
+                                Submit
+                            </Button>
+                        </div>
+                    </Box>
+                </Modal>
 
 
             </div>

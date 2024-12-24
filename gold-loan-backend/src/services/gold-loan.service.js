@@ -230,7 +230,7 @@ export async function addGoldLoan(req, res, next) {
             insurance,
             processingFee,
             packingFee,
-            totalInterestRate: tInterestRate,
+            totalInterestRate: parseFloat(tInterestRate.toFixed(3)),
             otherCharges,
             appraiser,
             totalCharges,

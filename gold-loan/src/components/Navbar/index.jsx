@@ -7,7 +7,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import Avatar from '@mui/material/Avatar';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import { RateSetting } from '../index';
+import { RateSetting, InterestPlanModal } from '../index';
 import { ROUTES } from '../../constant/route';
 
 
@@ -129,7 +129,7 @@ export default function Navbar({ handleDrawerOpen, open }) {
                             onClose={handleClose}
                         >
                             <MenuItem ><RateSetting /></MenuItem>
-                            <MenuItem onClick={handleClose}>Interest Plan</MenuItem>
+                            <MenuItem > <InterestPlanModal /></MenuItem>
                             <MenuItem onClick={handleClose}>Create Financial Year</MenuItem>
                             <MenuItem onClick={handleClose}>Set Financial Year</MenuItem>
                             <MenuItem onClick={handleClose}>Print Setup</MenuItem>
