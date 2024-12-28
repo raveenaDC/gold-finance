@@ -1044,7 +1044,7 @@ export default function GoldLoanBill() {
                                         <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Date</TableCell>
                                         {loanDetails.map((detail, index) => (
                                             <TableCell key={index} sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>
-                                                {new Date(detail.createdAt).toISOString().split('T')[0]}
+                                                {new Date(detail.purchaseDate).toISOString().split('T')[0]}
                                             </TableCell>
                                         ))}
                                     </TableRow>

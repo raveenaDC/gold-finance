@@ -578,7 +578,7 @@ export async function viewGoldLoanById(req, res, next) {
             httpStatus.OK,
             false,
             'Loan details retrieved successfully',
-            finalLoan
+            loan
         );
     } catch (error) {
         return next(new Error(error.message || 'An error occurred while fetching loan details.'));

@@ -43,13 +43,18 @@ export async function customerView(req, res, next) {
 
         const query = { createdAt: { $gte: startDate, $lte: endDate } };
 
-        if (phone && firstName && lastName && address) {
+        if (phone && search && address) {
 
             query.$and = [
-
+                {
+                    $expr: {
+                        $regexMatch: {
+                            input: { $concat: ['$firstName', ' ', '$lastName'] },
+                            regex: new RegExp(search, 'i')
+                        }
+                    }
+                },
                 { address: { $regex: new RegExp(address, 'i') } },
-                { firstName: { $regex: new RegExp(firstName, 'i') } },
-                { lastName: { $regex: new RegExp(lastName, 'i') } },
                 { primaryNumber: { $regex: new RegExp(phone, 'i') } }
 
             ];
@@ -71,12 +76,18 @@ export async function customerView(req, res, next) {
             //         { lastName: { $regex: new RegExp(search, 'i') } }
             //     );
             // }
-            if (firstName) {
-                conditions.push({ firstName: { $regex: new RegExp(firstName, 'i') } });
-            }
-
-            if (lastName) {
-                conditions.push({ lastName: { $regex: new RegExp(lastName, 'i') } });
+            if (search) {
+                conditions.push({ firstName: { $regex: new RegExp(search, 'i') } },
+                    {
+                        $expr: {
+                            $regexMatch: {
+                                input: { $concat: ['$firstName', ' ', '$lastName'] },
+                                regex: new RegExp(search, 'i')
+                            }
+                        }
+                    },
+                    { lastName: { $regex: new RegExp(search, 'i') } }
+                )
             }
             if (phone) {
                 conditions.push({ primaryNumber: { $regex: new RegExp(phone, 'i') } });
