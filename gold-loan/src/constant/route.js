@@ -1,4 +1,5 @@
 export const ROUTES = {
+    LOGIN: "/login",
     HOME: "/",
     GOLD_LOAN: "/gold-loan",
     CUSTOMER_GOLD_LOAN: "/gold-loan/:customerId",

@@ -86,7 +86,7 @@ export async function loginMembers(req, res, next) {
             res,
             httpStatus.OK,
             false,
-            'User details',
+            'Logged in successfully',
             userDetails
 
         );

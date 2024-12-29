@@ -49,7 +49,7 @@ export default function GoldLoanBill() {
         'Debit Card',
     ];
 
-    const [chequeDetails, setChequeDetails] = useState({ name: '', goldNumber: '' });
+    const [chequeDetails, setChequeDetails] = useState({ name: '', goldNumber: 10 });
     const [selectedMode, setSelectedMode] = useState('');
     const [selectedPaymentMode, setSelectedPaymentMode] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -127,6 +127,8 @@ export default function GoldLoanBill() {
             setGlNumber(newValue.glNo); // Set selected GL number
             setCustomerId(newValue.customerId); // Set customer ID linked to GL number
             setLoanId(newValue._id);
+            console.log("hiiiiiiiii");
+
             console.log("nothing", newValue.customerId);
             console.log(("idghg", newValue._id));
             console.log("nothing", newValue.glNo);
@@ -211,6 +213,9 @@ export default function GoldLoanBill() {
         try {
             const response = await getcustomergoldloandetails(customerId);
             const items = response.items || []; // Safely extract the items array
+            console.log("item......s");
+            console.log(items);
+
             setLoanDetails(items); // Store the items in the state
         } catch (error) {
             console.error('Error fetching customer details:', error);
@@ -481,9 +486,14 @@ export default function GoldLoanBill() {
                                             size="small"
                                             fullWidth
                                             margin="normal"
-                                            value={chequeDetails.goldNumber}
-                                            onChange={(e) => handleInputChange('goldNumber', e.target.value)}
+                                            value={chequeDetails.goldNumber} // Displays the value
+                                            onChange={(e) => handleInputChange('goldNumber', e.target.value)} // Updates the value on change
+                                            InputProps={{
+                                                shrink: true, // Ensures the label doesn't overlap the input
+                                                readOnly: true, // Makes the field read-only
+                                            }}
                                         />
+
                                         <Button
                                             variant="contained"
                                             color="primary"
@@ -1044,7 +1054,7 @@ export default function GoldLoanBill() {
                                         <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Date</TableCell>
                                         {loanDetails.map((detail, index) => (
                                             <TableCell key={index} sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>
-                                                {new Date(detail.createdAt).toISOString().split('T')[0]}
+                                                {new Date(detail.purchaseDate).toISOString().split('T')[0]}
                                             </TableCell>
                                         ))}
                                     </TableRow>

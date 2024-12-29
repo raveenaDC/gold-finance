@@ -1,14 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
-import { Box, CssBaseline } from '@mui/material'; // Keep 'Box' and 'CssBaseline' as they are used
+import { Box, CssBaseline } from '@mui/material';
 import { styled, useTheme, ThemeProvider } from '@mui/material/styles';
 import { NomineeProvider } from './configure/NomineeContext';
 import PageRoutes from './routes';
 import appTheme from './theme/appTheme';
 import { Sidebar, Navbar } from './components';
-
-
-
 
 const drawerWidth = 240;
 
@@ -33,6 +30,14 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 export default function App() {
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false); // Authentication state
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      setIsAuthenticated(true);
+    }
+  }, []);
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -40,6 +45,11 @@ export default function App() {
 
   const handleDrawerClose = () => {
     setOpen(false);
+  };
+
+  // Handle successful login
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true);
   };
 
   return (
@@ -51,7 +61,7 @@ export default function App() {
             <Navbar handleDrawerOpen={handleDrawerOpen} open={open} />
             <Sidebar open={open} handleDrawerClose={handleDrawerClose} theme={theme} drawerWidth={drawerWidth} />
             <Main open={open}>
-              <PageRoutes />
+              <PageRoutes isAuthenticated={isAuthenticated} onLoginSuccess={handleLoginSuccess} />
             </Main>
           </Box>
         </NomineeProvider>
