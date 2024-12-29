@@ -36,6 +36,10 @@ const findTotalPrinciplePaid = async (goldId) => {
     let principlePaid = billPaid.reduce((total, bill) => {
         return total + (bill.payment || 0);
     }, 0);
+    let totalPaidInterest = billPaid.reduce((interest, bill) => {
+        return interest + (bill.principleInterestRate || 0);
+    }, 0);
+
     let latestBill = await models.billingModel
         .findOne({ goldLoanId: goldId })
         .sort({ billDate: -1 })
@@ -79,7 +83,7 @@ export async function viewGoldLoan(req, res) {
         }
 
         let loanList = await models.goldLoanModel.find(query).select(
-            'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage totalCharges totalChargesAndBalanceAmount interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode insurance  processingFee otherCharges packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt'
+            'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage totalCharges totalChargesAndBalanceAmount interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode insurance  processingFee otherCharges packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage isClosed totalInterestRate createdAt'
         ).populate({
             path: 'itemDetails.goldItem', // Path to populate
             select: 'goldItem'   // Fields from the `goldItem` schema to include
@@ -142,6 +146,7 @@ export async function viewGoldLoan(req, res) {
                 profitOrLoss: loan.profitOrLoss,
                 goldImage: loan.goldImage,
                 isClosed: loan.isClosed,
+                goldItemDetails: loan.itemDetails,
             });
         }
 
@@ -562,12 +567,13 @@ export async function viewGoldLoanById(req, res, next) {
             fineDetails: fineDetails
         };
 
-        const { principlePaid, lastTransaction } = await findTotalPrinciplePaid(loans._id);
+        const { principlePaid, totalPaidInterest, lastTransaction } = await findTotalPrinciplePaid(loans._id);
         const balancePrincipleAmount = parseFloat(loanDetails.principleAmount) - parseFloat(principlePaid);
 
         const loan = {
             ...loanData,
             principlePaid,
+            totalPaidInterest,
             lastTransaction: lastTransaction || loans.purchaseDate,
             balancePrincipleAmount,
         };
@@ -578,7 +584,7 @@ export async function viewGoldLoanById(req, res, next) {
             httpStatus.OK,
             false,
             'Loan details retrieved successfully',
-            finalLoan
+            loan
         );
     } catch (error) {
         return next(new Error(error.message || 'An error occurred while fetching loan details.'));

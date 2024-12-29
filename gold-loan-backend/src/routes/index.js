@@ -5,6 +5,7 @@ import goldLoanRouter from './gold-loan.router.js'
 import loanDocumentRouter from './gold-loan-pdf.router.js'
 import billingRouter from './billing.router.js';
 import dashboardRouter from './dashboard.router.js';
+import reportRouter from './reports.router.js';
 
 import httpStatus from 'http-status';
 import { responseHelper } from '../utils/response.helper.js';
@@ -28,6 +29,9 @@ export default function initializeRoutes(app) {
 
     //GOLD LOAN BILLING ROUTER
     app.use('/billing', billingRouter);
+
+    //REPORTS ROUTER
+    app.use('/reports', reportRouter);
 
     //HOME PAGE COUNT ROUTER
     app.use('/dashboard/count', dashboardRouter);
