@@ -112,6 +112,7 @@ export async function viewGoldLoan(req, res) {
             const loanDetails = fineHistory && fineHistory.isFine && fineHistory.balanceAmount != 0
                 ? {
                     purchaseDate: fineHistory.purchaseDate,
+                    lastDate: fineHistory.lastDate,
                     totalInterestRate: fineHistory.totalInterestRate,
                     principleAmount: fineHistory.principleAmount,
                     totalChargesAndBalanceAmount: fineHistory.totalChargesAndBalanceAmount,
@@ -520,6 +521,7 @@ export async function viewGoldLoanById(req, res, next) {
         const loanDetails = fineHistory && fineHistory.isFine && fineHistory.balanceAmount != 0
             ? {
                 purchaseDate: fineHistory.purchaseDate,
+                lastDate: fineHistory.lastDate,
                 totalInterestRate: fineHistory.totalInterestRate,
                 principleAmount: fineHistory.principleAmount,
                 totalChargesAndBalanceAmount: fineHistory.totalChargesAndBalanceAmount,
