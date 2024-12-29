@@ -126,6 +126,7 @@ export async function viewAllGoldLoan(req, res, next) {
 
             loanData.push({
                 ...loanDetails,
+                goldLoanId: loan._id,
                 glNo: loan.glNo,
                 customerData: loan.customerId,
                 purchaseDate: loan.purchaseDate,
