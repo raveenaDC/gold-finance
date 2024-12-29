@@ -84,6 +84,8 @@ export async function cronFineCalculation() {
 
                     await models.fineGoldLoanModel.create({
                         goldLoanId: loan._id,
+                        purchaseDate: payLoanDate,
+                        lastDate: nextDueDate,
                         interestPercentage: loan.interestPercentage,
                         interestRate: interestCalculation,
                         interestMode: loan.interestMode,
