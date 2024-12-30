@@ -82,12 +82,14 @@ export async function viewAllGoldLoan(req, res, next) {
                 .findOne({ goldLoanId: loan._id })
             const loanDetails = fineHistory && fineHistory.isFine && fineHistory.balanceAmount != 0
                 ? {
+                    purchaseDate: fineHistory.purchaseDate,
                     totalInterestRate: fineHistory.totalInterestRate,
                     principleAmount: fineHistory.principleAmount,
                     totalChargesAndBalanceAmount: fineHistory.totalChargesAndBalanceAmount,
                     balanceAmount: fineHistory.balanceAmount,
                 }
                 : {
+                    purchaseDate: loan.purchaseDate,
                     totalInterestRate: loan.totalInterestRate,
                     principleAmount: loan.principleAmount,
                     totalChargesAndBalanceAmount: loan.totalChargesAndBalanceAmount,
@@ -95,7 +97,7 @@ export async function viewAllGoldLoan(req, res, next) {
                 };
             //End Fine Section
 
-            let lastTransactionDate = latestBill ? latestBill.billDate : loan.purchaseDate;
+            let lastTransactionDate = latestBill ? latestBill.billDate : loanDetails.purchaseDate;
             let balanceInterest = parseFloat(loanDetails.totalInterestRate) - parseFloat(principleInterest)
 
             let balanceInterestDays, interestDays, interestDaysAmount;
@@ -113,7 +115,7 @@ export async function viewAllGoldLoan(req, res, next) {
                 else { interestDaysAmount = day * interestDays }
 
                 //Balance Days After Last Interest Paid
-                balanceInterestDays = Math.ceil((lastTransactionDate - loan.purchaseDate) / (1000 * 60 * 60 * 24))// + 1;  Add 1 to include the last day
+                balanceInterestDays = Math.ceil((lastTransactionDate - loanDetails.purchaseDate) / (1000 * 60 * 60 * 24))// + 1;  Add 1 to include the last day
 
                 if (loan.interestMode == 'daily') { balanceInterestDays = 1 - balanceInterestDays }
                 else if (loan.interestMode == 'weekly') { balanceInterestDays = 7 - balanceInterestDays }
@@ -129,7 +131,7 @@ export async function viewAllGoldLoan(req, res, next) {
                 goldLoanId: loan._id,
                 glNo: loan.glNo,
                 customerData: loan.customerId,
-                purchaseDate: loan.purchaseDate,
+                // purchaseDate: loan.purchaseDate,
                 voucherNo: loan.voucherNo,
                 goldRate: loan.goldRate,
                 companyGoldRate: loan.companyGoldRate,
