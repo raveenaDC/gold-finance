@@ -433,7 +433,9 @@ export default function CustomerForm({ onCustomerAdded }) {
                 method: 'post',
                 path: 'customer/create'
             }
-            await submitDocument(customerData); // Call the API function
+            // await createCustomer(customerData)
+            const response = await submitDocument(customerData); // Call the API function
+            // todo - show success alert only if doc submission is succeess // check with status code or flag
             alert('Successfully uploaded!');
 
 
@@ -471,9 +473,10 @@ export default function CustomerForm({ onCustomerAdded }) {
                 passBookImage: null
             }); // Clear uploaded image
             // setFileSignature(null); // Clear uploaded signature
-            if (onCustomerAdded) {
-                onCustomerAdded();
-            }
+            // if (onCustomerAdded) {
+            //     onCustomerAdded();
+            // }
+            onCustomerAdded?.();
             handleClose(); // Close the form after submission
         } catch (error) {
             alert('Failed to upload data. Please try again.');
@@ -483,8 +486,8 @@ export default function CustomerForm({ onCustomerAdded }) {
     return (
         <>
 
-            <Button variant="contained" color="primary" onClick={handleOpen}>
-                Add Customer
+            <Button size='small' variant="contained" style={{ backgroundColor: '#689689', color: 'black' }} onClick={handleOpen}>
+                <strong>Add Customer</strong>
             </Button>
 
             <Modal

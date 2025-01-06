@@ -1,38 +1,42 @@
+import { Box, Button, Container, IconButton, InputAdornment, Paper, TextField, Typography } from "@mui/material";
 import React, { useState } from "react";
-import { TextField, Button, Box, Typography, Container, Paper } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../constant/route";
-import { submitData } from "../../api";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { login } from "../../services/customer/customer.service";
+import { setToLS } from "../../utils/storage.utils";
+import { STORAGE_KEYS } from "../../config/app.config";
 
-const LoginPage = ({ onLoginSuccess }) => {
+
+
+const LoginPage = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false)
     const [error, setError] = useState("");
+
     const navigate = useNavigate();
+    const handleClickShowPassword = () => setShowPassword((show) => !show);
 
     const handleLogin = async (event) => {
         event.preventDefault();
+        if (!email || !password) return;
         setLoading(true);
         setError(null);
-        const data = {
-            email,
-            password,
-        };
-        const customerData = {
-            info: data,
-            method: 'post',
-            path: "member/login/api",
-        };
-
         try {
-            const response = await submitData(customerData);
-            localStorage.setItem("token", response.member_token); // Assuming the response contains the token
-            if (onLoginSuccess) {
-                onLoginSuccess();
-                alert('Successfully logged in!');
-                navigate(ROUTES.HOME);
+
+            const response = await login(email, password);
+
+            if (response?.isError || !response?.data?.member_token) {
+                setError('Login failed. Please check your credentials or try again later.');
+                return;
             }
+
+            setToLS(STORAGE_KEYS.TOKEN, response.data.member_token) // Assuming the response contains the token
+            alert('Successfully logged in!');
+            navigate(ROUTES.HOME);
+
         } catch (error) {
             setError('Login failed. Please check your credentials or try again later.');
         } finally {
@@ -50,6 +54,7 @@ const LoginPage = ({ onLoginSuccess }) => {
                 justifyContent: "center",
                 alignItems: "center",
                 backgroundColor: "#2F2F2F", // Charcoal Grey
+                flexGrow: 1,
             }}
         >
             <Container maxWidth="xs">
@@ -88,7 +93,7 @@ const LoginPage = ({ onLoginSuccess }) => {
                         <TextField
                             fullWidth
                             label="Password"
-                            type="password"
+                            type={showPassword ? 'text' : 'password'}
                             variant="outlined"
                             margin="normal"
                             value={password}
@@ -99,8 +104,18 @@ const LoginPage = ({ onLoginSuccess }) => {
                                     "&:hover fieldset": { borderColor: "#B8860B" }, // Dark Gold on hover
                                 },
                             }}
+                            slotProps={{
+                                input: {
+                                    endAdornment: <InputAdornment position="end">
+                                        <IconButton onClick={handleClickShowPassword}>
+                                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                }
+                            }}
                         />
                         <Button
+                            disabled={loading}
                             type="submit"
                             fullWidth
                             variant="contained"

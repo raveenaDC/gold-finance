@@ -7,4 +7,5 @@ export const API_ENDPOINT = {
     UPDATE_CUSTOMER_RATINGS: "/customer/[customerId]/details/update",
     GET_CUSTOMER_GOLD_LOAN_DETAILS: "/customer/gold/loan-details/customer/[customerId]",
     GET_GOLD_DETAIL_TABLE: "/customer/gold/loan/[loanId]",
+    LOGIN: "/member/login/api"
 }

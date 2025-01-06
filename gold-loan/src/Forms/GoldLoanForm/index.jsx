@@ -6,7 +6,11 @@ import {
     Typography, ToggleButtonGroup, ToggleButton, FormControl,
     InputLabel, Select, MenuItem, Divider, Rating
 } from '@mui/material';
+import rateReducer from '../../Redux/rateSlice';
+import { useNavigate } from "react-router-dom";
+import { ROUTES } from "../../constant/route";
 import { Card, CardContent, Avatar, FormControlLabel, Switch, } from '@mui/material';
+import { LinearProgress } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -23,6 +27,7 @@ import SaveIcon from '@mui/icons-material/Save'; // Import the Save icon
 import { AddNomineeDetails } from '../../Forms';
 import { incrementGLNo } from '../../Redux/GlNoSlice';
 import { incrementVoucherNo } from '../../Redux/voucherNoSlice';
+
 import { useParams } from 'react-router-dom';
 import { submitDocument } from '../../api';
 import { useNominee } from '../../configure/NomineeContext';
@@ -38,6 +43,7 @@ const GoldLoanForm = () => {
     const dispatch = useDispatch();
     const webcamRef = useRef(null); // Ref to access the webcam
     const formRef = useRef();
+    const navigate = useNavigate();
 
     const [form, setForm] = useState({
         principleAmount: '',
@@ -49,7 +55,6 @@ const GoldLoanForm = () => {
         range: '',
         interestMode: 'simple',
         interestPercentage: '14',
-        companyGoldRate: '4000',
     });
 
     const [items, setItems] = useState([]);
@@ -78,6 +83,8 @@ const GoldLoanForm = () => {
 
     const glNo = useSelector((state) => state.glNo.glNo);
     const voucherNo = useSelector((state) => state.voucherNo.voucherNo);
+    const { date, goldRate, companyGoldRate } = useSelector((state) => state.rateSetting); // Accessing data from Redux
+
 
     const { customerId } = useParams();
     const { nominee } = useNominee();// Access nominee data from context
@@ -95,7 +102,7 @@ const GoldLoanForm = () => {
         goldImage: false,
     });
 
-    const goldRate = 5000;
+
 
     const totalNetWeight = items.reduce((total, item) => total + (parseFloat(item.netWeight) || 0), 0);
     const totalGrossWeight = items.reduce((total, item) => total + (parseFloat(item.grossWeight) || 0), 0);
@@ -306,6 +313,73 @@ const GoldLoanForm = () => {
         setFileImage({ ...fileImage, capture: null }); // Clear the captured image
     };
 
+    function calculateProfileCompletion(customerData) {
+        const totalFields = 24; // Adjust based on how many fields you're checking
+        let completedFields = 0;
+
+        // Check if the fields are provided
+        if (customerData.primaryNumber) completedFields++;
+        if (customerData.secondaryNumber) completedFields++;
+        if (customerData.address) completedFields++;
+        if (customerData.email) completedFields++;
+        if (customerData.aadhar) completedFields++;
+        if (customerData.aadharImage) completedFields++;
+        if (customerData.bankName) completedFields++;
+        if (customerData.bankUserName) completedFields++;
+        if (customerData.city) completedFields++;
+        if (customerData.email) completedFields++;
+        if (customerData.gender) completedFields++;
+        if (customerData.ifsc) completedFields++;
+        if (customerData.image) completedFields++;
+        if (customerData.lastName) completedFields++;
+        if (customerData.nearBy) completedFields++;
+        if (customerData.panCardName) completedFields++;
+        if (customerData.panCardNumber) completedFields++;
+        if (customerData.passBookImage) completedFields++;
+        if (customerData.pin) completedFields++;
+        if (customerData.place) completedFields++;
+        if (customerData.signature) completedFields++;
+        if (customerData.state) completedFields++;
+        if (customerData.upId) completedFields++;
+        if (customerData.gst) completedFields++;
+
+
+
+        return parseFloat(((completedFields / totalFields) * 100).toFixed(1));
+        // Return completion percentage
+    }
+
+    function handleShowMissingDetails(customerData) {
+        const missingDetails = [];
+        if (!customerData.primaryNumber) missingDetails.push('Mobile number');
+        if (!customerData.secondaryNumber) missingDetails.push('Secondary mobile number');
+        if (!customerData.address) missingDetails.push('Address');
+        if (!customerData.email) missingDetails.push('Email');
+        if (!customerData.aadhar) missingDetails.push('Aadhar');
+        if (!customerData.aadharImage) missingDetails.push('AadharImage');
+        if (!customerData.bankName) missingDetails.push('bankName');
+        if (!customerData.bankUserName) missingDetails.push('bankUserName');
+        if (!customerData.city) missingDetails.push('city');
+        if (!customerData.email) missingDetails.push('email');
+        if (!customerData.gender) missingDetails.push('gender');
+        if (!customerData.ifsc) missingDetails.push('ifsc');
+        if (!customerData.image) missingDetails.push('image');
+        if (!customerData.lastName) missingDetails.push('lastName');
+        if (!customerData.nearBy) missingDetails.push('nearBy');
+        if (!customerData.panCardName) missingDetails.push('panCardName');
+        if (!customerData.panCardNumber) missingDetails.push('panCardNumber');
+        if (!customerData.passBookImage) missingDetails.push('passBookImage');
+        if (!customerData.pin) missingDetails.push('pin');
+        if (!customerData.place) missingDetails.push('place');
+        if (!customerData.signature) missingDetails.push('signature');
+        if (!customerData.state) missingDetails.push('state');
+        if (!customerData.upId) missingDetails.push('upId');
+        if (!customerData.gst) missingDetails.push('gst');
+
+
+        alert(`Missing details: ${missingDetails.join(', ')}`);
+    }
+
     // Use the customerId to fetch customer data
     const fetchCustomerData = async () => {
         try {
@@ -461,7 +535,7 @@ const GoldLoanForm = () => {
         formData.append("totalNetWeight", totalNetWeight);
         formData.append("interestPercentage", form.interestPercentage);
         formData.append("paymentMode", paymentMode);
-        formData.append("companyGoldRate", form.companyGoldRate);
+        formData.append("companyGoldRate", companyGoldRate);
         formData.append("glNo", glNo);  // Example for GL Number
         formData.append("voucherNo", voucherNo);  // Example for Voucher Number
         formData.append("customerId", customerId);
@@ -501,13 +575,39 @@ const GoldLoanForm = () => {
 
             let res = await submitDocument(response);
             console.log(res);
-
             alert(res.message);
+
+            setForm({
+                principleAmount: '',
+                insurance: '',
+                processingFee: '',
+                packingFee: '',
+                appraiser: '',
+                otherCharges: '',
+                range: '',
+            })
+            setNewItems({
+                id: 1,
+                type: 'Select',
+                quantity: '',
+                grossWeight: '',
+                stoneWeight: '',
+                depreciation: '',
+                netWeight: '',
+            })
+            setFileImage({
+                goldImage: null,
+                capture: null,
+            })
+
+
+
 
             if (res.status === 201) {
 
                 dispatch(incrementGLNo());
                 dispatch(incrementVoucherNo());
+                navigate(ROUTES.GOLD_LOAN);
             } else {
                 console.error("Failed to submit form:", res.message);
             }
@@ -536,9 +636,17 @@ const GoldLoanForm = () => {
 
     return (
         <Box sx={{ display: 'flex', p: 2, width: '100%', mx: 'auto', mt: 1 }}>
-            <Box sx={{ flex: 2, p: 1 }} ref={formRef}>
+            <Box sx={{ flex: 2, p: 1, mt: -4 }} ref={formRef}>
 
-                <Typography variant="subtitle1">GoldLoanForm</Typography>
+                <h5 style={{
+                    color: '#B8860B',
+                    fontSize: '18px',
+                    marginBottom: '0px',
+                    fontWeight: '600',
+                    textAlign: 'center', // Centers the text
+                }}>
+                    GOLD LOAN
+                </h5>
 
                 <Box id="table-section"
                     display="flex"
@@ -1084,7 +1192,7 @@ const GoldLoanForm = () => {
                                 </TableRow>
                                 <TableRow>
                                     <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Gold Loan Rate</TableCell>
-                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{goldRate}</TableCell>
+                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{companyGoldRate}</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Max Gold Value</TableCell>
@@ -1166,7 +1274,7 @@ const GoldLoanForm = () => {
                                 </Typography>
                                 <Typography
                                     variant="body2"
-                                    color="text.secondary"
+                                    color="black"
                                     sx={{ mb: 1 }}
                                 >
                                     {customerData.state},INDIA
@@ -1188,20 +1296,45 @@ const GoldLoanForm = () => {
                                 sx={{
                                     display: 'flex',
                                     flexDirection: 'column',
-                                    gap: 1,
-                                    color: 'text.secondary',
+                                    gap: 0,
+                                    color: 'black',
                                 }}
                             >
                                 <Typography variant="body2" sx={{ fontSize: 11.5 }}>
                                     <strong>Address:</strong> {customerData.address},{' '}
                                     {customerData.place}, {customerData.pin}
                                 </Typography>
-                                <Typography variant="body2" sx={{ fontSize: 11.5 }}>
+                                <Typography variant="body2" sx={{ fontSize: 11.5, }}>
                                     <strong>Mobile:</strong> {customerData.primaryNumber}, {customerData.secondaryNumber}
                                 </Typography>
                                 <Typography variant="body2" sx={{ fontSize: 11.5 }}>
                                     <strong>Email:</strong> {customerData.email}
                                 </Typography>
+
+                                <Box sx={{ mt: .5 }}>
+                                    <Typography
+                                        variant="body2"
+                                        sx={{ mt: 0, fontSize: 11.5 }}
+                                    >
+                                        <strong> Profile Completion</strong>: {calculateProfileCompletion(customerData)}%
+                                    </Typography>
+
+
+                                    <LinearProgress
+                                        variant="determinate"
+                                        value={calculateProfileCompletion(customerData)}
+                                        sx={{
+                                            height: 5,
+                                            borderRadius: 10,
+                                            cursor: 'pointer',
+                                            backgroundColor: '#e0f2f1', // Light teal background
+                                            '& .MuiLinearProgress-bar': {
+                                                backgroundColor: '#689689', // Your chosen color for the filled part
+                                            },
+                                        }}
+                                        onClick={() => handleShowMissingDetails(customerData)}
+                                    />
+                                </Box>
                             </Box>
                         </Box>
                     </Card>

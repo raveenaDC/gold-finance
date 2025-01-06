@@ -3,6 +3,8 @@ import { Grid, Paper, TableContainer, Typography, Box, Skeleton } from '@mui/mat
 import { BarChart } from '@mui/x-charts/BarChart';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { viewDashboardDetails } from '../../services/dashboard/dashboard.service';
+import { getFromLS } from '../../utils/storage.utils';
+import { STORAGE_KEYS } from '../../config/app.config';
 
 const ChartContainer = ({ children, width, height }) => (
     <TableContainer
@@ -28,10 +30,10 @@ export default function MainPage() {
 
     const fetchDashboardData = async () => {
         try {
-            const token = localStorage.getItem('member_token');
-            const response = await viewDashboardDetails(token);
-            if (!response.result.data) {
-                return alert(response.result);
+            const response = await viewDashboardDetails();
+            if (!response?.isSuccess) {
+                alert(response.result);
+                return;
             }
             setDashboardValues(response.result.data);
         } catch (error) {

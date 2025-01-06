@@ -1,3 +1,4 @@
+import { requests } from "../../config/api.config";
 import { API_BASE_URL, API_ENDPOINT } from "../../constant/apiEndpoints"
 
 export const getCustomerDetails = async (customerId) => {
@@ -39,3 +40,7 @@ export const updateCustomerRating = async (customerId, rating) => {
         return { isSuccess: false, result: null }; // Ensure consistent structure for error cases
     }
 };
+
+export const login = async (email, password) => {
+    return await requests.post({ url: API_ENDPOINT.LOGIN, data: { email, password } })
+}

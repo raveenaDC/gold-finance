@@ -4,11 +4,14 @@ import {
     FormControlLabel, Rating, Table, TableBody, TableCell, TableHead, TableRow,
     TableContainer, Paper, IconButton, Tooltip, Modal
 } from '@mui/material';
+import Alert from '@mui/material/Alert';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Draggable from 'react-draggable';
+import { LinearProgress } from '@mui/material';
+import { differenceInDays } from 'date-fns';
 
 
 import SendIcon from '@mui/icons-material/Send';
@@ -16,6 +19,7 @@ import PrintIcon from "@mui/icons-material/Print";
 
 import { useSelector, useDispatch } from 'react-redux';
 import { incrementBillNumber } from '../../Redux/billNumberSlice';
+import { submitData } from "../../api";
 
 
 
@@ -25,11 +29,11 @@ import { getcustomergoldloandetails, getgolddetailtable } from '../../services/g
 
 export default function GoldLoanBill() {
     const dispatch = useDispatch();
-    const billNumber = useSelector((state) => state.billNumber.billNumber); // Access Redux state
+    const billNo = useSelector((state) => state.billNumber.billNumber); // Access Redux state
 
     const [formData, setFormData] = useState({
         interestRate: "",
-        principalPaid: "",
+        principlePaid: "",
         includeCharges: "",
         totalAmount: "",
         insurance: "",
@@ -37,8 +41,11 @@ export default function GoldLoanBill() {
         packingFee: "",
         appraiser: "",
         otherCharges: "",
+        totalCharges: "100",
+        paymentMode: "cash",
+        paymentName: "",
+        paymentNumber: "",
     });
-
 
     const paymentModes = [
         'Cash',
@@ -69,12 +76,15 @@ export default function GoldLoanBill() {
     const [rating, setRating] = useState(0); // State to store the rating value
     const [glNumber, setGlNumber] = useState(''); // GL Number state
     const [customerId, setCustomerId] = useState(''); // Customer ID linked to GL Number
-    const [loanId, setLoanId] = useState(''); // Loan ID Linked to Gold Table Details
+    const [goldLoanId, setGoldLoanId] = useState(''); // Loan ID Linked to Gold Table Details
     const [customerData, setCustomerData] = useState(null); // Fetched customer details
     const [glOptions, setGlOptions] = useState([]); // GL number dropdown options
-    const [selectedDate, setSelectedDate] = useState(''); // Date picker value
+    const [billDate, setBillDate] = useState(''); // Date picker value
     const [loanDetails, setLoanDetails] = useState([]);//fetched Gold details
     const [itemDetails, setItemDetails] = useState([]);
+    const [singleloanDetails, setSingleloanDetails] = useState([]);
+    const [fineDetails, setFineDetails] = useState([]);
+
 
     const [loading, setLoading] = useState(false);
     const [showTable, setShowTable] = useState(false);
@@ -126,7 +136,7 @@ export default function GoldLoanBill() {
         if (newValue) {
             setGlNumber(newValue.glNo); // Set selected GL number
             setCustomerId(newValue.customerId); // Set customer ID linked to GL number
-            setLoanId(newValue._id);
+            setGoldLoanId(newValue._id);
             console.log("hiiiiiiiii");
 
             console.log("nothing", newValue.customerId);
@@ -183,6 +193,77 @@ export default function GoldLoanBill() {
 
 
 
+    function calculateProfileCompletion(customerData) {
+        const totalFields = 24; // Adjust based on how many fields you're checking
+        let completedFields = 0;
+
+        // Check if the fields are provided
+        if (customerData.primaryNumber) completedFields++;
+        if (customerData.secondaryNumber) completedFields++;
+        if (customerData.address) completedFields++;
+        if (customerData.email) completedFields++;
+        if (customerData.aadhar) completedFields++;
+        if (customerData.aadharImage) completedFields++;
+        if (customerData.bankName) completedFields++;
+        if (customerData.bankUserName) completedFields++;
+        if (customerData.city) completedFields++;
+        if (customerData.email) completedFields++;
+        if (customerData.gender) completedFields++;
+        if (customerData.ifsc) completedFields++;
+        if (customerData.image) completedFields++;
+        if (customerData.lastName) completedFields++;
+        if (customerData.nearBy) completedFields++;
+        if (customerData.panCardName) completedFields++;
+        if (customerData.panCardNumber) completedFields++;
+        if (customerData.passBookImage) completedFields++;
+        if (customerData.pin) completedFields++;
+        if (customerData.place) completedFields++;
+        if (customerData.signature) completedFields++;
+        if (customerData.state) completedFields++;
+        if (customerData.upId) completedFields++;
+        if (customerData.gst) completedFields++;
+
+
+
+        return parseFloat(((completedFields / totalFields) * 100).toFixed(1));
+        // Return completion percentage
+    }
+
+    function handleShowMissingDetails(customerData) {
+        const missingDetails = [];
+        if (!customerData.primaryNumber) missingDetails.push('Mobile number');
+        if (!customerData.secondaryNumber) missingDetails.push('Secondary mobile number');
+        if (!customerData.address) missingDetails.push('Address');
+        if (!customerData.email) missingDetails.push('Email');
+        if (!customerData.aadhar) missingDetails.push('Aadhar');
+        if (!customerData.aadharImage) missingDetails.push('AadharImage');
+        if (!customerData.bankName) missingDetails.push('bankName');
+        if (!customerData.bankUserName) missingDetails.push('bankUserName');
+        if (!customerData.city) missingDetails.push('city');
+        if (!customerData.email) missingDetails.push('email');
+        if (!customerData.gender) missingDetails.push('gender');
+        if (!customerData.ifsc) missingDetails.push('ifsc');
+        if (!customerData.image) missingDetails.push('image');
+        if (!customerData.lastName) missingDetails.push('lastName');
+        if (!customerData.nearBy) missingDetails.push('nearBy');
+        if (!customerData.panCardName) missingDetails.push('panCardName');
+        if (!customerData.panCardNumber) missingDetails.push('panCardNumber');
+        if (!customerData.passBookImage) missingDetails.push('passBookImage');
+        if (!customerData.pin) missingDetails.push('pin');
+        if (!customerData.place) missingDetails.push('place');
+        if (!customerData.signature) missingDetails.push('signature');
+        if (!customerData.state) missingDetails.push('state');
+        if (!customerData.upId) missingDetails.push('upId');
+        if (!customerData.gst) missingDetails.push('gst');
+
+
+        alert(`Missing details: ${missingDetails.join(', ')}`);
+    }
+
+
+
+
+
     // Fetch customer data based on GL Number
     const fetchGoldNoData = async () => {
         try {
@@ -212,10 +293,7 @@ export default function GoldLoanBill() {
     const fetchCustomerGoldDetailsData = async () => {
         try {
             const response = await getcustomergoldloandetails(customerId);
-            const items = response.items || []; // Safely extract the items array
-            console.log("item......s");
-            console.log(items);
-
+            const items = response.items || []; // Safely extract the items array     
             setLoanDetails(items); // Store the items in the state
         } catch (error) {
             console.error('Error fetching customer details:', error);
@@ -224,10 +302,14 @@ export default function GoldLoanBill() {
 
     const fetchCustomerGoldTable = async () => {
         try {
-            const response = await getgolddetailtable(loanId);
-            console.log("checking", response.items.itemDetails);
-            const items = response.items.itemDetails || []; // Safely extract the items array
-            setItemDetails(items); // Store the items in the state
+            const response = await getgolddetailtable(goldLoanId);
+            console.log("checking", response.items);
+            const itemDetails = response.items.itemDetails || []; // Safely extract the items array
+            const items = response.items || [];
+            const fine = response.items.fineDetails || [];
+            setFineDetails(fine);
+            setSingleloanDetails(items);
+            setItemDetails(itemDetails); // Store the items in the state
         } catch (error) {
             console.error('Error fetching customer details:', error);
         }
@@ -263,21 +345,58 @@ export default function GoldLoanBill() {
         }
     }, [customerId]);
     useEffect(() => {
-        if (loanId) {
+        if (goldLoanId) {
             fetchCustomerGoldTable();
         }
-    }, [loanId]);
+    }, [goldLoanId]);
 
     // Handle form submission
     const handleSubmit = async (event) => {
-        event.preventDefault();
-        dispatch(incrementBillNumber());
+        event.preventDefault(); // Prevent default form submission behavior
+
+        if (!goldLoanId || !billDate) {
+            alert('Please fill in all required fields.');
+            return;
+        }
+
+        const data = {
+            goldLoanId,
+            billDate,
+            billNo,
+            ...formData,
+        };
+        console.log("payment name", formData.paymentName);
+
+
+        const customerData = {
+            info: data,
+            method: 'post',
+            path: 'billing/transaction',
+        };
+
+        try {
+            setLoading(true);
+            await submitData(customerData); // Assuming submitData is defined elsewhere
+            dispatch(incrementBillNumber());
+            alert('Transaction submitted successfully!');
+
+        } catch (error) {
+            console.error('Error submitting transaction:', error);
+            alert('Failed to submit the transaction.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     // Handle date change
     const handleDateChange = (event) => {
-        setSelectedDate(event.target.value);
+        setBillDate(event.target.value);
     };
+
+    const diffDays = differenceInDays(new Date(billDate), new Date(singleloanDetails.lastTransaction),);
+    formData.totalAmount = parseFloat(formData.interestRate || 0) + parseFloat(formData.principlePaid || 0);
+
+
 
     return (
         <Box sx={{ width: '100%', maxWidth: 1200, mx: 'auto', mt: 2 }}>
@@ -301,22 +420,29 @@ export default function GoldLoanBill() {
                                 <Typography variant="body2" fontWeight="bold">
                                     Receipt No:
                                 </Typography>
-                                {billNumber}
+                                {billNo}
                             </Box>
 
                             {/* Gold Loan Details */}
-                            <Typography variant="h6" fontWeight="bold" >
-                                Gold Loan Details
-                            </Typography>
+
+                            <h5 style={{
+                                color: '#B8860B',
+                                fontSize: '18px',
+                                marginBottom: '20px',
+                                fontWeight: '600',
+                                textAlign: 'center', // Centers the text
+                            }}>
+                                GOLD LOAN TRANSACTION
+                            </h5>
+
 
                             {/* Date */}
                             <Box display="flex" alignItems="center" gap={1}>
                                 <TextField
                                     type="date"
                                     size="small"
-                                    label="DATE"
-                                    value={selectedDate}
-                                    onChange={(e) => setSelectedDate(e.target.value)}
+                                    label="PURCHASE DATE"
+                                    value={new Date(singleloanDetails.purchaseDate).toLocaleDateString('en-CA')} // Format the date to YYYY-MM-DD
                                     sx={{
                                         '& .MuiInputLabel-root': {
                                             fontSize: '14px', // Increased label font size
@@ -332,7 +458,11 @@ export default function GoldLoanBill() {
                                     InputLabelProps={{
                                         shrink: true, // Ensures the label doesn't overlap the input
                                     }}
+                                    InputProps={{
+                                        readOnly: true, // Makes the field read-only
+                                    }}
                                 />
+
                             </Box>
                         </Box>
 
@@ -379,10 +509,9 @@ export default function GoldLoanBill() {
                                 <TextField
                                     type="date"
                                     size="small"
-                                    label="PERIOD START"
+                                    label="TRANSACTION DATE"
                                     fullWidth
-                                    value={selectedDate}
-                                    onChange={(e) => setSelectedDate(e.target.value)}
+                                    value={new Date(singleloanDetails.lastTransaction).toLocaleDateString('en-CA')} // Format the date to YYYY-MM-DD
                                     sx={{
                                         '& .MuiInputLabel-root': {
                                             fontSize: '14px', // Increased label font size
@@ -398,7 +527,11 @@ export default function GoldLoanBill() {
                                     InputLabelProps={{
                                         shrink: true, // Ensures the label doesn't overlap the input
                                     }}
+                                    InputProps={{
+                                        readOnly: true, // Makes the field read-only
+                                    }}
                                 />
+
                             </Grid>
 
                             {/* Date */}
@@ -409,8 +542,8 @@ export default function GoldLoanBill() {
                                     size="small"
                                     label="PERIOD END"
                                     fullWidth
-                                    value={selectedDate}
-                                    onChange={(e) => setSelectedDate(e.target.value)}
+                                    value={billDate}
+                                    onChange={(e) => setBillDate(e.target.value)}
                                     sx={{
                                         '& .MuiInputLabel-root': {
                                             fontSize: '14px', // Increased label font size
@@ -461,50 +594,6 @@ export default function GoldLoanBill() {
                                         />
                                     )}
                                 />
-                                {/* Conditionally render cheque details box */}
-                                {selectedMode === 'Cheque' && (
-                                    <Box
-                                        sx={{
-                                            border: '1px solid #ccc',
-                                            borderRadius: '8px',
-                                            padding: '16px',
-                                            marginTop: '16px',
-                                        }}
-                                    >
-                                        <TextField
-                                            label="Name"
-                                            variant="outlined"
-                                            size="small"
-                                            fullWidth
-                                            margin="normal"
-                                            value={chequeDetails.name}
-                                            onChange={(e) => handleInputChange('name', e.target.value)}
-                                        />
-                                        <TextField
-                                            label="Gold Number"
-                                            variant="outlined"
-                                            size="small"
-                                            fullWidth
-                                            margin="normal"
-                                            value={chequeDetails.goldNumber} // Displays the value
-                                            onChange={(e) => handleInputChange('goldNumber', e.target.value)} // Updates the value on change
-                                            InputProps={{
-                                                shrink: true, // Ensures the label doesn't overlap the input
-                                                readOnly: true, // Makes the field read-only
-                                            }}
-                                        />
-
-                                        <Button
-                                            variant="contained"
-                                            color="primary"
-                                            fullWidth
-                                            onClick={handleOkClick}
-                                            sx={{ marginTop: '16px' }}
-                                        >
-                                            OK
-                                        </Button>
-                                    </Box>
-                                )}
                             </Grid>
 
                             {/* Interest Rate */}
@@ -516,7 +605,7 @@ export default function GoldLoanBill() {
                                     size="small"
                                     label="INTEREST RATE"
                                     fullWidth
-                                    placeholder="Enter Interest Rate"
+                                    placeholder={diffDays}
                                     sx={{
                                         '& .MuiInputLabel-root': {
                                             fontSize: '14px', // Increased label font size
@@ -540,29 +629,33 @@ export default function GoldLoanBill() {
                             <Grid item xs={6} md={3}>
                                 {/* <Typography variant="body2" fontWeight="bold">Principal Paid</Typography> */}
                                 <TextField
-                                    name="principalPaid"
-                                    value={formData.principalPaid}
+                                    name="principlePaid"
+                                    value={formData.principlePaid}
                                     onChange={handleChange}
                                     label="PRINCIPAL PAID"
                                     size="small"
                                     fullWidth
                                     placeholder="Enter Amount"
+                                    disabled={formData.interestRate === null || formData.interestRate < diffDays} // Disable if interestRate is null or greater than diffDays
+
                                     sx={{
                                         '& .MuiInputLabel-root': {
-                                            fontSize: '14px', // Increased label font size
-                                            fontWeight: 'bold', // Made label bold
+                                            fontSize: '14px', // Label font size
+                                            fontWeight: 'bold', // Bold label
                                             marginBottom: '0px',
                                         },
                                         '& .MuiInputBase-root': {
                                             fontSize: '14px',
                                             paddingTop: '0px',
                                             paddingBottom: '0px',
-                                        }
+                                        },
                                     }}
                                     InputLabelProps={{
-                                        shrink: true, // Ensures the label doesn't overlap the input
+                                        shrink: true, // Prevents label overlap
                                     }}
                                 />
+
+
                             </Grid>
 
                             {/*Insurance */}
@@ -708,8 +801,8 @@ export default function GoldLoanBill() {
                                 {/* <Typography variant="body2" fontWeight="bold">Total Amount</Typography> */}
                                 <TextField
                                     name="totalAmount"
-                                    value={formData.totalAmount}
-                                    onChange={handleChange}
+                                    value={formData.totalAmount}// Dynamically calculate totalAmount
+                                    onChange={handleChange} // Handle the change in input, if necessary
                                     label="TOTAL AMOUNT"
                                     size="small"
                                     fullWidth
@@ -729,7 +822,13 @@ export default function GoldLoanBill() {
                                     InputLabelProps={{
                                         shrink: true, // Ensures the label doesn't overlap the input
                                     }}
+                                    InputProps={{
+                                        readOnly: true, // Makes the field read-only
+                                    }}
+                                // Optionally make it read-only if you don't want the user to edit it
+
                                 />
+
                             </Grid>
 
                             <Grid item xs={6} md={3.2}>
@@ -885,7 +984,7 @@ export default function GoldLoanBill() {
                                                             height: '24px',
                                                         }}
                                                     >
-                                                        <TableCell align="center" sx={{ padding: '4px' }}>{detail.goldItem.goldItem}</TableCell>
+                                                        <TableCell align="center" sx={{ padding: '4px' }}>{detail.goldItemDetails.goldItem}</TableCell>
                                                         <TableCell align="center" sx={{ padding: '4px' }}>{detail.quantity}</TableCell>
                                                         <TableCell align="center" sx={{ padding: '4px' }}>{detail.grossWeight.toFixed(2)}</TableCell>
                                                         <TableCell align="center" sx={{ padding: '4px' }}>{detail.stoneWeight}</TableCell>
@@ -907,35 +1006,35 @@ export default function GoldLoanBill() {
                                     <TableBody>
                                         <TableRow>
                                             <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}> Principal Amount </TableCell>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>24000</TableCell>
+                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{singleloanDetails.principleAmount}</TableCell>
                                         </TableRow>
                                         <TableRow>
                                             <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}> Principle Paid</TableCell>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>24000</TableCell>
+                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{singleloanDetails.principlePaid}</TableCell>
                                         </TableRow>
                                         <TableRow>
                                             <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}> Bal Principle Amt</TableCell>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>24000</TableCell>
+                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{singleloanDetails.balancePrincipleAmount}</TableCell>
                                         </TableRow>
 
                                         <TableRow>
                                             <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Balance  Interest</TableCell>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>24000</TableCell>
+                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{singleloanDetails.principleAmount}</TableCell>
                                         </TableRow>
 
                                         <TableRow>
                                             <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Other Charges </TableCell>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>24000</TableCell>
+                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{singleloanDetails.totalCharges}</TableCell>
                                         </TableRow>
 
                                         <TableRow>
                                             <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Total Amount</TableCell>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>24000</TableCell>
+                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{singleloanDetails.totalChargesAndBalanceAmount}</TableCell>
                                         </TableRow>
 
                                         <TableRow>
                                             <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>No Of Days </TableCell>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>24000</TableCell>
+                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{singleloanDetails.principleAmount}</TableCell>
                                         </TableRow>
                                     </TableBody>
                                 </Table>
@@ -962,7 +1061,6 @@ export default function GoldLoanBill() {
                                 flexDirection: 'row',
                                 padding: 2,
                                 gap: 2,
-
                             }}
                         >
                             <Box
@@ -1001,11 +1099,59 @@ export default function GoldLoanBill() {
                                 />
                                 <Box sx={{ mt: 2 }}>
                                     <Typography variant="body2" sx={{ fontSize: 11.5 }}>
-                                        <strong>Address:</strong> {customerData.address || 'N/A'},{' '}
-                                        {customerData.place || 'N/A'}, {customerData.pin || 'N/A'}
+                                        <strong>Address:</strong> {customerData.address || 'N/A'}
                                     </Typography>
-                                    <Typography variant="body2" sx={{ fontSize: 11.5 }}> <strong>Email:</strong> {customerData.email || 'No Email'}</Typography>
-                                    <Typography variant="body2" sx={{ fontSize: 11.5 }}> <strong>Phone:</strong> {customerData.primaryNumber || 'No Phone'},{customerData.secondaryNumber || 'No Phone'}</Typography>
+                                    <Typography variant="body2" sx={{ fontSize: 11.5 }}>
+                                        <strong>Email:</strong> {customerData.email || 'No Email'}
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ fontSize: 11.5 }}>
+                                        <strong>Phone:</strong> {customerData.primaryNumber || 'No Phone'}, {customerData.secondaryNumber || 'No Phone'}
+                                    </Typography>
+                                </Box>
+
+                                {/* Profile completion */}
+                                <Box sx={{ mt: .5 }}>
+                                    <Typography
+                                        variant="body2"
+                                        sx={{ mt: 0, cursor: 'pointer', fontSize: 11.5 }}
+                                    >
+                                        <strong> Profile Completion</strong>: {calculateProfileCompletion(customerData)}%
+                                    </Typography>
+
+
+                                    <LinearProgress
+                                        variant="determinate"
+                                        value={calculateProfileCompletion(customerData)}
+                                        sx={{
+                                            height: 5,
+                                            borderRadius: 10,
+                                            cursor: 'pointer',
+                                            backgroundColor: '#e0f2f1', // Light teal background
+                                            '& .MuiLinearProgress-bar': {
+                                                backgroundColor: '#689689', // Your chosen color for the filled part
+                                            },
+                                        }}
+                                        onClick={() => handleShowMissingDetails(customerData)}
+                                    />
+
+                                    {/* <Typography
+                                        variant="body2"
+                                        sx={{ mt: 0, cursor: 'pointer' }}
+                                        onClick={() => handleShowMissingDetails(customerData)}
+                                    >
+                                        Profile Completion: {calculateProfileCompletion(customerData)}%
+                                    </Typography> */}
+
+                                    {/* Clickable area to show missing details */}
+                                    {/* <Button
+                                        sx={{ mt: 0 }}
+                                        variant="outlined"
+                                        color="primary"
+                                        size='small'
+                                        onClick={() => handleShowMissingDetails(customerData)}
+                                    >
+                                        Show Missing Details
+                                    </Button> */}
                                 </Box>
                             </Box>
                         </Card>
@@ -1013,8 +1159,9 @@ export default function GoldLoanBill() {
                         <Typography variant="body2" color="textSecondary" sx={{ mt: 2 }}>
                             Select a GL number to view customer details.
                         </Typography>
-                    )
-                    }
+                    )}
+
+
 
 
                     <Box sx={{ margin: '0 auto', mt: 1, textAlign: { xs: 'center', sm: 'left' }, px: { xs: 2, sm: 0 } }}>
@@ -1179,16 +1326,19 @@ export default function GoldLoanBill() {
                             <Table sx={{ minWidth: 650 }} aria-label="interest call details table">
                                 <TableHead>
                                     <TableRow sx={{ fontWeight: 'bold', height: '24px' }}>
-                                        <TableCell align="center" sx={{ padding: '4px' }}>Gold Item</TableCell>
-                                        <TableCell align="center" sx={{ padding: '4px' }}>Qty</TableCell>
-                                        <TableCell align="center" sx={{ padding: '4px' }}>Gross Wt</TableCell>
-                                        <TableCell align="center" sx={{ padding: '4px' }}>Stone Wt</TableCell>
-                                        <TableCell align="center" sx={{ padding: '4px' }}>Dep Wt</TableCell>
-                                        <TableCell align="center" sx={{ padding: '4px' }}>Net Wt</TableCell>
+                                        <TableCell align="center" sx={{ padding: '4px' }}>From Date</TableCell>
+                                        <TableCell align="center" sx={{ padding: '4px' }}>To Date</TableCell>
+                                        <TableCell align="center" sx={{ padding: '4px' }}> Days </TableCell>
+                                        <TableCell align="center" sx={{ padding: '4px' }}>Bal Am </TableCell>
+                                        <TableCell align="center" sx={{ padding: '4px' }}> Current Int</TableCell>
+                                        <TableCell align="center" sx={{ padding: '4px' }}>Int Bal Amt  </TableCell>
+                                        <TableCell align="center" sx={{ padding: '4px' }}>Total Bal Amt</TableCell>
+                                        <TableCell align="center" sx={{ padding: '4px' }}>Amt Received </TableCell>
+                                        <TableCell align="center" sx={{ padding: '4px' }}> Int Received</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {itemDetails.map((detail, index) => (
+                                    {fineDetails.map((detail, index) => (
                                         <TableRow
                                             key={index}
                                             sx={{
@@ -1197,12 +1347,15 @@ export default function GoldLoanBill() {
                                                 height: '24px',
                                             }}
                                         >
-                                            <TableCell align="center" sx={{ padding: '4px' }}>{detail.goldItem}</TableCell>
-                                            <TableCell align="center" sx={{ padding: '4px' }}>{detail.quantity}</TableCell>
-                                            <TableCell align="center" sx={{ padding: '4px' }}>{detail.grossWeight.toFixed(2)}</TableCell>
-                                            <TableCell align="center" sx={{ padding: '4px' }}>{detail.stoneWeight}</TableCell>
-                                            <TableCell align="center" sx={{ padding: '4px' }}>{detail.depreciation}</TableCell>
-                                            <TableCell align="center" sx={{ padding: '4px' }}>{detail.netWeight}</TableCell>
+                                            <TableCell align="center" sx={{ padding: '4px' }}>{new Date(detail.createdAt).toISOString().split('T')[0]} </TableCell>
+                                            <TableCell align="center" sx={{ padding: '4px' }}> {new Date(detail.updatedAt).toISOString().split('T')[0]}</TableCell>
+                                            <TableCell align="center" sx={{ padding: '4px' }}></TableCell>
+                                            <TableCell align="center" sx={{ padding: '4px' }}>{detail.balanceAmount}</TableCell>
+                                            <TableCell align="center" sx={{ padding: '4px' }}> {detail.interestRate?.toFixed(2)}</TableCell>
+                                            <TableCell align="center" sx={{ padding: '4px' }}></TableCell>
+                                            <TableCell align="center" sx={{ padding: '4px' }}>{detail.totalChargesAndBalanceAmount}</TableCell>
+                                            <TableCell align="center" sx={{ padding: '4px' }}>{detail.amountPaid}</TableCell>
+                                            <TableCell align="center" sx={{ padding: '4px' }}></TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -1345,14 +1498,20 @@ export default function GoldLoanBill() {
                             <TextField
                                 fullWidth
                                 label="Name"
+                                name='paymentName'
                                 variant="outlined"
+                                value={formData.paymentName}
+                                onChange={handleChange}
                                 size="small"
                                 sx={{ mb: 2 }}
                             />
                             <TextField
                                 fullWidth
-                                label="Gold Number"
+                                label={`${selectedPaymentMode} Number`}
                                 variant="outlined"
+                                name='paymentNumber'
+                                value={formData.paymentNumber}
+                                onChange={handleChange}
                                 size="small"
                                 sx={{ mb: 2 }}
                             />
