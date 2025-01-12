@@ -11,6 +11,7 @@ import GlLedgerReport from '../Report/GlLedgerReport';
 import GlTransactionReport from '../Report/GlTransactionReport';
 import GlCustomerDetails from '../Report/GlCustomerDetails';
 import ChartsOfAccounts from '../pages/Chart of Accounts';
+import PledgeMasterPage from '../pages/Pledge';
 import LoginPage from '../pages/Login';
 import { ROUTES } from '../constant/route';
 import AuthLayout from '../components/AuthLayout';
@@ -30,6 +31,7 @@ const PageRoutes = () => {
                     <Route path={ROUTES.GL_Transaction_Report} element={<GlTransactionReport />} />
                     <Route path={ROUTES.GL_Customer_Details} element={<GlCustomerDetails />} />
                     <Route path={ROUTES.CHART_OF_ACCOUNTS} element={<ChartsOfAccounts />} />
+                    <Route path={ROUTES.PLEGDE_MASTER} element={<PledgeMasterPage />} />
                 </Route>
                 <Route path="*" element={<h2>404: Page Not Found</h2>} />
             </Routes>

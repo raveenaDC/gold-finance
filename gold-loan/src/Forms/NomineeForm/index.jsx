@@ -236,15 +236,7 @@ const AddNomineeDetails = () => {
                         </CustomTabPanel> */}
 
                     {/* <CustomTabPanel value={value} index={1} sx={{ width: '100%', maxHeight: '88vh', }}> */}
-                    <h5 style={{
-                        color: '#B8860B',
-                        fontSize: '18px',
-                        marginBottom: '20px',
-                        fontWeight: '600',
-                        textAlign: 'center', // Centers the text
-                    }}>
-                        Nominee Search
-                    </h5>
+
                     <NomineeSearch />
                     {/* </CustomTabPanel> */}
 
@@ -254,7 +246,7 @@ const AddNomineeDetails = () => {
                         onClick={handleNomineeModalClose}
                         variant="contained"
                         color="primary"
-                        sx={{ fontSize: '14px', padding: '0px 20px', alignItems: 'center' }}
+
                     >
                         Submit
                     </Button>

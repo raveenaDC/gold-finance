@@ -24,7 +24,7 @@ import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import SaveIcon from '@mui/icons-material/Save'; // Import the Save icon
 
 
-import { AddNomineeDetails } from '../../Forms';
+import AddNomineeDetails from '../../components/NomineeSearch';
 import { incrementGLNo } from '../../Redux/GlNoSlice';
 import { incrementVoucherNo } from '../../Redux/voucherNoSlice';
 
@@ -110,6 +110,7 @@ const GoldLoanForm = () => {
     const totalDepWeight = items.reduce((total, item) => total + (parseFloat(item.depreciation) || 0), 0);
     const totalQuantity = items.reduce((total, item) => total + (parseFloat(item.quantity) || 0), 0);
     const recommendedAmount = totalNetWeight * goldRate;
+    const maxGoldAmount = totalNetWeight * companyGoldRate;
     const totalCharges = (parseFloat(form.otherCharges) || 0) + (parseFloat(form.appraiser) || 0) + (parseFloat(form.insurance) || 0) + (parseFloat(form.processingFee) || 0) + (parseFloat(form.packingFee) || 0);
 
     // Function to auto-calculate Net Weight
@@ -1058,22 +1059,16 @@ const GoldLoanForm = () => {
                                 onChange={handleChangeMode}
                                 sx={{ width: '50%', textAlign: 'left', font: '8px' }}
                             >
-                                <MenuItem value="days">Days</MenuItem>
-                                <MenuItem value="weekly">Weekly</MenuItem>
-                                <MenuItem value="monthly">Monthly</MenuItem>
-                                <MenuItem value="quarterly">Quarterly</MenuItem>
-                                <MenuItem value="halfyearly">Half Yearly</MenuItem>
+                                <MenuItem value="rangeA">Range A</MenuItem>
+                                <MenuItem value="rangeB">Range B</MenuItem>
                             </Select>
                         </FormControl>
                         {form.mode && (
                             <Typography variant="body2" sx={{ mt: 0.5, color: 'text.secondary' }}>
                                 Selected Mode: {
-                                    form.mode === 'weekly' ? 'Weekly' :
-                                        form.mode === 'monthly' ? 'Monthly' :
-                                            form.mode === 'quarterly' ? 'Quarterly' :
-                                                form.mode === 'halfyearly' ? 'Half Yearly' :
-                                                    form.mode === 'days' ? 'Days' :
-                                                        ''
+                                    form.mode === 'rangeA' ? 'rangeA' :
+                                        form.mode === 'rangeB' ? 'rangeB' :
+                                            ''
                                 }
                             </Typography>
                         )}
@@ -1196,7 +1191,7 @@ const GoldLoanForm = () => {
                                 </TableRow>
                                 <TableRow>
                                     <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Max Gold Value</TableCell>
-                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{totalNetWeight.toFixed(2)}</TableCell>
+                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{maxGoldAmount.toFixed(2)}</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Max Gold Loan Value</TableCell>
