@@ -15,6 +15,11 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import DescriptionIcon from '@mui/icons-material/Description';
 import { styled } from '@mui/material/styles';
 import { ROUTES } from '../../constant/route';
+import CashPaymentsModal from '../../pages/Payments';
+import CashReceiptsModal from '../../pages/Recipts';
+import JournalEntryModal from '../../pages/Journal';
+import ChequeReceiptModal from '../../pages/Cheque Reciepts';
+import ChartsOfAccounts from '../../pages/Chart of Accounts';
 
 const DrawerHeader = styled('div')(({ theme }) => ({
     display: 'flex',
@@ -91,12 +96,12 @@ export default function Sidebar({ open, handleDrawerClose, theme, drawerWidth })
                 </ListItem>
                 <ListItem disablePadding>
                     <ListItemButton >
-                        <ListItemIcon><AccountBoxTwoToneIcon /></ListItemIcon>
+                        <ListItemIcon><AccountBoxTwoToneIcon /> </ListItemIcon>
                         <ListItemText primary="FR Master" />
                     </ListItemButton>
                 </ListItem>
                 <ListItem disablePadding>
-                    <ListItemButton component={Link} to="/pl-master">
+                    <ListItemButton component={Link} to={ROUTES.PLEGDE_MASTER}>
                         <ListItemIcon><CoPresentSharpIcon /></ListItemIcon>
                         <ListItemText primary="PL Master" />
                     </ListItemButton>
@@ -124,21 +129,25 @@ export default function Sidebar({ open, handleDrawerClose, theme, drawerWidth })
 
             {/* Other Actions Section */}
             <List>
-                {[{ text: 'Chart Of A/C', icon: <BarChartIcon />, value: ROUTES.CHART_OF_ACCOUNTS },
-                { text: 'Receipt', icon: <ReceiptIcon />, value: ROUTES.RECEIPT },  // Added missing value
-                { text: 'Payment', icon: <PaymentIcon />, value: ROUTES.PAYMENT },  // Added missing value
-                { text: 'Cheque Receipt', icon: <CheckCircleIcon />, value: ROUTES.CHEQUE_RECEIPT },  // Added missing value
+                {[{ text: <ChartsOfAccounts />, icon: <BarChartIcon />, },
+                { text: <CashReceiptsModal />, icon: <ReceiptIcon />, },  // Added missing value
+                { text: <CashPaymentsModal />, icon: <PaymentIcon />, },  // Added missing value
+                { text: <ChequeReceiptModal />, icon: <CheckCircleIcon />, value: ROUTES.CHEQUE_RECEIPT },  // Added missing value
                 { text: 'Cheque Payment', icon: <PaymentIcon />, value: ROUTES.CHEQUE_PAYMENT },  // Added missing value
-                { text: 'Journal', icon: <DescriptionIcon />, value: ROUTES.JOURNAL },  // Added missing value
+                { text: <JournalEntryModal />, icon: <DescriptionIcon />, value: ROUTES.JOURNAL },  // Added missing value
                 ].map(({ text, icon, value }) => {
                     // Handle missing value by providing a default route (can be customized)
-                    const routeValue = value || "#";  // Default route when value is not defined
+                    // Check if the value is a route string or component
+                    const isComponent = typeof value !== 'string';
+                    const routeValue = isComponent ? "#" : value; // Default '#' for non-route components
+                    // const routeValue = value || "#";  // Default route when value is not defined
                     return (
                         <ListItem key={text} disablePadding>
                             <ListItemButton component={Link} to={routeValue}>
                                 <ListItemIcon>{icon}</ListItemIcon>
                                 <ListItemText primary={text} />
                             </ListItemButton>
+                            {isComponent && value} {/* Render the component if it's not a route */}
                         </ListItem>
                     );
                 })}

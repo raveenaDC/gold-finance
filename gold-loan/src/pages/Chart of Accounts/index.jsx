@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { TextField, MenuItem, Select, InputLabel, FormControl, Grid, Typography, Paper } from '@mui/material';
+import { TextField, MenuItem, Select, InputLabel, FormControl, Grid, Typography, Paper, Dialog, DialogActions, DialogContent, DialogTitle, Button } from '@mui/material';
 
 const ChartsOfAccounts = () => {
     const [category, setCategory] = useState('');
     const [subcategory, setSubcategory] = useState('');
     const [inputs, setInputs] = useState({
+        name: '',
         description: '',
         rate: '',
         period: ''
     });
+    const [openModal, setOpenModal] = useState(false);
 
     const handleCategoryChange = (e) => {
         setCategory(e.target.value);
@@ -22,6 +24,19 @@ const ChartsOfAccounts = () => {
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setInputs({ ...inputs, [name]: value });
+    };
+
+    const handleModalOpen = () => {
+        setOpenModal(true);
+    };
+
+    const handleModalClose = () => {
+        setOpenModal(false);
+    };
+
+    const handleSubmit = () => {
+        console.log(inputs);  // Add your submit logic here
+        setOpenModal(false);  // Close the modal after submit
     };
 
     const subcategories = {
@@ -51,11 +66,11 @@ const ChartsOfAccounts = () => {
 
     const renderInputData = () => (
         <>
-            <Typography variant="h6" style={{ marginTop: '20px' }}>Input Data</Typography>
+            <Typography variant="h6" style={{ marginTop: '20px' }}>Balance</Typography>
             <table style={{ width: '100%' }}>
                 <tbody>
                     <tr>
-                        <td><Typography>Description</Typography></td>
+                        <td><Typography>Debt</Typography></td>
                         <td>
                             <TextField
                                 variant="outlined"
@@ -69,7 +84,7 @@ const ChartsOfAccounts = () => {
                         </td>
                     </tr>
                     <tr>
-                        <td><Typography>Rate</Typography></td>
+                        <td><Typography>Credit</Typography></td>
                         <td>
                             <TextField
                                 variant="outlined"
@@ -83,19 +98,34 @@ const ChartsOfAccounts = () => {
                         </td>
                     </tr>
                     {subcategory === 'Fixed Assets' && (
-                        <tr>
-                            <td><Typography>Period</Typography></td>
-                            <td>
-                                <TextField
-                                    variant="outlined"
-                                    fullWidth
-                                    size="small"
-                                    name="period"
-                                    value={inputs.period}
-                                    onChange={handleInputChange}
-                                />
-                            </td>
-                        </tr>
+                        <>
+                            <tr>
+                                <td><Typography>Description Rate</Typography></td>
+                                <td>
+                                    <TextField
+                                        variant="outlined"
+                                        fullWidth
+                                        size="small"
+                                        name="period1"
+                                        value={inputs.period}
+                                        onChange={handleInputChange}
+                                    />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><Typography>Description Rate 2</Typography></td>
+                                <td>
+                                    <TextField
+                                        variant="outlined"
+                                        fullWidth
+                                        size="small"
+                                        name="period2"
+                                        value={inputs.period}
+                                        onChange={handleInputChange}
+                                    />
+                                </td>
+                            </tr>
+                        </>
                     )}
                 </tbody>
             </table>
@@ -103,47 +133,101 @@ const ChartsOfAccounts = () => {
     );
 
     return (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
-            <Paper elevation={3} style={{ width: '600px', padding: '20px', borderRadius: '8px' }}>
-                <Grid container spacing={2}>
-                    <Grid item xs={12} md={6}>
-                        <Typography variant="h6" align="center">Choose Category</Typography>
-                        <FormControl fullWidth variant="outlined" margin="normal">
-                            <InputLabel>Category</InputLabel>
-                            <Select
-                                value={category}
-                                onChange={handleCategoryChange}
-                                label="Category"
+
+
+
+        <div >
+
+            <Typography variant="body1" onClick={handleModalOpen} sx={{ fontSize: '17px', mt: 1 }}>
+                Chart
+            </Typography>
+            <Dialog open={openModal} onClose={handleModalClose} fullWidth maxWidth="md">
+                <DialogTitle>Chart of Account</DialogTitle>
+                <DialogContent>
+                    <Grid container spacing={2} style={{ display: 'flex', justifyContent: 'center', padding: '10px' }}>
+                        <Grid item xs={12} md={6}>
+                            <TextField
+                                label="Name"
+                                variant="outlined"
+                                fullWidth
                                 size="small"
-                            >
-                                <MenuItem value="">Select Category</MenuItem>
-                                <MenuItem value="Assets">Assets</MenuItem>
-                                <MenuItem value="Liabilities">Liabilities</MenuItem>
-                                <MenuItem value="Income">Income</MenuItem>
-                                <MenuItem value="Expense">Expense</MenuItem>
-                                <MenuItem value="Trading">Trading</MenuItem>
-                            </Select>
-                        </FormControl>
+                                name="name"
+                                value={inputs.name}
+                                onChange={handleInputChange}
+                                margin="normal"
+                            />
+                            <FormControl fullWidth variant="outlined" margin="normal">
+                                <InputLabel>Category</InputLabel>
+                                <Select
+                                    value={category}
+                                    onChange={handleCategoryChange}
+                                    label="Category"
+                                    size="small"
+                                >
+                                    <MenuItem value="">Select Category</MenuItem>
+                                    <MenuItem value="Assets">Assets</MenuItem>
+                                    <MenuItem value="Liabilities">Liabilities</MenuItem>
+                                    <MenuItem value="Income">Income</MenuItem>
+                                    <MenuItem value="Expense">Expense</MenuItem>
+                                    <MenuItem value="Trading">Trading</MenuItem>
+                                </Select>
+                            </FormControl>
 
-                        {(category === 'Income' || category === 'Expense') && renderInputData()}
-                        {(category && category !== 'Income' && category !== 'Expense') && renderSubcategories()}
+                            {(category === 'Income' || category === 'Expense') && renderInputData()}
+                            {(category && category !== 'Income' && category !== 'Expense') && renderSubcategories()}
+                            {subcategory && category !== 'Income' && category !== 'Expense' && renderInputData()}
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                            <Paper elevation={1} style={{ padding: '10px', borderRadius: '8px', backgroundColor: '#f5f5f5', marginTop: '13px' }}>
+                                <Typography variant="h6" align="center">Entered Data</Typography>
+                                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                    <tbody>
+                                        <tr>
+                                            <td style={{ padding: '8px', fontWeight: 'bold' }}>Name:</td>
+                                            <td style={{ padding: '8px' }}>{inputs.name}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', fontWeight: 'bold' }}>Category:</td>
+                                            <td style={{ padding: '8px' }}>{category}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', fontWeight: 'bold' }}>Subcategory:</td>
+                                            <td style={{ padding: '8px' }}>{subcategory}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', fontWeight: 'bold' }}>Description:</td>
+                                            <td style={{ padding: '8px' }}>{inputs.description}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style={{ padding: '8px', fontWeight: 'bold' }}>Rate:</td>
+                                            <td style={{ padding: '8px' }}>{inputs.rate}</td>
+                                        </tr>
+                                        {subcategory === 'Fixed Assets' && (
+                                            <>
+                                                <tr>
+                                                    <td style={{ padding: '8px', fontWeight: 'bold' }}>Period:</td>
+                                                    <td style={{ padding: '8px' }}>{inputs.period}</td>
+                                                </tr>
+                                            </>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </Paper>
+                        </Grid>
 
-                        {subcategory && category !== 'Income' && category !== 'Expense' && renderInputData()}
                     </Grid>
-
-                    <Grid item xs={12} md={6}>
-                        <Paper elevation={1} style={{ padding: '10px', borderRadius: '8px', backgroundColor: '#f5f5f5' }}>
-                            <Typography variant="h6" align="center">Entered Data</Typography>
-                            <p><strong>Category:</strong> {category}</p>
-                            <p><strong>Subcategory:</strong> {subcategory}</p>
-                            <p><strong>Description:</strong> {inputs.description}</p>
-                            <p><strong>Rate:</strong> {inputs.rate}</p>
-                            {subcategory === 'Fixed Assets' && <p><strong>Period:</strong> {inputs.period}</p>}
-                        </Paper>
-                    </Grid>
-                </Grid>
-            </Paper>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleModalClose} color="secondary">
+                        Cancel
+                    </Button>
+                    <Button onClick={handleSubmit} color="primary">
+                        Submit
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </div>
+
     );
 };
 
