@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
+import GoldLoanBill from '../pages/GL Transition';
 
 // Create the context
 const NomineeContext = createContext();
@@ -12,6 +13,8 @@ export const NomineeProvider = ({ children }) => {
         nomineeId: null,
         firstName: '',
         lastName: '',
+        GoldLoan: '',
+        currentGoldLoan: '',
     });
 
     return (

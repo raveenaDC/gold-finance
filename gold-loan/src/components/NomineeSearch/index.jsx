@@ -1,101 +1,115 @@
-import React, { useEffect, useState } from 'react';
-import { Autocomplete, TextField, CircularProgress, Button } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { TextField, List, ListItem, ListItemText, CircularProgress, Box } from '@mui/material';
 import { useNominee } from '../../configure/NomineeContext';
 
-// import axios from 'axios';
-
-function NomineeSearch() {
-    const [options, setOptions] = useState([]);
+function NomineeSearch({ onClose }) {
+    const [nominees, setNominees] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [selectedOption, setSelectedOption] = useState(null); // State to store selected option
-
-
-    // Use the setNominee function from context
+    const [nameSearch, setNameSearch] = useState('');
+    const [addressSearch, setAddressSearch] = useState('');
+    const [phoneSearch, setPhoneSearch] = useState('');
     const { setNominee } = useNominee();
 
-    const fetchCustomers = async () => {
-
-        try {
-            const response = await fetch('http://localhost:4000/customer/details/view');
-            const data = await response.json();
-            console.log(data.data.items);
-
-            // Map data to add unique `id` if not present
-            setOptions(data.data.items);
-
-        } catch (error) {
-            console.error("Error fetching customer data:", error);
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
-        fetchCustomers();
-    }, [searchTerm]);
+        const fetchNominees = async () => {
+            setLoading(true);
+            try {
+                const response = await fetch('http://localhost:4000/customer/details/view');
+                const data = await response.json();
+                setNominees(data.data.items);
+            } catch (error) {
+                console.error('Error fetching nominees:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    const handleOkClick = () => {
-        if (selectedOption) {
-            setNominee({
-                nomineeId: selectedOption._id,
-                firstName: selectedOption.firstName,
-                lastName: selectedOption.lastName,
-            });
+        fetchNominees();
+    }, []);
 
+    const filterNominees = () => {
+        return nominees.filter((nominee) => {
+            const fullName = `${nominee.firstName ?? ''} ${nominee.lastName ?? ''}`.toLowerCase();
+            const address = nominee.address?.toLowerCase() ?? '';
+            const phone = nominee.primaryNumber ?? '';
 
-            console.log('Selected _id:', selectedOption._id); // Use the _id as needed
-            // You can also trigger other actions here with selectedOption._id
+            return (
+                fullName.includes(nameSearch.toLowerCase()) &&
+                address.includes(addressSearch.toLowerCase()) &&
+                phone.includes(phoneSearch)
+            );
+        });
+    };
 
-        } else {
-            console.log('No option selected');
+    const handleNomineeSelect = (nominee) => {
+        setNominee({
+            nomineeId: nominee._id,
+            firstName: nominee.firstName,
+            lastName: nominee.lastName,
+        });
+        console.log('Selected Nominee ID:', nominee._id);
+        if (onClose) {
+            onClose();
         }
     };
+
     return (
-        <div> <h1>hii</h1>
-            <Autocomplete
-                options={options}
-                loading={loading}
-                onChange={(event, newValue) => setSelectedOption(newValue)} // Set selected option
-                onInputChange={(event, newValue) => setSearchTerm(newValue)}
-                getOptionLabel={(option) => option.firstName + ' ' + option.lastName + ' | ' + option.address} // Adjust as needed
-                renderInput={(params) => (
-                    <TextField
-                        {...params}
-                        label="Search"
-                        variant="outlined"
-                        InputProps={{
-                            ...params.InputProps,
-                            endAdornment: (
-                                <>
-                                    {loading ? <CircularProgress color="inherit" size={20} /> : null}
-                                    {params.InputProps.endAdornment}
-                                </>
-                            ),
-                        }}
-                    />
+
+        <Box sx={{ width: '100%', display: 'flex', flexDirection: 'row', gap: 1 }}>
+
+            {/* Left Column: Search Fields */}
+            <Box sx={{ width: '40%', }}>
+                <TextField
+                    label="Full Name"
+                    variant="outlined"
+                    value={nameSearch}
+                    onChange={(e) => setNameSearch(e.target.value)}
+                    fullWidth
+                    size='small'
+                    margin="dense"
+                />
+                <TextField
+                    label="Address"
+                    variant="outlined"
+                    value={addressSearch}
+                    onChange={(e) => setAddressSearch(e.target.value)}
+                    fullWidth
+                    size='small'
+                    margin="dense"
+                />
+                <TextField
+                    label="Phone Number"
+                    variant="outlined"
+                    value={phoneSearch}
+                    onChange={(e) => setPhoneSearch(e.target.value)}
+                    fullWidth
+                    size='small'
+                    margin="dense"
+                />
+            </Box>
+
+            {/* Right Column: Results List */}
+            <Box sx={{ width: '60%', maxHeight: '270px', overflow: 'auto' }}>
+                {loading ? (
+                    <CircularProgress />
+                ) : (
+                    <List>
+                        {filterNominees().map((nominee) => (
+                            <ListItem
+                                button
+                                key={nominee._id}
+                                onClick={() => handleNomineeSelect(nominee)}
+                            >
+                                <ListItemText
+                                    primary={`${nominee.firstName} ${nominee.lastName}`}
+                                    secondary={`Address: ${nominee.address}, Phone: ${nominee.primaryNumber}`}
+                                />
+                            </ListItem>
+                        ))}
+                    </List>
                 )}
-
-
-            />
-
-
-
-            <Button
-                variant="contained"
-                onClick={handleOkClick} // Trigger handleOkClick on click
-                sx={{
-                    backgroundColor: '#FFD700',
-                    color: '#000',
-                    '&:hover': { backgroundColor: '#FFC107' },
-                    width: '100%',
-                    fontSize: '8px',
-                    height: '30px',
-                    padding: '2px 2px',
-                }}
-            >
-                OK
-            </Button>
-        </div>
+            </Box>
+        </Box>
 
     );
 }

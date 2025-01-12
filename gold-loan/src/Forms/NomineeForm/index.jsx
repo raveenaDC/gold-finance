@@ -8,49 +8,49 @@ import { NomineeSearch } from '../../components'
 import { useNominee } from '../../configure/NomineeContext';
 import { submitDocument } from '../../api';
 
-function CustomTabPanel(props) {
-    const { children, value, index, ...other } = props;
+// function CustomTabPanel(props) {
+//     const { children, value, index, ...other } = props;
 
-    return (
-        <div
-            role="tabpanel"
-            hidden={value !== index}
-            id={`simple-tabpanel-${index}`}
-            aria-labelledby={`simple-tab-${index}`}
-            {...other}
-        >
-            {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-        </div>
-    );
-}
-CustomTabPanel.propTypes = {
-    children: PropTypes.node,
-    index: PropTypes.number.isRequired,
-    value: PropTypes.number.isRequired,
-};
-function a11yProps(index) {
-    return {
-        id: `simple-tab-${index}`,
-        'aria-controls': `simple-tabpanel-${index}`,
-    };
-}
+//     return (
+//         <div
+//             role="tabpanel"
+//             hidden={value !== index}
+//             id={`simple-tabpanel-${index}`}
+//             aria-labelledby={`simple-tab-${index}`}
+//             {...other}
+//         >
+//             {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+//         </div>
+//     );
+// }
+// CustomTabPanel.propTypes = {
+//     children: PropTypes.node,
+//     index: PropTypes.number.isRequired,
+//     value: PropTypes.number.isRequired,
+// };
+// function a11yProps(index) {
+//     return {
+//         id: `simple-tab-${index}`,
+//         'aria-controls': `simple-tabpanel-${index}`,
+//     };
+// }
 const AddNomineeDetails = () => {
     const [showNomineeModal, setShowNomineeModal] = useState(false);
     const [nomineeSaved, setNomineeSaved] = useState(false);
-    const [nomineeId, setNomineeNominee] = useState(false);
+    const [nomineeId, setNomineeId] = useState(false);
     const [value, setValue] = React.useState(0);
 
-    const [nomineeDetails, setNomineeDetails] = useState({
-        firstName: '',
-        lastName: '',
-        address: '',
-        place: '',
-        state: '',
-        nearBy: '',
-        aadhar: '',
-        primaryNumber: '',
-        email: '', // Add email field
-    });
+    // const [nomineeDetails, setNomineeDetails] = useState({
+    //     firstName: '',
+    //     lastName: '',
+    //     address: '',
+    //     place: '',
+    //     state: '',
+    //     nearBy: '',
+    //     aadhar: '',
+    //     primaryNumber: '',
+    //     email: '', // Add email field
+    // });
 
 
     const { nominee } = useNominee(); // Access nominee data from context    
@@ -59,60 +59,60 @@ const AddNomineeDetails = () => {
     const handleNomineeModalOpen = () => setShowNomineeModal(true);
     const handleNomineeModalClose = () => setShowNomineeModal(false);
 
-    const handleNomineeChange = (e) => {
-        const { name, value } = e.target;
-        setNomineeDetails((prevDetails) => ({
-            ...prevDetails,
-            [name]: value,
-        }));
-    };
+    // const handleNomineeChange = (e) => {
+    //     const { name, value } = e.target;
+    //     setNomineeDetails((prevDetails) => ({
+    //         ...prevDetails,
+    //         [name]: value,
+    //     }));
+    // };
 
-    const handleSaveNomineeDetails = async () => {
-        setNomineeSaved(true);
-        handleNomineeModalClose(); // Close the modal
-        // nominee.firstName = nomineeDetails.firstName;
-        const data = new FormData();
-        data.append('firstName', nomineeDetails.firstName);
-        data.append('lastName', nomineeDetails.lastName);
-        data.append('address', nomineeDetails.address);
-        data.append('place', nomineeDetails.place);
-        data.append('state', nomineeDetails.state);
-        data.append('nearBy', nomineeDetails.nearBy);
-        data.append('aadhar', nomineeDetails.aadhar);
-        data.append('primaryNumber', nomineeDetails.primaryNumber);
-        data.append('email', nomineeDetails.email);
-        try {
+    // const handleSaveNomineeDetails = async () => {
+    //     setNomineeSaved(true);
+    //     handleNomineeModalClose(); // Close the modal
+    //     // nominee.firstName = nomineeDetails.firstName;
+    //     const data = new FormData();
+    //     data.append('firstName', nomineeDetails.firstName);
+    //     data.append('lastName', nomineeDetails.lastName);
+    //     data.append('address', nomineeDetails.address);
+    //     data.append('place', nomineeDetails.place);
+    //     data.append('state', nomineeDetails.state);
+    //     data.append('nearBy', nomineeDetails.nearBy);
+    //     data.append('aadhar', nomineeDetails.aadhar);
+    //     data.append('primaryNumber', nomineeDetails.primaryNumber);
+    //     data.append('email', nomineeDetails.email);
+    //     try {
 
-            const customerData = {
-                info: data,
-                method: 'post',
-                path: 'customer/create'
-            }
-            let response = await submitDocument(customerData); // Call the API function
-            alert('Successfully uploaded!');
+    //         const customerData = {
+    //             info: data,
+    //             method: 'post',
+    //             path: 'customer/create'
+    //         }
+    //         let response = await submitDocument(customerData); // Call the API function
+    //         alert('Successfully uploaded!');
 
-            setNomineeNominee(response.data._id)
-            setNominee({
-                nomineeId: response.data._id,
-                firstName: nomineeDetails.firstName,
+    //         setNomineeId(response.data._id)
+    //         setNominee({
+    //             nomineeId: response.data._id,
+    //             firstName: nomineeDetails.firstName,
 
-            });
-        } catch (error) {
-            alert('Failed to upload data. Please try again.');
-        }
-    };
+    //         });
+    //     } catch (error) {
+    //         alert('Failed to upload data. Please try again.');
+    //     }
+    // };
 
-    const handleChange = (event, newValue) => {
-        setValue(newValue);
-    };
+    // const handleChange = (event, newValue) => {
+    //     setValue(newValue);
+    // };
 
     return (
         <Grid container spacing={2}>
             {/* Add or Display Nominee Button */}
             <Grid item xs={12}>
                 <Button variant="text" color="Secondary" onClick={handleNomineeModalOpen}>
-                    {nominee.nomineeId ? `Nominee: ${nominee.firstName}` : nomineeSaved ? ` Nominee : ${nomineeDetails.firstName}` : 'Add Nominee'}
-
+                    {/* {nominee.nomineeId ? `Nominee: ${nominee.firstName}` : nomineeSaved ? ` Nominee : ${nomineeDetails.firstName}` : 'Add Nominee'} */}
+                    {nominee.nomineeId ? `Nominee: ${nominee.firstName}` : 'Add Nominee'}
                 </Button>
             </Grid>
 
@@ -124,7 +124,7 @@ const AddNomineeDetails = () => {
                         p: 4,
                         backgroundColor: 'white',
                         borderRadius: 2,
-                        maxWidth: 400,
+                        maxWidth: 600,
                         margin: 'auto',
                         mt: '5.5%',
                         maxHeight: '88vh',    // Set maximum height for scrollable area
@@ -134,14 +134,14 @@ const AddNomineeDetails = () => {
                         scrollbarWidth: 'none'    // Hide scrollbar in Firefox
                     }}
                 >
-                    <Box sx={{ width: '100%', maxHeight: '88vh', }}>
-                        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                    {/* <Box sx={{ width: '100%', maxHeight: '88vh', }}> */}
+                    {/* <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                             <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
                                 <Tab label="Nominee Details" {...a11yProps(0)} />
                                 <Tab label="Item Two" {...a11yProps(1)} />
                             </Tabs>
-                        </Box>
-                        <CustomTabPanel value={value} index={0}>
+                        </Box> */}
+                    {/* <CustomTabPanel value={value} index={0}>
 
                             <Typography id="nominee-modal-title" variant="h6" component="h2">
                                 Nominee Details
@@ -233,13 +233,31 @@ const AddNomineeDetails = () => {
                                 Save Nominee Details
                             </Button>
 
-                        </CustomTabPanel>
+                        </CustomTabPanel> */}
 
-                        <CustomTabPanel value={value} index={1} sx={{ width: '100%', maxHeight: '88vh', }}>
-                            <NomineeSearch />
-                        </CustomTabPanel>
+                    {/* <CustomTabPanel value={value} index={1} sx={{ width: '100%', maxHeight: '88vh', }}> */}
+                    <h5 style={{
+                        color: '#B8860B',
+                        fontSize: '18px',
+                        marginBottom: '20px',
+                        fontWeight: '600',
+                        textAlign: 'center', // Centers the text
+                    }}>
+                        Nominee Search
+                    </h5>
+                    <NomineeSearch />
+                    {/* </CustomTabPanel> */}
 
-                    </Box>
+                    {/* </Box> */}
+
+                    <Button
+                        onClick={handleNomineeModalClose}
+                        variant="contained"
+                        color="primary"
+                        sx={{ fontSize: '14px', padding: '0px 20px', alignItems: 'center' }}
+                    >
+                        Submit
+                    </Button>
                 </Box>
             </Modal>
         </Grid>

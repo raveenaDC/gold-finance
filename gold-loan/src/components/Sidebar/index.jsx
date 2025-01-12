@@ -124,22 +124,25 @@ export default function Sidebar({ open, handleDrawerClose, theme, drawerWidth })
 
             {/* Other Actions Section */}
             <List>
-                {[{ text: 'Chart Of A/C', icon: <BarChartIcon /> },
-                { text: 'Receipt', icon: <ReceiptIcon /> },
-                { text: 'Payment', icon: <PaymentIcon /> },
-                { text: 'Cheque Receipt', icon: <CheckCircleIcon /> },
-                { text: 'Cheque Payment', icon: <PaymentIcon /> },
-                { text: 'Journal', icon: <DescriptionIcon /> },
-                ].map(({ text, icon }) => (
-                    <ListItem key={text} disablePadding>
-                        <ListItemButton>
-                            <ListItemIcon>{icon}</ListItemIcon>
-                            <ListItemText primary={text} />
-                        </ListItemButton>
-                    </ListItem>
-                ))}
+                {[{ text: 'Chart Of A/C', icon: <BarChartIcon />, value: ROUTES.CHART_OF_ACCOUNTS },
+                { text: 'Receipt', icon: <ReceiptIcon />, value: ROUTES.RECEIPT },  // Added missing value
+                { text: 'Payment', icon: <PaymentIcon />, value: ROUTES.PAYMENT },  // Added missing value
+                { text: 'Cheque Receipt', icon: <CheckCircleIcon />, value: ROUTES.CHEQUE_RECEIPT },  // Added missing value
+                { text: 'Cheque Payment', icon: <PaymentIcon />, value: ROUTES.CHEQUE_PAYMENT },  // Added missing value
+                { text: 'Journal', icon: <DescriptionIcon />, value: ROUTES.JOURNAL },  // Added missing value
+                ].map(({ text, icon, value }) => {
+                    // Handle missing value by providing a default route (can be customized)
+                    const routeValue = value || "#";  // Default route when value is not defined
+                    return (
+                        <ListItem key={text} disablePadding>
+                            <ListItemButton component={Link} to={routeValue}>
+                                <ListItemIcon>{icon}</ListItemIcon>
+                                <ListItemText primary={text} />
+                            </ListItemButton>
+                        </ListItem>
+                    );
+                })}
             </List>
-
             <Divider />
         </StyledDrawer>
     );

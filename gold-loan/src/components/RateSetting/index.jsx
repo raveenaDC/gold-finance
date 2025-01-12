@@ -1,13 +1,10 @@
-import React, { useState } from 'react';
-import {
-    Modal,
-    Box,
-    Typography,
-    TextField,
-    Button,
-} from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { Modal, Box, Typography, TextField, Button } from '@mui/material';
+import { setRateData } from '../../Redux/rateSlice'; // Import the action
 
 const RateSettingModal = () => {
+    const dispatch = useDispatch();
 
     const getTodayDate = () => {
         const today = new Date();
@@ -20,17 +17,17 @@ const RateSettingModal = () => {
     const [open, setOpen] = useState(false);
     const [date, setDate] = useState(getTodayDate());
     const [goldRate, setGoldRate] = useState('');
-    const [goldLoanRate, setGoldLoanRate] = useState('');
+    const [companyGoldRate, setCompanyGoldRate] = useState('');
+
+    useEffect(() => {
+        dispatch(setRateData({ date, goldRate, companyGoldRate: companyGoldRate }));
+    }, [date, goldRate, companyGoldRate, dispatch]); // Dispatch action whenever values change
 
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
 
     const handleSubmit = () => {
-        const rateData = {
-            date,
-            goldRate,
-            goldLoanRate,
-        };
+        const rateData = { date, goldRate, companyGoldRate: companyGoldRate };
         console.log('Submitted Data:', rateData);
         handleClose();
     };
@@ -80,8 +77,8 @@ const RateSettingModal = () => {
                     <TextField
                         label="Gold Loan Rate"
                         type="number"
-                        value={goldLoanRate}
-                        onChange={(e) => setGoldLoanRate(e.target.value)}
+                        value={companyGoldRate}
+                        onChange={(e) => setCompanyGoldRate(e.target.value)}
                         fullWidth
                         sx={{ mb: 2 }}
                     />
