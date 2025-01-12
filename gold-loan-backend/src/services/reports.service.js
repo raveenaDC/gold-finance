@@ -35,7 +35,7 @@ export async function viewAllGoldLoan(req, res, next) {
 
 
         let loanList = await models.goldLoanModel.find(query).sort({ purchaseDate: -1 }).select(
-            'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage totalCharges isClosed totalChargesAndBalanceAmount interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode insurance  processingFee otherCharges packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage totalInterestRate createdAt'
+            'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage totalCharges isClosed totalChargesAndBalanceAmount interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode insurance  processingFee otherCharges packingFee appraiser dayAmount principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage totalInterestRate createdAt'
         ).populate({
             path: 'itemDetails.goldItem',
             select: 'goldItem'
@@ -85,6 +85,7 @@ export async function viewAllGoldLoan(req, res, next) {
                     purchaseDate: fineHistory.purchaseDate,
                     totalInterestRate: fineHistory.totalInterestRate,
                     principleAmount: fineHistory.principleAmount,
+                    dayAmount: fineHistory.dayAmount,
                     totalChargesAndBalanceAmount: fineHistory.totalChargesAndBalanceAmount,
                     balanceAmount: fineHistory.balanceAmount,
                 }
@@ -92,6 +93,7 @@ export async function viewAllGoldLoan(req, res, next) {
                     purchaseDate: loan.purchaseDate,
                     totalInterestRate: loan.totalInterestRate,
                     principleAmount: loan.principleAmount,
+                    dayAmount: loan.dayAmount,
                     totalChargesAndBalanceAmount: loan.totalChargesAndBalanceAmount,
                     balanceAmount: loan.balanceAmount,
                 };

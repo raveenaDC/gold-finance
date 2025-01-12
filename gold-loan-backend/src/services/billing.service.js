@@ -127,7 +127,7 @@ export async function viewAllGoldLoanBilling(req, res, next) {
             .select('goldLoanId principleInterestRate payment paymentSection billDate billNo insurance processingFee packingFee appraise otherCharges createdAt')
             .populate({
                 path: 'goldLoanId',
-                select: 'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode insurance processingFee otherCharges packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt',
+                select: 'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode insurance processingFee otherCharges packingFee appraiser principleAmount dayAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt',
                 populate: {
                     path: 'customerId',
                     select: 'firstName lastName primaryNumber email image'
@@ -168,7 +168,7 @@ export async function viewGoldLoanBillingDetails(req, res, next) {
             .select('goldLoanId principleInterestRate payment paymentSection billDate insurance processingFee packingFee appraise otherCharges billNo createdAt')
             .populate({
                 path: 'goldLoanId',
-                select: 'glNo purchaseDate  interestPercentage interestRate  interestMode  insurance processingFee otherCharges packingFee appraiser principleAmount amountPaid',
+                select: 'glNo purchaseDate  interestPercentage interestRate dayAmount interestMode  insurance processingFee otherCharges packingFee appraiser principleAmount amountPaid',
                 populate: {
                     path: 'customerId',
                     select: 'firstName lastName primaryNumber email image'
@@ -207,7 +207,7 @@ export async function viewGoldLoanBillingById(req, res) {
             .select('goldLoanId principleInterestRate payment paymentSection billDate insurance processingFee packingFee appraise otherCharges billNo createdAt')
             .populate({
                 path: 'goldLoanId',
-                select: 'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode insurance processingFee otherCharges packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt',
+                select: 'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage dayAmount interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode insurance processingFee otherCharges packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt',
                 populate: {
                     path: 'customerId',
                     select: 'firstName lastName primaryNumber email image'

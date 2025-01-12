@@ -88,6 +88,10 @@ const goldLoanSchema = new Schema(
             type: Number,
             default: 0
         },
+        dayAmount: {
+            type: Number,
+            default: 0,
+        },
         amountPaid: {
             type: Number,
             default: 0,

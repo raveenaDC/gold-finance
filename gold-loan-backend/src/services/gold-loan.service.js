@@ -83,7 +83,7 @@ export async function viewGoldLoan(req, res) {
         }
 
         let loanList = await models.goldLoanModel.find(query).select(
-            'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage totalCharges totalChargesAndBalanceAmount interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode insurance  processingFee otherCharges packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage isClosed totalInterestRate createdAt'
+            'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage totalCharges totalChargesAndBalanceAmount interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode insurance  processingFee otherCharges packingFee appraiser principleAmount dayAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage isClosed totalInterestRate createdAt'
         ).populate({
             path: 'itemDetails.goldItem', // Path to populate
             select: 'goldItem'   // Fields from the `goldItem` schema to include
@@ -115,6 +115,7 @@ export async function viewGoldLoan(req, res) {
                     lastDate: fineHistory.lastDate,
                     totalInterestRate: fineHistory.totalInterestRate,
                     principleAmount: fineHistory.principleAmount,
+                    dayAmount: fineHistory.dayAmount,
                     totalChargesAndBalanceAmount: fineHistory.totalChargesAndBalanceAmount,
                     balanceAmount: fineHistory.balanceAmount,
                 }
@@ -122,6 +123,7 @@ export async function viewGoldLoan(req, res) {
                     purchaseDate: loan.purchaseDate,
                     totalInterestRate: loan.totalInterestRate,
                     principleAmount: loan.principleAmount,
+                    dayAmount: loan.dayAmount,
                     totalChargesAndBalanceAmount: loan.totalChargesAndBalanceAmount,
                     balanceAmount: loan.balanceAmount,
                 };
@@ -286,6 +288,7 @@ export async function addGoldLoan(req, res, next) {
             interestMode,
             customerId,
             //memberId,
+            dayAmount: day,
             nomineeId,
             paymentMode,
             insurance,
@@ -316,6 +319,7 @@ export async function addGoldLoan(req, res, next) {
                 interestMode,
                 insurance,
                 processingFee,
+                dayAmount: day,
                 packingFee,
                 totalInterestRate: parseFloat(tInterestRate.toFixed(3)),
                 otherCharges,
@@ -525,12 +529,14 @@ export async function viewGoldLoanById(req, res, next) {
                 totalInterestRate: fineHistory.totalInterestRate,
                 principleAmount: fineHistory.principleAmount,
                 totalChargesAndBalanceAmount: fineHistory.totalChargesAndBalanceAmount,
+                dayAmount: fineHistory.dayAmount,
                 balanceAmount: fineHistory.balanceAmount,
             }
             : {
                 purchaseDate: loans.purchaseDate,
                 totalInterestRate: loans.totalInterestRate,
                 principleAmount: loans.principleAmount,
+                dayAmount: loans.dayAmount,
                 totalChargesAndBalanceAmount: loans.totalChargesAndBalanceAmount,
                 balanceAmount: loans.balanceAmount,
             };
