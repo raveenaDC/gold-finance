@@ -49,9 +49,9 @@ const JournalEntryForm = () => {
                 <DialogTitle>Journal Entry</DialogTitle>
                 <DialogContent>
                     <div style={{ display: 'flex', gap: '10px', marginBottom: '10px', marginTop: "10px" }}>
-                        <TextField size='small' label="Financial Year" defaultValue="2024-2025" disabled />
-                        <TextField size='small' label="Voucher No" value={voucherNo} onChange={(e) => setVoucherNo(e.target.value)} />
                         <TextField size='small' label="Voucher Date" type="date" value={voucherDate} onChange={(e) => setVoucherDate(e.target.value)} InputLabelProps={{ shrink: true }} />
+                        <TextField size='small' label="Voucher No" value={voucherNo} onChange={(e) => setVoucherNo(e.target.value)} />
+
                     </div>
 
                     <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>

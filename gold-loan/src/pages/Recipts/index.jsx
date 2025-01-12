@@ -1,15 +1,6 @@
 import React, { useState } from 'react';
 import { Button, Dialog, DialogContent, DialogTitle, Grid, TextField, Select, MenuItem, Typography, Box, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Paper,
-} from '@mui/material';
 import SearchReceiptModal from '../../components/Reciept Search';
 
 
@@ -48,15 +39,18 @@ const CashReceiptsModal = () => {
                                 InputLabelProps={{ shrink: true }}
                             />
                         </Grid>
-                        <Grid item xs={12} sm={4}>
-                            <TextField size='small' label="Vr No" fullWidth />
+                        <Grid item xs={12} sm={2}>
+                            <TextField size='small' label="Vr No" />
                         </Grid>
-                        <Grid item xs={12} sm={4}>
+                        <Grid item xs={12} sm={6}>
                             <Select
                                 size='small'
                                 value={paymentType}
                                 onChange={(e) => setPaymentType(e.target.value)}
-                                fullWidth
+                                sx={{
+                                    marginLeft: '220px',  // Adjust as needed for alignment
+                                    width: '200px',        // Correct usage of width as a style
+                                }}
                             >
                                 <MenuItem value="General">General</MenuItem>
                                 <MenuItem value="Payables">Payables</MenuItem>
@@ -109,9 +103,9 @@ const CashReceiptsModal = () => {
                             <Button variant="contained" color="secondary" style={{ marginLeft: 8 }}>Exit</Button>
                         </Grid>
 
-                        <Grid item xs={12} textAlign="right">
+                        {/* <Grid item xs={12} textAlign="right">
                             <Typography variant="h5" color="textSecondary">Total: 0.00</Typography>
-                        </Grid>
+                        </Grid> */}
                     </Grid>
                 </DialogContent>
             </Dialog>
