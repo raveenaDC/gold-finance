@@ -71,7 +71,7 @@ export async function createGoldLoanBilling(req, res, next) {
             record.packingFee = parseFloat(record.packingFee) + parseFloat(packingFee);
             record.appraiser = parseFloat(record.appraiser) + parseFloat(appraiser);
             record.otherCharges = parseFloat(record.otherCharges) + parseFloat(otherCharges);
-            record.totalCharges = totalCharges;
+            record.totalCharges = parseFloat(record.totalCharges) + parseFloat(totalCharges);
             record.totalChargesAndBalanceAmount = updatedTotalChargesAndBalance;
             record.totalInterestRate = loanDetails.totalInterestRate;
             record.balanceAmount = newBalanceAmount;
