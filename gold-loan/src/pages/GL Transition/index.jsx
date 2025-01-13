@@ -25,7 +25,7 @@ import { submitData } from "../../api";
 
 
 import { getCustomerDetails, updateCustomerRating } from '../../services/customer/customer.service';
-import { getcustomergoldloandetails, getgolddetailtable } from '../../services/goldItems/goldItems.service';
+import { getcustomergoldloandetails, getgolddetailtable, getgoldbillhistorytable } from '../../services/goldItems/goldItems.service';
 
 export default function GoldLoanBill() {
     const dispatch = useDispatch();
@@ -137,11 +137,11 @@ export default function GoldLoanBill() {
             setGlNumber(newValue.glNo); // Set selected GL number
             setCustomerId(newValue.customerId); // Set customer ID linked to GL number
             setGoldLoanId(newValue._id);
-            console.log("hiiiiiiiii");
+            // console.log("hiiiiiiiii");
 
-            console.log("nothing", newValue.customerId);
-            console.log(("idghg", newValue._id));
-            console.log("nothing", newValue.glNo);
+            // console.log("nothing", newValue.customerId);
+            // console.log(("idghg", newValue._id));
+            // console.log("nothing", newValue.glNo);
         } else {
             setGlNumber('');
         }
@@ -284,7 +284,7 @@ export default function GoldLoanBill() {
                 setCustomerData(response.userDetails);
                 setRating(response.userDetails.rating); // Sync initial rating
             }
-            console.log(response);
+            // console.log(response);
         } catch (error) {
             console.error('Error fetching customer details:', error);
         }
@@ -303,13 +303,29 @@ export default function GoldLoanBill() {
     const fetchCustomerGoldTable = async () => {
         try {
             const response = await getgolddetailtable(goldLoanId);
-            console.log("checking", response.items);
+            // console.log("checking", response.items);
             const itemDetails = response.items.itemDetails || []; // Safely extract the items array
             const items = response.items || [];
             const fine = response.items.fineDetails || [];
             setFineDetails(fine);
             setSingleloanDetails(items);
             setItemDetails(itemDetails); // Store the items in the state
+        } catch (error) {
+            console.error('Error fetching customer details:', error);
+        }
+
+    }
+
+    const fetchCustomerGoldHistoryTable = async () => {
+        try {
+            const response = await getgoldbillhistorytable(goldLoanId);
+            console.log("checking2", response.items);
+            // const itemDetails = response.items.itemDetails || []; // Safely extract the items array
+            // const items = response.items || [];
+            // const fine = response.items.fineDetails || [];
+            // setFineDetails(fine);
+            // setSingleloanDetails(items);
+            // setItemDetails(itemDetails); // Store the items in the state
         } catch (error) {
             console.error('Error fetching customer details:', error);
         }
@@ -347,6 +363,7 @@ export default function GoldLoanBill() {
     useEffect(() => {
         if (goldLoanId) {
             fetchCustomerGoldTable();
+            fetchCustomerGoldHistoryTable();
         }
     }, [goldLoanId]);
 
@@ -395,6 +412,7 @@ export default function GoldLoanBill() {
 
     const diffDays = differenceInDays(new Date(billDate), new Date(singleloanDetails.lastTransaction),);
     formData.totalAmount = parseFloat(formData.interestRate || 0) + parseFloat(formData.principlePaid || 0);
+    const text = diffDays * singleloanDetails.dayAmount;
 
 
 
@@ -605,7 +623,7 @@ export default function GoldLoanBill() {
                                     size="small"
                                     label="INTEREST RATE"
                                     fullWidth
-                                    placeholder={diffDays}
+                                    placeholder={text.toFixed(2)}
                                     sx={{
                                         '& .MuiInputLabel-root': {
                                             fontSize: '14px', // Increased label font size
@@ -636,7 +654,7 @@ export default function GoldLoanBill() {
                                     size="small"
                                     fullWidth
                                     placeholder="Enter Amount"
-                                    disabled={formData.interestRate === null || formData.interestRate < diffDays} // Disable if interestRate is null or greater than diffDays
+                                    disabled={formData.interestRate === null || formData.interestRate < text} // Disable if interestRate is null or greater than diffDays
 
                                     sx={{
                                         '& .MuiInputLabel-root': {
@@ -957,7 +975,7 @@ export default function GoldLoanBill() {
                         </Grid>
                     </Box>
 
-                    {/* Left Section */}
+
                     <Grid item xs={12} container spacing={1}>
                         <Grid item xs={12} md={8} sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>
                             {itemDetails && (
@@ -1019,7 +1037,7 @@ export default function GoldLoanBill() {
 
                                         <TableRow>
                                             <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Balance  Interest</TableCell>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{singleloanDetails.principleAmount}</TableCell>
+                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{singleloanDetails.balanceInterest}</TableCell>
                                         </TableRow>
 
                                         <TableRow>
@@ -1034,7 +1052,7 @@ export default function GoldLoanBill() {
 
                                         <TableRow>
                                             <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>No Of Days </TableCell>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{singleloanDetails.principleAmount}</TableCell>
+                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{singleloanDetails.NumberOfDays}</TableCell>
                                         </TableRow>
                                     </TableBody>
                                 </Table>
@@ -1337,6 +1355,7 @@ export default function GoldLoanBill() {
                                         <TableCell align="center" sx={{ padding: '4px' }}> Int Received</TableCell>
                                     </TableRow>
                                 </TableHead>
+
                                 <TableBody>
                                     {fineDetails.map((detail, index) => (
                                         <TableRow
@@ -1447,23 +1466,22 @@ export default function GoldLoanBill() {
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {itemDetails.map((detail, index) => (
-                                        <TableRow
-                                            key={index}
-                                            sx={{
-                                                '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
-                                                '&:nth-of-type(even)': { backgroundColor: '#ffffff' },
-                                                height: '24px',
-                                            }}
-                                        >
-                                            <TableCell align="center" sx={{ padding: '4px' }}>N/A</TableCell>
-                                            <TableCell align="center" sx={{ padding: '4px' }}>N/A</TableCell>
-                                            <TableCell align="center" sx={{ padding: '4px' }}>N/A</TableCell>
-                                            <TableCell align="center" sx={{ padding: '4px' }}>N/A</TableCell>
-                                            <TableCell align="center" sx={{ padding: '4px' }}>N/A</TableCell>
-                                            <TableCell align="center" sx={{ padding: '4px' }}>N/A</TableCell>
-                                        </TableRow>
-                                    ))}
+                                    <TableRow
+
+                                        sx={{
+                                            '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
+                                            '&:nth-of-type(even)': { backgroundColor: '#ffffff' },
+                                            height: '24px',
+                                        }}
+                                    >
+                                        <TableCell align="center" sx={{ padding: '4px' }}>{singleloanDetails.glNo}</TableCell>
+                                        <TableCell align="center" sx={{ padding: '4px' }}>{singleloanDetails.lastTransaction}</TableCell>
+                                        <TableCell align="center" sx={{ padding: '4px' }}>detail.</TableCell>
+                                        <TableCell align="center" sx={{ padding: '4px' }}>{singleloanDetails.amountPaid}</TableCell>
+                                        <TableCell align="center" sx={{ padding: '4px' }}>detail.</TableCell>
+                                        <TableCell align="center" sx={{ padding: '4px' }}>detail.</TableCell>
+                                    </TableRow>
+
                                 </TableBody>
 
                             </Table>

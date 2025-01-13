@@ -6,6 +6,8 @@ import memberModel from "./memberModel.js";
 import interestCalculationModel from "./interestCalculationModel.js";
 import goldLoanPdfModel from "./goldLoanPdfModel.js";
 import fineGoldLoanModel from "./fineGoldLoanModel.js";
+import chartAccountModel from "./chartOfAccountHeadModel.js"
+import chartAccountTypeModel from "./paymentReceiptModel.js"
 
 export {
     billingModel,
@@ -15,5 +17,7 @@ export {
     memberModel,
     interestCalculationModel,
     goldLoanPdfModel,
-    fineGoldLoanModel
+    fineGoldLoanModel,
+    chartAccountModel,
+    chartAccountTypeModel
 };

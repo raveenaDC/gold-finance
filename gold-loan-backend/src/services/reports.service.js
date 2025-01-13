@@ -35,7 +35,7 @@ export async function viewAllGoldLoan(req, res, next) {
 
 
         let loanList = await models.goldLoanModel.find(query).sort({ purchaseDate: -1 }).select(
-            'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage totalCharges isClosed totalChargesAndBalanceAmount interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode insurance  processingFee otherCharges packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage totalInterestRate createdAt'
+            'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage totalCharges isClosed totalChargesAndBalanceAmount interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode insurance  processingFee otherCharges packingFee appraiser dayAmount principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage totalInterestRate createdAt'
         ).populate({
             path: 'itemDetails.goldItem',
             select: 'goldItem'
@@ -82,20 +82,24 @@ export async function viewAllGoldLoan(req, res, next) {
                 .findOne({ goldLoanId: loan._id })
             const loanDetails = fineHistory && fineHistory.isFine && fineHistory.balanceAmount != 0
                 ? {
+                    purchaseDate: fineHistory.purchaseDate,
                     totalInterestRate: fineHistory.totalInterestRate,
                     principleAmount: fineHistory.principleAmount,
+                    dayAmount: fineHistory.dayAmount,
                     totalChargesAndBalanceAmount: fineHistory.totalChargesAndBalanceAmount,
                     balanceAmount: fineHistory.balanceAmount,
                 }
                 : {
+                    purchaseDate: loan.purchaseDate,
                     totalInterestRate: loan.totalInterestRate,
                     principleAmount: loan.principleAmount,
+                    dayAmount: loan.dayAmount,
                     totalChargesAndBalanceAmount: loan.totalChargesAndBalanceAmount,
                     balanceAmount: loan.balanceAmount,
                 };
             //End Fine Section
 
-            let lastTransactionDate = latestBill ? latestBill.billDate : loan.purchaseDate;
+            let lastTransactionDate = latestBill ? latestBill.billDate : loanDetails.purchaseDate;
             let balanceInterest = parseFloat(loanDetails.totalInterestRate) - parseFloat(principleInterest)
 
             let balanceInterestDays, interestDays, interestDaysAmount;
@@ -113,7 +117,7 @@ export async function viewAllGoldLoan(req, res, next) {
                 else { interestDaysAmount = day * interestDays }
 
                 //Balance Days After Last Interest Paid
-                balanceInterestDays = Math.ceil((lastTransactionDate - loan.purchaseDate) / (1000 * 60 * 60 * 24))// + 1;  Add 1 to include the last day
+                balanceInterestDays = Math.ceil((lastTransactionDate - loanDetails.purchaseDate) / (1000 * 60 * 60 * 24))// + 1;  Add 1 to include the last day
 
                 if (loan.interestMode == 'daily') { balanceInterestDays = 1 - balanceInterestDays }
                 else if (loan.interestMode == 'weekly') { balanceInterestDays = 7 - balanceInterestDays }
@@ -126,9 +130,10 @@ export async function viewAllGoldLoan(req, res, next) {
 
             loanData.push({
                 ...loanDetails,
+                goldLoanId: loan._id,
                 glNo: loan.glNo,
                 customerData: loan.customerId,
-                purchaseDate: loan.purchaseDate,
+                // purchaseDate: loan.purchaseDate,
                 voucherNo: loan.voucherNo,
                 goldRate: loan.goldRate,
                 companyGoldRate: loan.companyGoldRate,

@@ -46,3 +46,19 @@ export const getgolddetailtable = async (loanId) => {
 
 }
 
+export const getgoldbillhistorytable = async (loanId) => {
+    try {
+        const response = await fetch(API_BASE_URL + API_ENDPOINT.GET_GOLD_DETAIL_TABLE.replace("[loanId]", loanId));
+        const data = await response.json();
+        console.log("***********");
+        console.log("history", data.data);
+        console.log("***********");
+        return { items: data };
+    }
+    catch (e) {
+        console.error('Error fetching gold table details:', e);
+
+    }
+
+}
+

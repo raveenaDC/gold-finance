@@ -2,6 +2,8 @@ import { Schema, model, Types } from 'mongoose';
 
 const fineGoldLoanSchema = new Schema(
     {
+        purchaseDate: Date,
+        lastDate: Date,
         goldLoanId: { type: Schema.Types.ObjectId, ref: 'customer' },
         interestPercentage: {
             type: Number,
@@ -41,6 +43,10 @@ const fineGoldLoanSchema = new Schema(
             default: 0
         },
         amountPaid: {
+            type: Number,
+            default: 0,
+        },
+        dayAmount: {
             type: Number,
             default: 0,
         },

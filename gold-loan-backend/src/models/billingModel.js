@@ -5,7 +5,11 @@ const billingSchema = new Schema(
         billNo: String,
         billDate: Date,
         goldLoanId: { type: Schema.Types.ObjectId, ref: 'goldLoan' },
-        paymentMode: String,
+        paymentSection: {
+            paymentMode: String,
+            paymentName: String,
+            paymentNumber: String,
+        },
         isCanceled: {
             type: Boolean,
             default: false
