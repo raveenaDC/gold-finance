@@ -112,7 +112,7 @@ export async function getChartAccount(req, res, next) {
                 res,
                 httpStatus.NOT_FOUND,
                 true,
-                'Char of Account(s) not found'
+                'Char of Account(s) not found..'
             );
         }
 
