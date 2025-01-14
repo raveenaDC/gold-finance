@@ -57,7 +57,7 @@ const CashPaymentsModal = () => {
                 alert(response.result);
                 return;
             }
-            setaccountHeadName(response.result.data.items); // Store the fetched data as an array
+            // setaccountHeadName(response.result.data.items); // Store the fetched data as an array
         } catch (error) {
             console.error('Error fetching account head names:', error);
             alert('Failed to fetch account head names. Please try again.');

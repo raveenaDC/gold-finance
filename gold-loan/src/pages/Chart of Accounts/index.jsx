@@ -46,17 +46,8 @@ const ChartsOfAccounts = () => {
         setLoading(true);
         setError(null);
         try {
-            const data = {
-                accountName: inputs.accountName,
-                credit: inputs.credit,
-                debit: inputs.debit,
-                depreciationRateOne: inputs.depreciationRateOne,
-                depreciationRateTwo: inputs.depreciationRateTwo,
-                category: category,
-                subcategory: subcategory
-            }
-            console.log(data);
-            const response = await chart(data);
+
+            const response = await chart(inputs.accountName, inputs.credit, inputs.debit, inputs.depreciationRateOne, inputs.depreciationRateTwo, category, subcategory);
 
             if (response?.isError) {
                 setError('Login failed. Please check your credentials or try again later.');
