@@ -116,23 +116,6 @@ export async function customerView(req, res, next) {
             customerList.sort((a, b) => (a.createdDate - b.createdDate) * order); // Default sorting by createdAt
         }
 
-        if (search) {
-            // Define a function to calculate relevance score
-            const calculateRelevance = (memberSet) => {
-                const fields = ['firstName lastName email'];
-                let relevance = 0;
-                fields.forEach((field) => {
-                    if (
-                        memberSet[field] &&
-                        memberSet[field].toLowerCase().startsWith(search.toLowerCase())
-                    ) {
-                        relevance++;
-                    }
-                });
-                return relevance;
-            };
-            customerList.sort((a, b) => calculateRelevance(b) - calculateRelevance(a));
-        }
         if (customerList.length == 0) {
             return responseHelper(
                 res,

@@ -17,6 +17,7 @@ import { viewAccountHeadName } from '../../services/accounts/account.service'
 import SearchPaymentModal from '../../components/Payment Search';
 
 
+
 const CashPaymentsModal = () => {
     const [open, setOpen] = useState(false);
     const [paymentType, setPaymentType] = useState('Payables');
@@ -50,6 +51,8 @@ const CashPaymentsModal = () => {
     const fetchAcountHeadName = async () => {
         try {
             const response = await viewAccountHeadName();
+            console.log("here", response);
+
             if (!response?.isSuccess) {
                 alert(response.result);
                 return;
