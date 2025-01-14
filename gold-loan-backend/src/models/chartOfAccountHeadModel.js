@@ -4,7 +4,7 @@ const charAccountSchema = new Schema(
     {
         accountName: String,
         category: String,
-        subCategory: Date,
+        subCategory: String,
         description: {
             type: String,
             length: 1000
