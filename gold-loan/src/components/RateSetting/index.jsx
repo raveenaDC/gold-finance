@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Modal, Box, Typography, TextField, Button } from '@mui/material';
 import { setRateData } from '../../Redux/rateSlice'; // Import the action
@@ -19,17 +19,18 @@ const RateSettingModal = () => {
     const [goldRate, setGoldRate] = useState('');
     const [companyGoldRate, setCompanyGoldRate] = useState('');
 
-    useEffect(() => {
-        dispatch(setRateData({ date, goldRate, companyGoldRate: companyGoldRate }));
-    }, [date, goldRate, companyGoldRate, dispatch]); // Dispatch action whenever values change
-
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
 
     const handleSubmit = () => {
-        const rateData = { date, goldRate, companyGoldRate: companyGoldRate };
+        // Only dispatch when the form is submitted
+        const rateData = { date, goldRate, companyGoldRate };
         console.log('Submitted Data:', rateData);
-        handleClose();
+
+        // Dispatch action to update Redux state with the submitted data
+        dispatch(setRateData({ date, goldRate, companyGoldRate }));
+
+        handleClose(); // Close modal after submission
     };
 
     const modalStyle = {

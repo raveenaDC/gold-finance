@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
 import { TextField, MenuItem, Select, InputLabel, FormControl, Grid, Typography, Paper, Dialog, DialogActions, DialogContent, DialogTitle, Button } from '@mui/material';
-
+import { chart } from '../../services/accounts/account.service'
 const ChartsOfAccounts = () => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
     const [category, setCategory] = useState('');
     const [subcategory, setSubcategory] = useState('');
     const [inputs, setInputs] = useState({
-        name: '',
+        accountName: '',
         description: '',
-        rate: '',
-        period: ''
+        credit: '0',
+        debit: '0',
+        depreciationRateTwo: '',
+        depreciationRateOne: ''
     });
     const [openModal, setOpenModal] = useState(false);
 
@@ -34,8 +38,38 @@ const ChartsOfAccounts = () => {
         setOpenModal(false);
     };
 
-    const handleSubmit = () => {
-        console.log(inputs);  // Add your submit logic here
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        // Add your submit logic here
+        console.log(subcategory);
+        console.log(category);
+        setLoading(true);
+        setError(null);
+        try {
+            const data = {
+                accountName: inputs.accountName,
+                credit: inputs.credit,
+                debit: inputs.debit,
+                depreciationRateOne: inputs.depreciationRateOne,
+                depreciationRateTwo: inputs.depreciationRateTwo,
+                category: category,
+                subcategory: subcategory
+            }
+            console.log(data);
+            const response = await chart(data);
+
+            if (response?.isError) {
+                setError('Login failed. Please check your credentials or try again later.');
+                console.log(response.message);
+
+                return;
+            }
+            alert(response.message);
+        } catch (error) {
+            setError('Login failed. Please check your credentials or try again later.');
+        } finally {
+            setLoading(false);
+        }
         setOpenModal(false);  // Close the modal after submit
     };
 
@@ -70,14 +104,14 @@ const ChartsOfAccounts = () => {
             <table style={{ width: '100%' }}>
                 <tbody>
                     <tr>
-                        <td><Typography>Debt</Typography></td>
+                        <td><Typography>Debit</Typography></td>
                         <td>
                             <TextField
                                 variant="outlined"
                                 fullWidth
                                 size="small"
-                                name="description"
-                                value={inputs.description}
+                                name="debit"
+                                value={inputs.debit}
                                 onChange={handleInputChange}
                                 style={{ marginBottom: '10px' }}
                             />
@@ -91,8 +125,8 @@ const ChartsOfAccounts = () => {
                                 fullWidth
                                 type="number"
                                 size="small"
-                                name="rate"
-                                value={inputs.rate}
+                                name="credit"
+                                value={inputs.credit}
                                 onChange={handleInputChange}
                             />
                         </td>
@@ -106,8 +140,8 @@ const ChartsOfAccounts = () => {
                                         variant="outlined"
                                         fullWidth
                                         size="small"
-                                        name="period1"
-                                        value={inputs.period}
+                                        name="depreciationRateOne"
+                                        value={inputs.depreciationRateOne}
                                         onChange={handleInputChange}
                                     />
                                 </td>
@@ -119,8 +153,8 @@ const ChartsOfAccounts = () => {
                                         variant="outlined"
                                         fullWidth
                                         size="small"
-                                        name="period2"
-                                        value={inputs.period}
+                                        name="depreciationRateTwo"
+                                        value={inputs.depreciationRateTwo}
                                         onChange={handleInputChange}
                                     />
                                 </td>
@@ -151,8 +185,8 @@ const ChartsOfAccounts = () => {
                                 variant="outlined"
                                 fullWidth
                                 size="small"
-                                name="name"
-                                value={inputs.name}
+                                name="accountName"
+                                value={inputs.accountName}
                                 onChange={handleInputChange}
                                 margin="normal"
                             />
@@ -184,7 +218,7 @@ const ChartsOfAccounts = () => {
                                     <tbody>
                                         <tr>
                                             <td style={{ padding: '8px', fontWeight: 'bold' }}>Name:</td>
-                                            <td style={{ padding: '8px' }}>{inputs.name}</td>
+                                            <td style={{ padding: '8px' }}>{inputs.accountName}</td>
                                         </tr>
                                         <tr>
                                             <td style={{ padding: '8px', fontWeight: 'bold' }}>Category:</td>
@@ -200,13 +234,13 @@ const ChartsOfAccounts = () => {
                                         </tr>
                                         <tr>
                                             <td style={{ padding: '8px', fontWeight: 'bold' }}>Rate:</td>
-                                            <td style={{ padding: '8px' }}>{inputs.rate}</td>
+                                            <td style={{ padding: '8px' }}>{inputs.credit}</td>
                                         </tr>
                                         {subcategory === 'Fixed Assets' && (
                                             <>
                                                 <tr>
                                                     <td style={{ padding: '8px', fontWeight: 'bold' }}>Period:</td>
-                                                    <td style={{ padding: '8px' }}>{inputs.period}</td>
+                                                    <td style={{ padding: '8px' }}>{inputs.debit}</td>
                                                 </tr>
                                             </>
                                         )}

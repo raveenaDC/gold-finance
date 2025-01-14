@@ -56,7 +56,7 @@ export default function GoldLoanBill() {
         'Debit Card',
     ];
 
-    const [chequeDetails, setChequeDetails] = useState({ name: '', goldNumber: 10 });
+    const [chequeDetails, setChequeDetails] = useState({ accountName: '', goldNumber: 10 });
     const [selectedMode, setSelectedMode] = useState('');
     const [selectedPaymentMode, setSelectedPaymentMode] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);

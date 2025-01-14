@@ -91,6 +91,7 @@ export async function createReceiptPayment(req, res, next) {
 export async function getChartAccount(req, res, next) {
     try {
 
+
         let { search } = req.query;
 
         pageLimit = parseInt(pageLimit || defaultPageLimit);
@@ -106,7 +107,7 @@ export async function getChartAccount(req, res, next) {
 
 
         let chartList = await models.chartAccountModel.find(query).select(
-            'category subCategory description rate place period financialYearStartDate  financialYearEndDate createdAt '
+            'accountName category subCategory description rate place period financialYearStartDate  financialYearEndDate createdAt '
         ).collation({ locale: 'en', strength: 2 });
 
         if (chartList.length == 0) {
