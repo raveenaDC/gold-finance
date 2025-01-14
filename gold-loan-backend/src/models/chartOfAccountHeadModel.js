@@ -2,26 +2,35 @@ import { Schema, model, Types } from 'mongoose';
 
 const charAccountSchema = new Schema(
     {
+        accountName: String,
         category: String,
         subCategory: String,
         description: {
             type: String,
             length: 1000
         },
-        rate: {
+        debit: {
             type: Number,
             default: 0
         },
-        period: {
+        credit: {
             type: Number,
+            default: 0
         },
-        financialYearStartDate: {
-            type: Date
+        balance: {
+            type: Number,
+            default: 0
         },
-        financialYearEndDate: {
-            type: Date
+        depreciationRateOne: {
+            type: Number,
+            default: 0
+        },
+        depreciationRateTwo: {
+            type: Number,
+            default: 0
         }
     },
+
     {
         timestamps: true,
     }

@@ -8,23 +8,25 @@ const defaultPageLimit = process.env.PAGE_LIMIT;
 export async function createdChartAccount(req, res, next) {
     try {
         let {
+            accountName,
             category,
             subCategory,
             description,
-            rate,
-            period,
-            financialYearStart,
-            financialYearEnd
+            debit,
+            credit,
+            depreciationRateTwo,
+            depreciationRateOne
         } = req.body;
 
         const heads = await models.chartAccountModel.create({
+            accountName,
             category,
             subCategory,
             description,
-            rate,
-            period,
-            financialYearStart,
-            financialYearEnd
+            debit,
+            credit,
+            depreciationRateTwo,
+            depreciationRateOne
         });
 
         return responseHelper(
@@ -45,11 +47,13 @@ export async function createReceiptPayment(req, res, next) {
         let { chartId } = req.params
         let {
             voucherNumber,
-            account,
+            accountName,
             description,
             isPaymentType,
             debit,
-            credit
+            credit,
+            amountDate,
+            accountType
         } = req.body;
 
         const chart = await models.chartAccountModel.findOne({ _id: chartId })
@@ -66,13 +70,13 @@ export async function createReceiptPayment(req, res, next) {
         const heads = await models.chartAccountTypeModel.create({
             chartId,
             voucherNumber,
-            account,
+            accountName,
             description,
             isPaymentType,
             debit,
             credit,
-            financialYearStart: chart.financialYearStartDate,
-            financialYearEnd: chart.financialYearEndDate
+            amountDate,
+            accountType
         });
         let message = isPaymentType == 1 ? 'payment' : 'receipt'
         return responseHelper(
@@ -92,21 +96,15 @@ export async function getChartAccount(req, res, next) {
     try {
 
         let { search } = req.query;
-
-        pageLimit = parseInt(pageLimit || defaultPageLimit);
-        const page = parseInt(req.query.page) || 1;
-
         const query = {};
 
         query.$or = [
-            { description: { $regex: new RegExp(search, 'i') } },
-            { subCategory: { $regex: new RegExp(search, 'i') } },
-            { category: { $regex: new RegExp(search, 'i') } }
+            { accountName: { $regex: new RegExp(search, 'i') } }
         ];
 
 
         let chartList = await models.chartAccountModel.find(query).select(
-            'category subCategory description rate place period financialYearStartDate  financialYearEndDate createdAt '
+            'accountName category subCategory description debit  credit depreciationRateTwo  depreciationRateOne createdAt '
         ).collation({ locale: 'en', strength: 2 });
 
         if (chartList.length == 0) {
@@ -117,11 +115,9 @@ export async function getChartAccount(req, res, next) {
                 'Char of Account(s) not found'
             );
         }
-        const paginationResult = await paginateData(chartList, page, pageLimit);
 
         return responseHelper(res, httpStatus.OK, false, 'Chart account list', {
-            items: paginationResult.data,
-            pagination: paginationResult.pagination,
+            chartList
         });
 
     } catch (error) {
@@ -129,6 +125,7 @@ export async function getChartAccount(req, res, next) {
     }
 
 }
+
 export async function getGeneralLedger(req, res, next) {
     try {
 
@@ -136,12 +133,15 @@ export async function getGeneralLedger(req, res, next) {
 
         const query = {
             chartId: chartId,
-            financialYearStartDate: { $gte: new Date(financialYearStartDate) },
-            financialYearEndDate: { $lte: new Date(financialYearEndDate) },
+            amountDate: { $gte: financialYearStartDate, $lte: financialYearEndDate },
+
         };
         let chartList = await models.chartAccountTypeModel.find(query).select(
-            'chartId voucherNumber account description rate credit debit balance financialYearStartDate  financialYearEndDate createdAt '
-        ).collation({ locale: 'en', strength: 2 });
+            'chartId voucherNumber accountName description  credit debit accountType isPaymentType amountDate createdAt '
+        ).populate({
+            path: 'chartId',
+            select: 'category subCategory accountName depreciationRateOne depreciationRateTwo credit debit createdAt'
+        }).collation({ locale: 'en', strength: 2 });
 
         if (chartList.length == 0) {
             return responseHelper(
@@ -162,28 +162,63 @@ export async function getGeneralLedger(req, res, next) {
 
 }
 
+export async function getReceiptPayment(req, res, next) {
+    try {
+
+        let { financialYearStartDate, financialYearEndDate, accountName, isPaymentType } = req.body;
+        let { pageLimit } = req.query;
+        pageLimit = parseInt(pageLimit || defaultPageLimit);
+        const page = parseInt(req.query.page) || 1;
+
+        const query = {
+            amountDate: { $gte: financialYearStartDate, $lte: financialYearEndDate },
+            $or: [
+                { accountName: { $regex: new RegExp(accountName, 'i') } },
+                { isPaymentType: isPaymentType },
+            ],
+        };
+
+        let chartList = await models.chartAccountTypeModel.find(query).select(
+            'chartId voucherNumber accountName description  credit debit accountType isPaymentType amountDate createdAt '
+        ).collation({ locale: 'en', strength: 2 });
+
+        if (chartList.length == 0) {
+            return responseHelper(
+                res,
+                httpStatus.NOT_FOUND,
+                true,
+                'Char of Account(s) not found'
+            );
+        }
+
+        const paginationResult = await paginateData(chartList, page, pageLimit);
+
+        return responseHelper(res, httpStatus.OK, false, 'Chart account ledger list', {
+            receiptPaymentList: paginationResult.data
+        });
+
+    } catch (error) {
+        return next(new Error(error));
+    }
+
+}
+
 export async function getTrialBalance(req, res, next) {
     try {
 
         let { financialYearStartDate, financialYearEndDate } = req.body;
-        let trial = [];
-        // const query = {
-        //     financialYearStartDate: { $gte: new Date(financialYearStartDate) },
-        //     financialYearEndDate: { $lte: new Date(financialYearEndDate) },
-        // };
 
         const groupedData = await chartAccountTypeModel.aggregate([
             {
                 $match: {
-                    financialYearStartDate: { $gte: financialYearStartDate },
-                    financialYearEndDate: { $lte: financialYearEndDate },
+                    amountDate: { $gte: financialYearStartDate, $lte: financialYearEndDate },
                 },
             },
             {
                 $group: {
                     _id: {
                         chartId: "$chartId",
-                        account: "$account",
+                        accountName: "$accountName",
                     },
                     totalDebit: { $sum: "$debit" },
                     totalCredit: { $sum: "$credit" },
@@ -193,7 +228,7 @@ export async function getTrialBalance(req, res, next) {
                 $project: {
                     _id: 0,
                     chartId: "$_id.chartId",
-                    account: "$_id.account",
+                    accountName: "$_id.accountName",
                     totalDebit: 1,
                     totalCredit: 1,
                 },

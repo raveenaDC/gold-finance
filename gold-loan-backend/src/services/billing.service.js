@@ -71,9 +71,9 @@ export async function createGoldLoanBilling(req, res, next) {
             record.packingFee = parseFloat(record.packingFee) + parseFloat(packingFee);
             record.appraiser = parseFloat(record.appraiser) + parseFloat(appraiser);
             record.otherCharges = parseFloat(record.otherCharges) + parseFloat(otherCharges);
-            record.totalCharges = totalCharges;
+            record.totalCharges = parseFloat(record.totalCharges) + parseFloat(totalCharges);
             record.totalChargesAndBalanceAmount = updatedTotalChargesAndBalance;
-            record.totalInterestRate = minusInterestRate;
+            record.totalInterestRate = loanDetails.totalInterestRate;
             record.balanceAmount = newBalanceAmount;
             record.amountPaid = parseFloat(record.amountPaid) + parseFloat(principlePaid);
         };
@@ -162,7 +162,7 @@ export async function viewAllGoldLoanBilling(req, res, next) {
 
 export async function viewGoldLoanBillingDetails(req, res, next) {
     try {
-        let { goldLoanId } = req.params
+        let { goldLoanId } = req.params;
 
         let billDetails = await models.billingModel.find({ goldLoanId, isCanceled: false })
             .select('goldLoanId principleInterestRate payment paymentSection billDate insurance processingFee packingFee appraise otherCharges billNo createdAt')
