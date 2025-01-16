@@ -126,6 +126,39 @@ export async function getChartAccount(req, res, next) {
 
 }
 
+export async function getTotalBalanceAmount(req, res, next) {
+    try {
+        let { chartId } = req.params
+        let value = 0
+        const chart = await models.chartAccountTypeModel.find({ chartId: chartId })
+        if (chart.length === 0) {
+            return responseHelper(
+                res,
+                httpStatus.CONFLICT,
+                true,
+                '',
+                value
+            );
+        }
+        let sum = 0, total = 0;
+        chart.forEach(element => {
+            sum += element.debit;
+            total += element.credit;
+        });
+        value = sum === 0 && total === 0 ? 0 : sum === 0 ? total : sum;
+        return responseHelper(
+            res,
+            httpStatus.CREATED,
+            false,
+            `Balance amount`,
+            value
+        );
+    } catch (error) {
+        return next(new Error(error));
+    }
+
+}
+
 export async function getGeneralLedger(req, res, next) {
     try {
 
