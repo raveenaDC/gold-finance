@@ -95,7 +95,6 @@ export async function createReceiptPayment(req, res, next) {
 export async function getChartAccount(req, res, next) {
     try {
 
-
         let { search } = req.query;
         const query = {};
 
@@ -105,7 +104,7 @@ export async function getChartAccount(req, res, next) {
 
 
         let chartList = await models.chartAccountModel.find(query).select(
-            'category subCategory description rate place period financialYearStartDate  financialYearEndDate createdAt '
+            'accountName category subCategory description debit  credit depreciationRateTwo  depreciationRateOne createdAt '
         ).collation({ locale: 'en', strength: 2 });
 
         if (chartList.length == 0) {
@@ -113,7 +112,7 @@ export async function getChartAccount(req, res, next) {
                 res,
                 httpStatus.NOT_FOUND,
                 true,
-                'Char of Account(s) not found'
+                'Char of Account(s) not found..'
             );
         }
 

@@ -91,10 +91,10 @@ export default function GlMaster() {
 
             {/* Search Filters */}
             <Grid container spacing={2} sx={{ mb: 3 }}>
-                <Grid item xs={12} sm={3}>
+                <Grid item xs={12} sm={2}>
                     <TextField
                         fullWidth
-                        label="Search by Name"
+                        label="Search by First Name"
                         variant="outlined"
                         name="search"
                         value={searchParams.search}
@@ -117,7 +117,35 @@ export default function GlMaster() {
                         }}
                     />
                 </Grid>
-                <Grid item xs={12} sm={3}>
+
+                <Grid item xs={12} sm={2}>
+                    <TextField
+                        fullWidth
+                        label="Search by Last Name"
+                        variant="outlined"
+                        name="search"
+                        value={searchParams.search}
+                        onChange={handleSearchChange}
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                borderRadius: '5px', // Rounded corners
+                                backgroundColor: '#f5f5f5', // Light grey background
+                                '& fieldset': {
+                                    borderColor: '#B8860B', // Dark gold border
+                                },
+                                '&:hover fieldset': {
+                                    borderColor: '#FFD700', // Gold border on hover
+                                },
+                            },
+                            '& .MuiInputBase-input': {
+                                fontSize: '0.875rem', // Smaller text
+                                padding: '10px', // Adjust padding for better spacing
+                            },
+                        }}
+                    />
+                </Grid>
+
+                <Grid item xs={12} sm={2}>
                     <TextField
                         fullWidth
                         label="Search by Address"
@@ -143,7 +171,33 @@ export default function GlMaster() {
                         }}
                     />
                 </Grid>
-                <Grid item xs={12} sm={3}>
+                <Grid item xs={12} sm={2}>
+                    <TextField
+                        fullWidth
+                        label="Search by Location"
+                        variant="outlined"
+                        name="Location"
+                        value={searchParams.address}
+                        onChange={handleSearchChange}
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                borderRadius: '5px', // Rounded corners
+                                backgroundColor: '#f5f5f5', // Light grey background
+                                '& fieldset': {
+                                    borderColor: '#B8860B', // Dark gold border
+                                },
+                                '&:hover fieldset': {
+                                    borderColor: '#FFD700', // Gold border on hover
+                                },
+                            },
+                            '& .MuiInputBase-input': {
+                                fontSize: '0.875rem', // Smaller text
+                                padding: '10px', // Adjust padding for better spacing
+                            },
+                        }}
+                    />
+                </Grid>
+                <Grid item xs={12} sm={2}>
                     <TextField
                         fullWidth
                         label="Search by Phone"
@@ -169,7 +223,7 @@ export default function GlMaster() {
                         }}
                     />
                 </Grid>
-                <Grid item xs={12} sm={3} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Grid item xs={12} sm={2} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                     <CustomerForm onCustomerAdded={fetchCustomers} />
                 </Grid>
 
@@ -222,20 +276,28 @@ export default function GlMaster() {
                         </Box>
 
                         <Typography variant="body1" sx={{ fontWeight: 'bold', fontSize: '14px' }}>
-                            SL No.: {index + 1}
+                            Cust No : {index + 1}
                         </Typography>
-                        <Typography variant="body1" sx={{ fontSize: '14px', mb: 1 }}>
-                            Name: {customer.firstName} {customer.lastName}
-                        </Typography>
-                        <Typography variant="body2" sx={{ fontSize: '12px', mb: 1 }}>
-                            Address: {customer.address}
-                        </Typography>
-                        <Typography variant="body2" sx={{ fontSize: '12px', mb: 1 }}>
-                            Mobile: {customer.primaryNumber}
-                        </Typography>
-                        <Typography variant="body2" sx={{ fontSize: '12px', mb: 2 }}>
-                            Email: {customer.email}
-                        </Typography>
+                        <Box sx={{ display: 'grid', gridTemplateColumns: '45px auto', gap: 1, mb: 2 }}>
+                            <Typography variant="body1" sx={{ fontSize: '12px' }}>Name</Typography>
+                            <Typography variant="body1" sx={{ fontSize: '12px' }}>: {customer.firstName} {customer.lastName}</Typography>
+
+                            <Typography variant="body1" sx={{ fontSize: '12px' }}>Address</Typography>
+                            <Typography variant="body1" sx={{ fontSize: '12px' }}>: {customer.address}</Typography>
+
+                            <Typography variant="body1" sx={{ fontSize: '12px' }}>Location</Typography>
+                            <Typography variant="body1" sx={{ fontSize: '12px' }}>: {customer.nearBy},{customer.city}</Typography>
+
+                            <Typography variant="body1" sx={{ fontSize: '12px' }}>Mobile</Typography>
+                            <Typography variant="body1" sx={{ fontSize: '12px' }}>: {customer.primaryNumber},{customer.secondaryNumber}</Typography>
+
+                            <Typography variant="body1" sx={{ fontSize: '12px' }}>Email</Typography>
+                            <Typography variant="body1" sx={{ fontSize: '12px' }}>: {customer.email}</Typography>
+
+
+                        </Box>
+
+
                         <Button
                             variant="contained"
                             sx={{

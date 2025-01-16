@@ -130,6 +130,7 @@ export default function Navbar({ handleDrawerOpen, open }) {
                         >
                             <MenuItem ><RateSetting /></MenuItem>
                             <MenuItem > <InterestPlanModal /></MenuItem>
+                            <MenuItem onClick={handleClose}>GoldLoan Setting</MenuItem>
                             <MenuItem onClick={handleClose}>Create Financial Year</MenuItem>
                             <MenuItem onClick={handleClose}>Set Financial Year</MenuItem>
                             <MenuItem onClick={handleClose}>Print Setup</MenuItem>

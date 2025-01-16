@@ -1,87 +1,117 @@
 import React, { useState, useEffect } from 'react';
 import CloseIcon from '@mui/icons-material/Close';
-import { Button, Dialog, DialogContent, DialogTitle, Grid, TextField, Select, MenuItem, Typography, Box, IconButton } from '@mui/material';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-
-    Paper,
-} from '@mui/material';
-
-import { viewAccountHeadName } from '../../services/accounts/account.service'
-
+import { Button, Dialog, DialogContent, DialogTitle, Grid, TextField, Select, MenuItem, Typography, Box, IconButton, Snackbar, Alert } from '@mui/material';
+import { viewAccountHeadName, saverecieptpaymet } from '../../services/accounts/account.service';
 import SearchPaymentModal from '../../components/Payment Search';
 
-
-
 const CashPaymentsModal = () => {
-    const [open, setOpen] = useState(false);
-    const [paymentType, setPaymentType] = useState('Payables');
-    const [selectedAccount, setSelectedAccount] = useState({ accountName: '', chartId: '' }); // Store both category and id
+    const [state, setState] = useState({
+        open: false,
+        accountType: 'General',
+        selectedAccount: { accountName: '', chartId: '' },
+        formData: {
+            description: "",
+            debit: "",
+            credit: "",
+            voucherNumber: "10",
+            isPaymentType: "1",
+            total: "0"
+        },
+        error: '',
+        loading: true,
+        accountHeadName: []
+    });
 
+    const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+    const amountDate = new Date().toISOString().split('T')[0];
 
-    const [formData, setFormData] = useState({
+    const handleOpen = () => setState(prev => ({ ...prev, open: true }));
+    const handleClose = () => setState(prev => ({ ...prev, open: false }));
 
-        description: "",
-        debit: "",
-        amountDate: "",
-        accountType: "1",
-    })
-    const amountDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
-
-
-    const handleOpen = () => setOpen(true);
-    const handleClose = () => setOpen(false);
-
-    const [loading, setLoading] = useState(true);
-
-    const [accountHeadName, setaccountHeadName] = useState([]); // Initialize as an array
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setState(prev => ({ ...prev, formData: { ...prev.formData, [name]: value } }));
+    };
 
     const handleAccountChange = (event) => {
-        const selectedOption = accountHeadName.find(account => account.category === event.target.value);
+        const selectedOption = state.accountHeadName.find(account => account.accountName === event.target.value);
         if (selectedOption) {
-            setSelectedAccount({ accountName: selectedOption.category, chartId: selectedOption._id });
+            setState(prev => ({
+                ...prev,
+                selectedAccount: { accountName: selectedOption.accountName, chartId: selectedOption._id }
+            }));
         }
     };
 
-    const fetchAcountHeadName = async () => {
-        try {
-            const response = await viewAccountHeadName();
-            console.log("here", response);
-
-            if (!response?.isSuccess) {
-                alert(response.result);
-                return;
-            }
-            // setaccountHeadName(response.result.data.items); // Store the fetched data as an array
-        } catch (error) {
-            console.error('Error fetching account head names:', error);
-            alert('Failed to fetch account head names. Please try again.');
-        } finally {
-            setLoading(false);
-        }
-    };
     useEffect(() => {
-        fetchAcountHeadName();
+        const fetchAccountHeadName = async () => {
+            try {
+                const response = await viewAccountHeadName();
+                if (!response?.isSuccess) {
+                    setSnackbar({ open: true, message: response.result, severity: 'error' });
+                    return;
+                }
+                setState(prev => ({
+                    ...prev,
+                    accountHeadName: response.result.data.chartList || [],
+                    loading: false
+                }));
+            } catch (error) {
+                console.error('Error fetching account head names:', error);
+                setSnackbar({ open: true, message: 'Failed to fetch account head names. Please try again.', severity: 'error' });
+            }
+        };
+        fetchAccountHeadName();
     }, []);
 
+    const handleSave = async (e) => {
+        e.preventDefault();
+        setState(prev => ({ ...prev, loading: true, error: '' }));
+        const { formData, selectedAccount, accountType } = state;
+        console.log("paymerts", formData);
+
+        try {
+            const response = await saverecieptpaymet(
+                selectedAccount.chartId,
+                formData.voucherNumber,
+                selectedAccount.accountName,
+                formData.description,
+                formData.isPaymentType,
+                formData.debit,
+                formData.credit,
+                amountDate,
+                accountType
+            );
+            console.log(response);
+
+            if (response.isSuccess) {
+                setSnackbar({ open: true, message: 'Payment data saved successfully!', severity: 'success' });
+
+                setState(prev => ({
+                    ...prev,
+                    formData: { description: "", debit: "", credit: "", voucherNumber: "10", isPaymentType: "1" },
+                    selectedAccount: { accountName: '', chartId: '' }
+                }));
+            } else {
+                setSnackbar({ open: true, message: response.error || 'Failed to save payment data.', severity: 'error' });
+            }
+        } catch (error) {
+            console.error('Error saving payment data:', error);
+            setSnackbar({ open: true, message: 'An error occurred while saving.', severity: 'error' });
+        }
+    };
+
+    const handleSnackbarClose = () => setSnackbar(prev => ({ ...prev, open: false }));
 
     return (
         <div>
             <Typography variant="body1" onClick={handleOpen} sx={{ fontSize: '17px' }}>
                 Payments
             </Typography>
-            <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-                <DialogTitle>Cash Payments
-                    <IconButton
-                        aria-label="close"
-                        onClick={handleClose}
-                        sx={{ position: 'absolute', right: 8, top: 8 }}
-                    >
+            <Dialog open={state.open} onClose={handleClose} maxWidth="md" fullWidth>
+                <DialogTitle>
+                    Cash Payments
+                    <IconButton aria-label="close" onClick={handleClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
                         <CloseIcon />
                     </IconButton>
                 </DialogTitle>
@@ -92,62 +122,89 @@ const CashPaymentsModal = () => {
                                 size="small"
                                 label="Date"
                                 type="date"
-                                value={amountDate} // Use the variable instead of a string
+                                value={amountDate}
                                 fullWidth
                                 InputLabelProps={{ shrink: true }}
                             />
                         </Grid>
                         <Grid item xs={12} sm={2}>
-                            <TextField size='small' label="Vr No" />
+                            <TextField size="small" label="Vr No" name="voucherNumber" value={state.formData.voucherNumber} onChange={handleInputChange} />
                         </Grid>
                         <Grid item xs={12} sm={6}>
                             <Select
-                                size='small'
-                                value={paymentType}
-                                onChange={(e) => setPaymentType(e.target.value)}
-                                sx={{
-                                    marginLeft: '220px',  // Adjust as needed for alignment
-                                    width: '200px',        // Correct usage of width as a style
-                                }}
+                                size="small"
+                                value={state.accountType}
+                                onChange={(e) => setState(prev => ({ ...prev, accountType: e.target.value }))}
+                                sx={{ marginLeft: '220px', width: '200px' }}
                             >
                                 <MenuItem value="General">General</MenuItem>
                                 <MenuItem value="Payables">Payables</MenuItem>
                             </Select>
                         </Grid>
-
                         <Grid item xs={12}>
                             <Typography variant="h6">Account Details</Typography>
                             <Box display="flex" justifyContent="space-between" mt={1}>
                                 <Select
-                                    size='small'
-                                    value={selectedAccount.accountName}
+                                    size="small"
+                                    value={state.selectedAccount.accountName}
                                     onChange={handleAccountChange}
                                     fullWidth
                                 >
-                                    {accountHeadName.map((account) => (
-                                        <MenuItem key={account.chartId} value={account.category}>
-                                            {account.category}
+                                    {state.accountHeadName.map(account => (
+                                        <MenuItem key={account._id} value={account.accountName}>
+                                            {account.accountName}
                                         </MenuItem>
                                     ))}
                                 </Select>
-                                <TextField size='small' label="Description" value={formData.description} fullWidth style={{ marginLeft: 16 }} />
-                                <TextField size='small' label="Amount" value={formData.debit} style={{ marginLeft: 16 }} />
+                                <TextField
+                                    size="small"
+                                    label="Description"
+                                    name="description"
+                                    value={state.formData.description}
+                                    onChange={handleInputChange}
+                                    fullWidth
+                                    sx={{ marginLeft: 2 }}
+                                />
+                                <TextField
+                                    size="small"
+                                    label="Amount"
+                                    name="debit"
+                                    value={state.formData.debit}
+                                    onChange={handleInputChange}
+                                    sx={{ marginLeft: 2 }}
+                                />
                             </Box>
                         </Grid>
-
-
                         <Grid item xs={12} textAlign="center" mt={2}>
-                            <Button variant="outlined" color="primary" style={{ marginLeft: 8 }}> <SearchPaymentModal /></Button>
-                            <Button variant="contained" color="success" style={{ marginLeft: 8 }}>Save</Button>
-                            <Button variant="contained" color="secondary" style={{ marginLeft: 8 }}>Exit</Button>
+                            <Button variant="outlined" color="primary" aria-label="Search Payment">
+                                <SearchPaymentModal />
+                            </Button>
+                            <Button variant="contained" color="success" aria-label="Save" style={{ marginLeft: 8 }} onClick={handleSave}>
+                                Save
+                            </Button>
+                            <Button variant="contained" color="secondary" aria-label="Exit" style={{ marginLeft: 8 }} onClick={handleClose}>
+                                Exit
+                            </Button>
                         </Grid>
-
-                        {/* <Grid item xs={12} textAlign="right">
-                            <Typography variant="h5" color="textSecondary">Total: 0.00</Typography>
-                        </Grid> */}
                     </Grid>
+                    <Typography
+                        variant="h5"
+                        sx={{
+
+                            display: 'flex',
+                            justifyContent: 'flex-end',
+                            color: '#808080', // Grey color
+                        }}
+                    >
+                        Total: ₹ {(Number(state.formData.total) || 0).toFixed(2)}
+                    </Typography>
                 </DialogContent>
             </Dialog>
+            <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleSnackbarClose}>
+                <Alert onClose={handleSnackbarClose} severity={snackbar.severity} sx={{ width: '100%' }}>
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </div>
     );
 };

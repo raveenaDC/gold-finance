@@ -20,7 +20,8 @@ export const postRequest = async ({ url, data = {}, params = {} }) => {
         const res = await axiosInstance.post(url, data, { params });
         return res.data;
     } catch (err) {
-        return err;
+        // return err;
+        return { error: err.response ? err.response.data : err.message };
     };
 };
 

@@ -1021,38 +1021,39 @@ export default function GoldLoanBill() {
                             <TableContainer component={Paper} sx={{ mb: 2, mt: 3 }}>
                                 <Table>
 
-                                    <TableBody>
-                                        <TableRow>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}> Principal Amount </TableCell>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{singleloanDetails.principleAmount}</TableCell>
+                                    <TableBody sx={{ '& .MuiTableRow-root': { height: '30px' } }}>
+
+                                        <TableRow >
+                                            <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}> Principal Amount </TableCell>
+                                            <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}>{singleloanDetails.principleAmount ? singleloanDetails.principleAmount.toFixed(2) : '0.00'}</TableCell>
                                         </TableRow>
                                         <TableRow>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}> Principle Paid</TableCell>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{singleloanDetails.principlePaid}</TableCell>
+                                            <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}> Principle Paid</TableCell>
+                                            <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}>{singleloanDetails.principlePaid ? singleloanDetails.principlePaid.toFixed(2) : '0.00'}</TableCell>
                                         </TableRow>
                                         <TableRow>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}> Bal Principle Amt</TableCell>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{singleloanDetails.balancePrincipleAmount}</TableCell>
+                                            <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}> Bal Principle Amt</TableCell>
+                                            <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}>{singleloanDetails.balancePrincipleAmount ? singleloanDetails.balancePrincipleAmount.toFixed(2) : '0.00'}</TableCell>
                                         </TableRow>
 
                                         <TableRow>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Balance  Interest</TableCell>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{singleloanDetails.balanceInterest}</TableCell>
+                                            <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}>Balance  Interest</TableCell>
+                                            <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}>{singleloanDetails.balanceInterest ? singleloanDetails.balanceInterest.toFixed(2) : '0.00'}</TableCell>
                                         </TableRow>
 
                                         <TableRow>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Other Charges </TableCell>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{singleloanDetails.totalCharges}</TableCell>
+                                            <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}>Other Charges </TableCell>
+                                            <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}>{singleloanDetails.totalCharges ? singleloanDetails.totalCharges.toFixed(2) : '0.00'}</TableCell>
                                         </TableRow>
 
                                         <TableRow>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Total Amount</TableCell>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{singleloanDetails.totalChargesAndBalanceAmount}</TableCell>
+                                            <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}>Total Amount</TableCell>
+                                            <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}>{singleloanDetails.totalChargesAndBalanceAmount ? singleloanDetails.totalChargesAndBalanceAmount.toFixed(2) : '0.00'}</TableCell>
                                         </TableRow>
 
                                         <TableRow>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>No Of Days </TableCell>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{singleloanDetails.NumberOfDays}</TableCell>
+                                            <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}>No Of Days </TableCell>
+                                            <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}> {singleloanDetails.principleAmount ? singleloanDetails.principleAmount.toFixed(2) : '0.00'}</TableCell>
                                         </TableRow>
                                     </TableBody>
                                 </Table>
@@ -1061,7 +1062,6 @@ export default function GoldLoanBill() {
 
                         </Grid>
                     </Grid>
-
 
                 </Grid >
 
@@ -1107,7 +1107,7 @@ export default function GoldLoanBill() {
                                     {customerData.firstName || 'N/A'} {customerData.lastName || 'N/A'}
                                 </Typography>
                                 <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                                    {customerData.state || 'N/A'}, INDIA
+                                    {customerData.nearBy || 'N/A'},{customerData.city || 'N/A'}
                                 </Typography>
                                 <Rating
                                     name="profile-rating"
@@ -1116,16 +1116,35 @@ export default function GoldLoanBill() {
                                     precision={0.5}
                                 />
                                 <Box sx={{ mt: 2 }}>
-                                    <Typography variant="body2" sx={{ fontSize: 11.5 }}>
-                                        <strong>Address:</strong> {customerData.address || 'N/A'}
-                                    </Typography>
-                                    <Typography variant="body2" sx={{ fontSize: 11.5 }}>
-                                        <strong>Email:</strong> {customerData.email || 'No Email'}
-                                    </Typography>
-                                    <Typography variant="body2" sx={{ fontSize: 11.5 }}>
-                                        <strong>Phone:</strong> {customerData.primaryNumber || 'No Phone'}, {customerData.secondaryNumber || 'No Phone'}
-                                    </Typography>
+                                    <Box sx={{ display: 'table', width: '100%' }}>
+                                        <Box sx={{ display: 'table-row' }}>
+                                            <Typography component="div" sx={{ fontSize: 11.5, display: 'table-cell', fontWeight: 'bold' }}>
+                                                Address
+                                            </Typography>
+                                            <Typography component="div" sx={{ fontSize: 11.5, display: 'table-cell', paddingLeft: 1 }}>
+                                                <strong>:</strong> {customerData.address || 'N/A'}
+                                            </Typography>
+                                        </Box>
+                                        <Box sx={{ display: 'table-row' }}>
+                                            <Typography component="div" sx={{ fontSize: 11.5, display: 'table-cell', fontWeight: 'bold' }}>
+                                                Email
+                                            </Typography>
+                                            <Typography component="div" sx={{ fontSize: 11.5, display: 'table-cell', paddingLeft: 1 }}>
+                                                <strong>:</strong> {customerData.email || 'No Email'}
+                                            </Typography>
+                                        </Box>
+                                        <Box sx={{ display: 'table-row' }}>
+                                            <Typography component="div" sx={{ fontSize: 11.5, display: 'table-cell', fontWeight: 'bold' }}>
+                                                Phone
+                                            </Typography>
+                                            <Typography component="div" sx={{ fontSize: 11.5, display: 'table-cell', paddingLeft: 1 }}>
+                                                <strong>:</strong> {customerData.primaryNumber || 'No Phone'}, {customerData.secondaryNumber || 'No Phone'}
+                                            </Typography>
+                                        </Box>
+                                    </Box>
                                 </Box>
+
+
 
                                 {/* Profile completion */}
                                 <Box sx={{ mt: .5 }}>
@@ -1178,10 +1197,6 @@ export default function GoldLoanBill() {
                             Select a GL number to view customer details.
                         </Typography>
                     )}
-
-
-
-
                     <Box sx={{ margin: '0 auto', mt: 1, textAlign: { xs: 'center', sm: 'left' }, px: { xs: 2, sm: 0 } }}>
                         <TableContainer
                             component={Paper}

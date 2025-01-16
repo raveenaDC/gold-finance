@@ -8,11 +8,11 @@ const paymentReceiptSchema = new Schema(
             length: 1000
         },
         debit: {
-            type: String,
+            type: Number,
             default: 0
         },
         credit: {
-            type: String,
+            type: Number,
             default: 0
         },
         isPaymentType: {

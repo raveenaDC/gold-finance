@@ -706,24 +706,32 @@ const GoldLoanForm = () => {
 
                                     </Box>
                                     {/* Right side: Add Item button */}
-                                    <Box mt={-5} display="flex" justifyContent="flex-end">
+                                    <Box mt={-5} display="flex" justifyContent="flex-end" alignItems="center">
                                         {/* Webcam Toggle Button */}
-                                        <IconButton color="primary">
-                                            <PhotoCamera onClick={() => setUsingWebcam(!usingWebcam)} startIcon={!usingWebcam && <PhotoCamera />} sx={{ ml: 2 }} />
-                                            {usingWebcam ? '' : null}
-                                        </IconButton>
+
+                                        {/* Centered Ornaments Text with Icon */}
+                                        <Box display="flex" alignItems="center" mx={2}>
+                                            <Typography variant="body2" component="span" sx={{ mr: 0 }}>
+                                                Ornaments
+                                            </Typography>
+                                            <IconButton color="primary" onClick={() => setUsingWebcam(!usingWebcam)} aria-label="Toggle Webcam" sx={{ mr: -3 }}>
+                                                <PhotoCamera />
+                                            </IconButton>
+                                        </Box>
+
                                         {/* File Upload Button */}
                                         <input
                                             type="file"
                                             id="goldImage"
-                                            name='goldImage'
+                                            name="goldImage"
                                             style={{ display: 'none' }}
-                                            accept="image/*" // Ensure only images can be selected
+                                            accept="image/*"
                                         />
-                                        <IconButton color="primary" name='goldImage' onClick={handleButtonClick}>
+                                        <IconButton color="primary" onClick={handleButtonClick}>
                                             <FileUploadIcon />
                                         </IconButton>
                                     </Box>
+
                                 </TableCell>
                             </TableRow>
                             <TableRow>
@@ -948,7 +956,7 @@ const GoldLoanForm = () => {
 
                 <Grid container spacing={0.5} sx={{ mb: 2 }}>
                     {[
-                        { label: 'principle Amount', name: 'principleAmount' },
+                        { label: 'Principle Amount', name: 'principleAmount' },
                         { label: 'Processing Fee', name: 'processingFee' },
                         { label: 'Packing Fee', name: 'packingFee' },
                         { label: 'Appraiser Fee', name: 'appraiser' },
@@ -1177,32 +1185,39 @@ const GoldLoanForm = () => {
 
                             <TableHead>
                                 <Typography variant="overline"> Vr No: {voucherNo}</Typography >
-
                             </TableHead>
 
-                            <TableBody>
+                            <TableBody sx={{ '& .MuiTableRow-root': { height: '30px' } }}>
                                 <TableRow>
-                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Current Gold Rate</TableCell>
-                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{goldRate}</TableCell>
+                                    <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}>Current Gold Rate</TableCell>
+                                    <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}>{goldRate}</TableCell>
                                 </TableRow>
                                 <TableRow>
-                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Gold Loan Rate</TableCell>
-                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{companyGoldRate}</TableCell>
+                                    <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}>Gold Loan Rate</TableCell>
+                                    <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}>{companyGoldRate}</TableCell>
                                 </TableRow>
                                 <TableRow>
-                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Max Gold Value</TableCell>
-                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{maxGoldAmount.toFixed(2)}</TableCell>
+                                    <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}>Max Gold Value</TableCell>
+                                    <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}>{recommendedAmount.toFixed(2)}</TableCell>
                                 </TableRow>
                                 <TableRow>
-                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Max Gold Loan Value</TableCell>
-                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{recommendedAmount.toFixed(2)}</TableCell>
+                                    <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}>Max Gold Loan Value</TableCell>
+                                    <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}>{maxGoldAmount.toFixed(2)}</TableCell>
                                 </TableRow>
-
                                 <TableRow>
-                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Total Charges</TableCell>
-                                    <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{totalCharges}</TableCell>
+                                    <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}>CGST</TableCell>
+                                    <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}>0.00</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}>SGST</TableCell>
+                                    <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}>0.00</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}>Total Charges</TableCell>
+                                    <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}>{totalCharges}</TableCell>
                                 </TableRow>
                             </TableBody>
+
                         </Table>
                     </TableContainer>
                 </Box>
@@ -1295,16 +1310,33 @@ const GoldLoanForm = () => {
                                     color: 'black',
                                 }}
                             >
-                                <Typography variant="body2" sx={{ fontSize: 11.5 }}>
-                                    <strong>Address:</strong> {customerData.address},{' '}
-                                    {customerData.place}, {customerData.pin}
-                                </Typography>
-                                <Typography variant="body2" sx={{ fontSize: 11.5, }}>
-                                    <strong>Mobile:</strong> {customerData.primaryNumber}, {customerData.secondaryNumber}
-                                </Typography>
-                                <Typography variant="body2" sx={{ fontSize: 11.5 }}>
-                                    <strong>Email:</strong> {customerData.email}
-                                </Typography>
+                                <Box sx={{ display: 'flex', fontSize: 11.5, alignItems: 'flex-start' }}>
+                                    <Box sx={{ display: 'flex', width: '55px', justifyContent: 'space-between' }}>
+                                        <strong style={{ textAlign: 'left' }}>Address</strong>
+                                        <strong>:&nbsp;</strong>  {/* Bold colon with space */}
+                                    </Box>
+                                    <Box sx={{ flex: 1 }}>
+                                        {customerData.address}, {customerData.place}, {customerData.pin}
+                                    </Box>
+                                </Box>
+                                <Box sx={{ display: 'flex', fontSize: 11.5, alignItems: 'flex-start' }}>
+                                    <Box sx={{ display: 'flex', width: '55px', justifyContent: 'space-between' }}>
+                                        <strong style={{ textAlign: 'left' }}>Mobile</strong>
+                                        <strong>:&nbsp;</strong>  {/* Bold colon with space */}
+                                    </Box>
+                                    <Box sx={{ flex: 1 }}>
+                                        {customerData.primaryNumber}, {customerData.secondaryNumber}
+                                    </Box>
+                                </Box>
+                                <Box sx={{ display: 'flex', fontSize: 11.5, alignItems: 'flex-start' }}>
+                                    <Box sx={{ display: 'flex', width: '55px', justifyContent: 'space-between' }}>
+                                        <strong style={{ textAlign: 'left' }}>Email</strong>
+                                        <strong>:&nbsp;</strong>  {/* Bold colon with space */}
+                                    </Box>
+                                    <Box sx={{ flex: 1 }}>
+                                        {customerData.email}
+                                    </Box>
+                                </Box>
 
                                 <Box sx={{ mt: .5 }}>
                                     <Typography

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TextField, List, ListItem, ListItemText, CircularProgress, Box, Button, Modal } from '@mui/material';
+import { TextField, List, ListItem, ListItemText, CircularProgress, Box, Button, Modal, Typography } from '@mui/material';
 import { useNominee } from '../../configure/NomineeContext';
 
 function NomineeSearch({ onClose }) {
@@ -72,7 +72,7 @@ function NomineeSearch({ onClose }) {
                     p: 4,
                     backgroundColor: 'white',
                     borderRadius: 2,
-                    maxWidth: 600,
+                    maxWidth: 630,
                     margin: 'auto',
                     mt: '5.5%',
                     maxHeight: '88vh',    // Set maximum height for scrollable area
@@ -97,7 +97,16 @@ function NomineeSearch({ onClose }) {
                     {/* Left Column: Search Fields */}
                     <Box sx={{ display: 'flex', gap: 1 }}>
                         <TextField
-                            label="Full Name"
+                            label="First Name"
+                            variant="outlined"
+                            value={nameSearch}
+                            onChange={(e) => setNameSearch(e.target.value)}
+                            fullWidth
+                            size='small'
+                            margin="dense"
+                        />
+                        <TextField
+                            label="Second Name"
                             variant="outlined"
                             value={nameSearch}
                             onChange={(e) => setNameSearch(e.target.value)}
@@ -137,20 +146,21 @@ function NomineeSearch({ onClose }) {
                                         key={nominee._id}
                                         onClick={() => handleNomineeSelect(nominee)}
                                     >
-                                        <ListItemText
-                                            primary={
-                                                <span>{`${nominee.firstName} ${nominee.lastName}`}</span>
-                                            }
-                                            secondary={
-                                                <span>{`Address: ${nominee.address}, Phone: ${nominee.primaryNumber}`}</span>
-                                            }
-                                            sx={{
-                                                display: 'flex',
-                                                flexDirection: 'row',
-                                                alignItems: 'center',
-                                                justifyContent: 'space-between',
-                                            }}
-                                        />
+                                        <ListItemText>
+                                            <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
+                                                <Typography variant="body2" sx={{ flex: 1, fontSize: '14px' }}>Name:</Typography>
+                                                <Typography variant="body2" sx={{ flex: 2, fontSize: '14px' }}> {`${nominee.firstName} ${nominee.lastName}`}</Typography>
+
+                                                <Typography variant="body2" sx={{ flex: 1, fontSize: '14px' }}>Address:</Typography>
+                                                <Typography variant="body2" sx={{ flex: 2, fontSize: '14px' }}>{nominee.address}</Typography>
+
+                                                <Typography variant="body2" sx={{ flex: 1, fontSize: '14px' }}>Phone:</Typography>
+                                                <Typography variant="body2" sx={{ flex: 2, fontSize: '14px' }}>{nominee.primaryNumber}</Typography>
+
+                                            </Box>
+
+                                        </ListItemText>
+
                                     </ListItem>
                                 ))}
                             </List>
@@ -161,8 +171,7 @@ function NomineeSearch({ onClose }) {
                         onClick={handleNomineeModalClose}
                         variant="contained"
                         color="primary"
-                        textAlign='center'// Centers the text
-
+                        sx={{ width: '150px', margin: '0 auto', display: 'block' }} // Center button with specific width
                     >
                         Submit
                     </Button>

@@ -1,29 +1,60 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-    Box, Button, TextField, MenuItem, Typography, Table, TableBody, TableCell,
-    TableContainer, TableHead, TableRow, Paper, IconButton, Grid, Autocomplete
+    Box, Button, TextField, MenuItem, Table, TableBody, TableCell,
+    TableContainer, TableHead, TableRow, Paper, IconButton, Grid, Autocomplete, Typography
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { v4 as uuidv4 } from 'uuid';
 import BankDetailsModal from '../../components/BankSchemes';
+import SearchModal from '../../components/Pledge details';
+import { getgolditemdetails } from '../../services/goldItems/goldItems.service';
+import SaveIcon from '@mui/icons-material/Save'; // Import the Save icon
+import AddIcon from '@mui/icons-material/Add';
 
 const PledgeMasterPage = () => {
     const [pledges, setPledges] = useState([]);
     const [formData, setFormData] = useState({
-
         pledgeId: '',
-        pledgerName: '',
+        pledgeNumber: '',
+        bankName: '',
         dateOfPledge: '',
-        goldWeight: '',
         glNumber: '',
-        loanAmount: '',
+        principalAmount: '',
         interestRate: '',
-        loanDuration: '',
-        maturityDate: '',
+        dueDate: '',
         itemDetails: '',
         otherCharges: '',
-        repledgeNumber: ''
+        remarks: '',
     });
+
+    const [options, setOptions] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [tableData, setTableData] = useState([]);
+    const [items, setItems] = useState([]);
+    const [newItem, setNewItems] = useState({
+        id: 1,
+        type: 'Select',
+        quantity: '',
+        grossWeight: '',
+        stoneWeight: '',
+        depreciation: '',
+        netWeight: '', // User input for net weight
+    });
+
+    const totalNetWeight = items.reduce((total, item) => total + (parseFloat(item.netWeight) || 0), 0);
+    const totalGrossWeight = items.reduce((total, item) => total + (parseFloat(item.grossWeight) || 0), 0);
+    const totalStoneWeight = items.reduce((total, item) => total + (parseFloat(item.stoneWeight) || 0), 0);
+    const totalDepWeight = items.reduce((total, item) => total + (parseFloat(item.depreciation) || 0), 0);
+    const totalQuantity = items.reduce((total, item) => total + (parseFloat(item.quantity) || 0), 0);
+
+    const calculateNetWeight = (quantity, grossWeight, stoneWeight, depreciation) => {
+
+        const grossWt = parseFloat(grossWeight) || 0;
+        const stoneWt = parseFloat(stoneWeight) || 0;
+        const depWt = parseFloat(depreciation) || 0;
+        const netWeight = grossWt - (stoneWt + depWt);
+        return netWeight
+    };
 
     const glNumberOptions = [
         { label: 'GL001', id: 1 },
@@ -31,20 +62,166 @@ const PledgeMasterPage = () => {
         { label: 'GL003', id: 3 }
     ];
 
-    const headers = ['Pledged Date', 'Pledge No', 'Bank Name', 'Principle Amount', 'Interest Rate', 'Other Charges', 'Maturity Date', 'Item Details', 'GL No', 'Remarks', 'Actions'];
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
     };
 
-    const handleRowDoubleClick = (pledge) => {
-        setFormData(pledge);
+
+    // Add a new row to the table
+    const handleAddRow = () => {
+        if (newItem.netWeight !== "") {
+            setItems((prevItems) => [
+                ...prevItems,
+                { ...newItem, id: prevItems.length + 1 }
+            ]);
+            // Reset newItem to its initial state
+            setNewItems({
+                id: newItem.id + 1, // Increment ID for the next item
+                type: 'Select',
+                quantity: '',
+                grossWeight: '',
+                stoneWeight: '',
+                depreciation: '',
+                netWeight: '',
+            });
+        }
     };
 
-    const handleDelete = (pledgeId) => {
-        setPledges(pledges.filter((p) => p.pledgeId !== pledgeId));
+    const handleChange = (field, value, type, goldItemId) => {
+        setNewItems((prevState) => {
+            const updatedItem = {
+                ...prevState,
+                [field]: value,
+            };
+
+            // Assign goldItem ID if provided
+            if (goldItemId) {
+                updatedItem.goldItem = goldItemId;
+            }
+
+            // Calculate netWeight if relevant fields are updated
+            if (["quantity", "grossWeight", "stoneWeight", "depreciation"].includes(field)) {
+                updatedItem.netWeight = calculateNetWeight(
+                    updatedItem.quantity || 0,
+                    updatedItem.grossWeight || 0,
+                    updatedItem.stoneWeight || 0,
+                    updatedItem.depreciation || 0
+                );
+            }
+
+            // Handle type for dropdown selections (goldItem)
+            if (field === "goldItem" && value) {
+                updatedItem.type = options.find((option) => option._id === value)?.goldItem || "Select";
+            }
+
+            return updatedItem;
+        });
     };
+
+    const handleChangeItem = (id, gId, field, value) => {
+        setItems((prevItems) =>
+            prevItems.map((item) => {
+                if (item.id === id) {
+                    const updatedItem = {
+                        ...item,
+                        [field]: value,
+                    };
+                    if (gId) {
+                        updatedItem.goldItem = gId;
+                        updatedItem.type = options.find((option) => option._id === gId)?.goldItem || item.type;
+                    }
+                    // Recalculate net weight if applicable
+                    if (["quantity", "grossWeight", "stoneWeight", "depreciation"].includes(field)) {
+                        updatedItem.netWeight = calculateNetWeight(
+                            updatedItem.quantity,
+                            updatedItem.grossWeight,
+                            updatedItem.stoneWeight,
+                            updatedItem.depreciation
+                        );
+                    }
+                    return updatedItem;
+                }
+                return item;
+            })
+        );
+    };
+
+    // Handle changes when editing a row
+    const handleChangeInRow = (id, field, value) => {
+        const updatedItems = items.map((item) => {
+            if (item.id === id) {
+                const updatedItem = { ...item, [field]: value }; // Update the specific field
+
+                // Recalculate netWeight if relevant fields are updated
+                if (["quantity", "grossWeight", "stoneWeight", "depreciation"].includes(field)) {
+                    updatedItem.netWeight = calculateNetWeight(
+                        updatedItem.quantity || 0,
+                        updatedItem.grossWeight || 0,
+                        updatedItem.stoneWeight || 0,
+                        updatedItem.depreciation || 0
+                    );
+                }
+
+                return updatedItem;
+            }
+            return item;
+        });
+        setItems(updatedItems);
+    };
+
+
+    // Toggle edit mode for a specific row
+    const toggleEditMode = (id) => {
+        const updatedItems = items.map((item) => {
+            if (item.id === id) {
+                return { ...item, isEditing: !item.isEditing };
+            }
+            return item;
+        });
+        setItems(updatedItems);
+    };
+
+    // Handle deleting a row
+    const handleDelete = (id) => {
+        const updatedItems = items.filter((item) => item.id !== id);
+        setItems(updatedItems);
+    };
+
+    // Handle saving the changes after editing
+    const handleSaveRow = (id) => {
+        toggleEditMode(id); // Save changes and toggle back to view mode
+    };
+
+    const fetchGoldItems = async () => {
+        try {
+            const response = await getgolditemdetails();
+            if (response.isSuccess && response.items) {
+                setOptions(response.items);
+            }
+            console.log(response);
+
+        } catch (error) {
+            console.error("Error fetching customer data:", error);
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchGoldItems();
+
+    }, []);
+
+    useEffect(() => {
+        // Simulate fetching or setting table data
+        setTableData([
+            { column1: 'Data 1', column2: 'Data 2' },
+            { column1: 'Data 3', column2: 'Data 4' },
+            { column1: 'Data 5', column2: 'Data 6' }
+        ]);
+    }, []);
+
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -60,52 +237,81 @@ const PledgeMasterPage = () => {
     const resetForm = () => {
         setFormData({
             pledgeId: '',
-            pledgerName: '',
+            pledgeNumber: '',
+            bankName: '',
             dateOfPledge: '',
-            goldWeight: '',
             glNumber: '',
-            loanAmount: '',
+            principalAmount: '',
             interestRate: '',
-            loanDuration: '',
-            maturityDate: '',
+            dueDate: '',
             itemDetails: '',
             otherCharges: '',
-            repledgeNumber: ''
-
+            remarks: '',
         });
-    };
-
-    const textFieldStyle = {
-        margin: '4px',
-        width: '100%',
-        '& .MuiInputBase-root': { fontSize: '12px' },
-        '& .MuiInputLabel-root': { fontSize: '10px' }
     };
 
     return (
         <Box sx={{ padding: '16px' }}>
-            {/* <Typography variant="h5" sx={{ color: '#B8860B', fontWeight: '600', textAlign: 'center', mb: 3 }}>
-                Pledge Master
-            </Typography> */}
             <Grid container spacing={2}>
-                {/* Left Side: Form */}
-                <Grid item xs={12} md={8}>
+                <Grid item xs={12} md={7}>
                     <Paper elevation={3} sx={{ padding: 2, mb: 3 }}>
                         <Box component="form" onSubmit={handleSubmit}>
-                            <h5 style={{
-                                color: '#B8860B',
-                                fontSize: '18px',
-                                marginTop: '10px',
-                                fontWeight: '600',
-                                textAlign: 'center', // Centers the text
-                            }}>
-                                PLEDGE MASTER
-                            </h5>
+
+                            <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+
+                                <Box display="flex" alignItems="center" gap={1} >
+                                    <Typography variant="body2" fontWeight="bold">
+                                        Pledge No:
+                                    </Typography>
+
+                                </Box>
+
+                                {/* Gold Loan Details */}
+
+                                <h5 style={{
+                                    color: '#B8860B',
+                                    fontSize: '18px',
+                                    marginBottom: '20px',
+                                    fontWeight: '600',
+                                    textAlign: 'center', // Centers the text
+                                }}>
+                                    PLEDGE MASTER
+                                </h5>
+
+
+                                {/* Date */}
+                                <Box display="flex" alignItems="center" gap={1}>
+                                    <TextField
+                                        type="date"
+                                        size="small"
+                                        label="PLEDGE DATE"
+                                        value={formData.dateOfPledge} // Format the date to YYYY-MM-DD
+                                        sx={{
+                                            '& .MuiInputLabel-root': {
+                                                fontSize: '14px', // Increased label font size
+                                                fontWeight: 'bold', // Made label bold
+                                                marginBottom: '0px',
+                                            },
+                                            '& .MuiInputBase-root': {
+                                                fontSize: '14px',
+                                                paddingTop: '0px',
+                                                paddingBottom: '0px',
+                                            }
+                                        }}
+                                        InputLabelProps={{
+                                            shrink: true, // Ensures the label doesn't overlap the input
+                                        }}
+                                        InputProps={{
+                                            readOnly: true, // Makes the field read-only
+                                        }}
+                                    />
+
+                                </Box>
+                            </Box>
+
                             <Grid container spacing={2}>
-
-
-                                {['dateOfPledge', 'pledgeNumber', 'bankName', 'principalAmount', 'interestRate', 'otherCharges', 'maturityDate', 'item Details'].map((field, index) => (
-                                    <Grid item xs={12} sm={6} md={3} key={index}>
+                                {['pledgeNumber', 'bankName', 'principalAmount', 'interestRate', 'otherCharges', 'dueDate'].map((field, index) => (
+                                    <Grid item xs={12} sm={6} md={4} key={index}>
                                         <TextField
                                             fullWidth
                                             label={field.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}
@@ -113,124 +319,311 @@ const PledgeMasterPage = () => {
                                             value={formData[field]}
                                             onChange={handleInputChange}
                                             size="small"
-                                            required={['dateOfPledge', 'pledgerName', 'goldWeight', 'loanAmount', 'interestRate', 'loanDuration', 'maturityDate'].includes(field)}
-                                            type={['dateOfPledge', 'maturityDate'].includes(field) ? 'date' : 'text'}
-                                            InputLabelProps={['dateOfPledge', 'maturityDate'].includes(field) ? { shrink: true } : {}}
+                                            type={['dateOfPledge', 'dueDate'].includes(field) ? 'date' : 'text'}
+                                            InputLabelProps={['dateOfPledge', 'dueDate'].includes(field) ? { shrink: true } : {}}
                                             sx={{
-                                                '& .MuiInputLabel-root': {
-                                                    fontSize: '14px', // Increased label font size
-                                                    fontWeight: 'bold', // Made label bold
-                                                    marginBottom: '0px',
-                                                },
-                                                '& .MuiInputBase-root': {
-                                                    fontSize: '14px',
-                                                    paddingTop: '0px',
-                                                    paddingBottom: '0px',
-                                                }
+                                                '& .MuiInputLabel-root': { fontSize: '14px', fontWeight: 'bold' },
+                                                '& .MuiInputBase-root': { fontSize: '14px' }
                                             }}
                                         />
                                     </Grid>
                                 ))}
-                                <Grid item xs={12} sm={6} md={3}>
-                                    <Autocomplete
-                                        options={glNumberOptions}
-                                        getOptionLabel={(option) => option.label}
-                                        renderInput={(params) => (
-                                            <TextField {...params} label="GL Number" name="glNumber" size="small" fullWidth sx={{
-                                                '& .MuiInputLabel-root': {
-                                                    fontSize: '14px', // Increased label font size
-                                                    fontWeight: 'bold', // Made label bold
-                                                    marginBottom: '0px',
-                                                },
-                                                '& .MuiInputBase-root': {
-                                                    fontSize: '14px',
-                                                    paddingTop: '0px',
-                                                    paddingBottom: '0px',
-                                                }
-                                            }} />
-                                        )}
-                                        value={glNumberOptions.find(option => option.label === formData.glNumber) || null}
-                                        onChange={(e, newValue) => {
-                                            setFormData({
-                                                ...formData,
-                                                glNumber: newValue ? newValue.label : ''
-                                            });
-                                        }}
 
+
+                                <Grid item xs={12} sm={6} md={6}>
+                                    <TextField
                                         fullWidth
+                                        label="Remarks"
+                                        name="remarks"
+                                        value={formData.remarks}
+                                        onChange={handleInputChange}
+                                        size="small"
+                                        multiline
+                                        rows={2}  // Sets the number of visible rows to 2
+                                        sx={{
+                                            '& .MuiInputLabel-root': { fontSize: '14px', fontWeight: 'bold' },
+                                            '& .MuiInputBase-root': { fontSize: '14px' }
+                                        }}
                                     />
                                 </Grid>
-                                <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', mt: 0 }}>
-                                    <Button type="submit" variant="contained" color="primary" sx={{ fontSize: '12px', padding: '6px 16px' }}>
-                                        {formData.pledgeId ? 'Update Pledge' : 'Add Pledge'}
-                                    </Button>
-                                </Grid>
+
                             </Grid>
                         </Box>
-                        <TableContainer
-                            component={Paper}
-                            sx={{
+                        <Grid item xs={12}  >
+                            <TableContainer sx={{ mb: 2, border: '1px solid #e0e0e0', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', mt: 2 }}>
+                                {tableData.length === 0 ? (
+                                    <p style={{ fontSize: '14px', color: '#757575', padding: '16px', }}>No data available</p>
+                                ) : (
+                                    <Table stickyHeader aria-label="sticky table" >
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell colSpan={7} sx={{ padding: '8px', borderBottom: '2px solid #ddd', backgroundColor: '#f9f9f9' }}>
+                                                    <Autocomplete
+                                                        multiple
+                                                        options={glNumberOptions}
+                                                        getOptionLabel={(option) => option.label}
+                                                        renderInput={(params) => (
+                                                            <TextField
+                                                                {...params}
+                                                                label="GL Number"
+                                                                name="glNumber"
+                                                                size="small"
+                                                                fullWidth
+                                                                sx={{
+                                                                    '& .MuiInputLabel-root': { fontSize: '10px', fontWeight: 500 }, // Smaller font size for the label
+                                                                    '& .MuiInputBase-root': { fontSize: '10px', height: '30px' },    // Reduced input height
+                                                                    '& .MuiOutlinedInput-root': { padding: '0 6px' },               // Reduced padding
+                                                                    '& .MuiOutlinedInput-input': { padding: '6px 8px' }             // Reduced inner input padding
+                                                                }}
+                                                            />
+                                                        )}
+                                                        value={glNumberOptions.filter(option => formData.glNumber.includes(option.label)) || []}
+                                                        onChange={(e, newValue) => {
+                                                            setFormData({
+                                                                ...formData,
+                                                                glNumber: newValue.map(option => option.label)
+                                                            });
+                                                        }}
+                                                        sx={{
+                                                            width: '400px'  // Reduce width of the Autocomplete component
+                                                        }}
+                                                    />
 
-                                mt: 2,
+                                                </TableCell>
+                                            </TableRow>
+                                            <TableRow>
+                                                {['Item Details', 'No', 'Gross Wt', 'Stone Wt', 'Dep Wt', 'Net Wt', 'Actions'].map((header) => (
+                                                    <TableCell key={header} sx={{ fontSize: '12px', backgroundColor: '#f0f0f0', padding: '4px', borderBottom: '1px solid #ccc' }}>
+                                                        {header}
+                                                    </TableCell>
+                                                ))}
+                                            </TableRow>
+                                        </TableHead>
 
-                                '&::-webkit-scrollbar': {
-                                    width: '4px', // Thin scrollbar width
-                                    height: '4px', // Thin scrollbar height
-                                },
-                                '&::-webkit-scrollbar-thumb': {
-                                    backgroundColor: '#888', // Scrollbar thumb color
-                                    borderRadius: '2px', // Rounded corners
-                                },
-                                '&::-webkit-scrollbar-thumb:hover': {
-                                    backgroundColor: '#555', // Thumb color on hover
-                                },
-                                '&::-webkit-scrollbar-track': {
-                                    backgroundColor: '#f1f1f1', // Track color
-                                },
-                            }}
+                                        <TableBody>
+                                            {/* New Item Input Row */}
+                                            <TableRow sx={{
+                                                height: '10px', // Adjust row height 
+                                            }}>
+                                                < TableCell sx={{ fontSize: '6px', padding: '1px', borderBottom: '1px solid #ccc' }}>
 
-                        >
-                            <Table size="small">
-                                <TableHead>
-                                    <TableRow>
-                                        {headers.map((heading, index) => (
-                                            <TableCell key={index} sx={{ fontSize: '0.675rem', lineHeight: 1 }}>
-                                                {heading}
-                                            </TableCell>
-                                        ))}
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {pledges.map((pledge, index) => (
-                                        <TableRow key={pledge.pledgeId} onDoubleClick={() => handleRowDoubleClick(pledge)}>
-                                            {/* <TableCell sx={{ fontSize: '0.675rem', lineHeight: 1 }}>{index + 1}</TableCell> */}
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 1 }}>{pledge.glNumber}</TableCell>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 1 }}>{pledge.dateOfPledge}</TableCell>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 1 }}>{pledge.bankName}</TableCell>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 1 }}>{pledge.goldWeight}</TableCell>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 1 }}>{pledge.loanAmount}</TableCell>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 1 }}>{pledge.interestRate}</TableCell>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 1 }}>{pledge.itemDetails}</TableCell>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 1 }}>{pledge.otherCharges}</TableCell>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 1 }}>{pledge.repledgeNumber}</TableCell>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 1 }}>{pledge.loanDuration}</TableCell>
-                                            <TableCell sx={{ fontSize: '0.675rem', lineHeight: 1 }}>{pledge.maturityDate}</TableCell>
-                                            <TableCell>
-                                                <IconButton onClick={() => handleDelete(pledge.pledgeId)} size="small" color="error">
-                                                    <DeleteIcon fontSize="small" />
-                                                </IconButton>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
+                                                    <Autocomplete
+                                                        options={options}
+                                                        getOptionLabel={(option) => option.goldItem || "Select"}
+                                                        onChange={(event, newValue) => {
+                                                            const goldItemId = newValue?._id || "";
+                                                            const goldItemLabel = newValue?.goldItem || "Select";
+                                                            handleChange("goldItem", goldItemId, "goldItem", goldItemId);
+                                                            handleChange("type", goldItemLabel, "goldItem", goldItemId);
+                                                        }}
+                                                        renderInput={(params) => (
+                                                            <TextField
+                                                                {...params}
+                                                                variant="outlined"
+                                                                size="small"
+                                                                placeholder="Select Gold Item"
+                                                            />
+                                                        )}
+                                                        sx={{
+                                                            '& .MuiAutocomplete-inputRoot': {
+                                                                fontSize: '0.675rem',
+                                                                height: 20,
+                                                            },
+                                                            '& .MuiInputBase-input': {
+                                                                padding: '1px 1px',
+                                                            },
+                                                            width: 130,
 
+                                                        }}
+                                                    />
+
+                                                </TableCell>
+
+                                                {['quantity', 'grossWeight', 'stoneWeight', 'depreciation'].map((field) => (
+                                                    <TableCell key={field} sx={{ fontSize: '8px', padding: '4px', borderBottom: '1px solid #ccc' }}>
+                                                        <TextField
+                                                            value={newItem[field] || ""}
+                                                            onChange={(e) =>
+                                                                handleChange(field, e.target.value, "goldItem", newItem.goldItem || "")
+                                                            }
+                                                            variant="outlined"
+                                                            size="small"
+                                                            fullWidth
+                                                            sx={{
+                                                                fontSize: '0.875rem',
+                                                                '& .MuiOutlinedInput-root': {
+                                                                    height: '20px',
+                                                                    fontSize: '0.875rem',
+                                                                },
+                                                                '& .MuiInputBase-input': {
+                                                                    padding: '1px 1px',
+                                                                },
+                                                            }}
+                                                        />
+                                                    </TableCell>
+                                                ))}
+
+                                                <TableCell sx={{ fontSize: '8px', padding: '4px', borderBottom: '1px solid #ccc' }}>
+                                                    <TextField
+                                                        value={newItem.netWeight || ""}
+                                                        onChange={(e) =>
+                                                            handleChange('netWeight', e.target.value, "goldItem", newItem.goldItem || "")
+                                                        }
+                                                        variant="outlined"
+                                                        size="small"
+                                                        fullWidth
+                                                        sx={{
+                                                            fontSize: '0.875rem',
+                                                            '& .MuiOutlinedInput-root': {
+                                                                height: '20px',
+                                                                fontSize: '0.875rem',
+                                                            },
+                                                            '& .MuiInputBase-input': {
+                                                                padding: '1px 1px',
+                                                            },
+                                                        }}
+                                                    />
+                                                </TableCell>
+
+                                                <TableCell sx={{ padding: '4px' }}>
+                                                    <IconButton
+                                                        size="small"
+                                                        color="primary"
+                                                        onClick={handleAddRow}
+                                                    >
+                                                        <AddIcon fontSize="small" />
+                                                    </IconButton>
+                                                </TableCell>
+
+                                            </TableRow>
+
+                                            {/* Displaying Items */}
+                                            {items.map((item) => (
+                                                <TableRow
+                                                    key={item.id}
+                                                    onDoubleClick={() => toggleEditMode(item.id)}
+                                                    sx={{
+
+                                                        height: '10px', // Adjust row height
+                                                        '&:hover': { backgroundColor: '#f5f5f5' }, // Optional hover effect
+                                                    }}
+                                                >
+                                                    <TableCell sx={{ padding: '2px', fontSize: '0.65rem', height: '10px', }}>
+                                                        {item.isEditing ? (
+                                                            <Autocomplete
+                                                                options={options}
+                                                                getOptionLabel={(option) => option.goldItem || "Select"}
+                                                                value={options.find((opt) => opt._id === item.goldItem) || null} // Current selected value
+                                                                onChange={(event, newValue) => {
+                                                                    const goldItemId = newValue?._id || "";
+                                                                    handleChangeItem(item.id, goldItemId, "goldItem", newValue?.goldItem || "Select");
+                                                                }}
+                                                                renderInput={(params) => (
+                                                                    <TextField {...params} variant="outlined" size="small" placeholder="Select Gold Item" />
+                                                                )}
+
+                                                                sx={{
+                                                                    '& .MuiAutocomplete-inputRoot': {
+                                                                        fontSize: '0.675rem',
+                                                                        height: 20,
+                                                                    },
+                                                                    '& .MuiInputBase-input': {
+                                                                        padding: '1px 1px',
+                                                                    },
+                                                                    width: 130,
+
+                                                                }}
+                                                            />
+                                                        ) : (
+                                                            <span style={{ fontSize: "0.6rem" }}>{item.type}</span>
+                                                        )}
+                                                    </TableCell>
+
+                                                    {['quantity', 'grossWeight', 'stoneWeight', 'depreciation', 'netWeight'].map((field) => (
+                                                        <TableCell key={field} sx={{ padding: '2px', fontSize: '0.65rem', height: '10px', }}>
+                                                            {item.isEditing ? (
+                                                                <TextField
+                                                                    value={item[field]}
+                                                                    onChange={(e) => handleChangeInRow(item.id, field, e.target.value)}
+                                                                    variant="outlined"
+                                                                    size="small"
+                                                                    fullWidth
+                                                                    sx={{
+                                                                        fontSize: '0.875rem',
+                                                                        '& .MuiOutlinedInput-root': {
+                                                                            height: '22px',
+                                                                            fontSize: '0.75rem',
+                                                                        },
+                                                                        '& .MuiInputBase-input': {
+                                                                            padding: '2px 2px',
+                                                                        },
+                                                                    }}
+                                                                />
+                                                            ) : (
+                                                                <span style={{ fontSize: '0.7rem' }}>{item[field]}</span>
+                                                            )}
+                                                        </TableCell>
+                                                    ))}
+
+                                                    <TableCell sx={{ padding: '0px' }}>
+                                                        <IconButton
+                                                            size="small"
+                                                            color="error"
+                                                            onClick={() => handleDelete(item.id)}
+                                                            sx={{ padding: '1px' }} // Reduce button padding
+
+                                                        >
+                                                            <DeleteIcon fontSize="small" />
+                                                        </IconButton>
+                                                        {item.isEditing && (
+                                                            <IconButton
+                                                                size="small"
+                                                                color="primary"
+                                                                onClick={() => handleSaveRow(item.id)}
+                                                                sx={{ padding: '1px' }} // Reduce button padding
+                                                            >
+                                                                <SaveIcon fontSize="small" /> {/* Add the Save icon */}
+                                                            </IconButton>
+                                                        )}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+
+                                        </TableBody>
+                                    </Table>
+                                )}
+                            </TableContainer>
+
+                            <table style={{
+                                width: '100%',
+                                borderCollapse: 'collapse',
+                                marginTop: '-10px',
+                                backgroundColor: '#ffffff',
+                            }}>
+                                <tbody>
+                                    <tr>
+                                        <td style={{ padding: '6px', border: '1px solid #ddd', fontSize: '12px' }}>No: 5</td>
+                                        <td style={{ padding: '6px', border: '1px solid #ddd', fontSize: '12px' }}>Qty: {totalQuantity.toFixed(2)}</td>
+                                        <td style={{ padding: '6px', border: '1px solid #ddd', fontSize: '12px' }}>Gr Wt: {totalGrossWeight.toFixed(2)}</td>
+                                        <td style={{ padding: '6px', border: '1px solid #ddd', fontSize: '12px' }}>St Wt:{totalStoneWeight.toFixed(2)}</td>
+                                        <td style={{ padding: '6px', border: '1px solid #ddd', fontSize: '12px' }}>Dpt Wt: {totalDepWeight.toFixed(2)}</td>
+                                        <td style={{ padding: '6px', border: '1px solid #ddd', fontSize: '12px' }}>Net Wt: {totalNetWeight.toFixed(2)}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </Grid>
+
+                        <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                            <SearchModal />
+                            <Button type="submit" variant="contained" color="primary" sx={{ ml: 1 }} size='small'>
+                                Submit
+                            </Button>
+                        </Grid>
                     </Paper>
                 </Grid>
 
                 {/* Right Side: Table Summary */}
-                <Grid item xs={12} md={4}>
+                <Grid item xs={12} md={5}>
                     <BankDetailsModal />
                     <TableContainer component={Paper} sx={{
                         mt: 2,
@@ -262,7 +655,7 @@ const PledgeMasterPage = () => {
                             <TableBody>
                                 {pledges.map((pledge, index) => (
                                     <TableRow key={pledge.pledgeId}>
-                                        <TableCell sx={{ fontSize: '0.675rem', lineHeight: 1 }}>{pledge.bankName}</TableCell>
+                                        <TableCell sx={{ fontSize: '0.675rem', }}>{pledge.bankName}</TableCell>
                                         <TableCell sx={{ fontSize: '0.675rem', lineHeight: 1 }}>{pledge.interestRate}</TableCell>
                                         <TableCell sx={{ fontSize: '0.675rem', lineHeight: 1 }}>{pledge.otherCharges}</TableCell>
                                         <TableCell sx={{ fontSize: '0.675rem', lineHeight: 1 }}>{pledge.loanDuration}</TableCell>
@@ -274,7 +667,7 @@ const PledgeMasterPage = () => {
                     </TableContainer>
                 </Grid>
             </Grid>
-        </Box >
+        </Box>
     );
 };
 
