@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     Box, Button, TextField, MenuItem, Table, TableBody, TableCell,
-    TableContainer, TableHead, TableRow, Paper, IconButton, Grid, Autocomplete, Typography
+    TableContainer, TableHead, TableRow, Paper, IconButton, Grid, Autocomplete, Typography, FormControlLabel, Switch,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { v4 as uuidv4 } from 'uuid';
@@ -27,6 +27,7 @@ const PledgeMasterPage = () => {
         remarks: '',
     });
 
+    const [paymentMode, setPaymentMode] = useState('Cash');
     const [options, setOptions] = useState([]);
     const [loading, setLoading] = useState(false);
     const [tableData, setTableData] = useState([]);
@@ -194,6 +195,12 @@ const PledgeMasterPage = () => {
         toggleEditMode(id); // Save changes and toggle back to view mode
     };
 
+    const handleSwitchChange = (event) => {
+        const newMode = event.target.checked ? 'Credit' : 'Cash';
+        setPaymentMode(newMode);
+        console.log('Payment Mode:', newMode); // Log the new payment mode
+    };
+
     const fetchGoldItems = async () => {
         try {
             const response = await getgolditemdetails();
@@ -319,8 +326,8 @@ const PledgeMasterPage = () => {
                                             value={formData[field]}
                                             onChange={handleInputChange}
                                             size="small"
-                                            type={['dateOfPledge', 'dueDate'].includes(field) ? 'date' : 'text'}
-                                            InputLabelProps={['dateOfPledge', 'dueDate'].includes(field) ? { shrink: true } : {}}
+                                            type={['dueDate'].includes(field) ? 'date' : 'text'}
+                                            InputLabelProps={['dueDate'].includes(field) ? { shrink: true } : {}}
                                             sx={{
                                                 '& .MuiInputLabel-root': { fontSize: '14px', fontWeight: 'bold' },
                                                 '& .MuiInputBase-root': { fontSize: '14px' }
@@ -330,7 +337,7 @@ const PledgeMasterPage = () => {
                                 ))}
 
 
-                                <Grid item xs={12} sm={6} md={6}>
+                                <Grid item xs={12} sm={8} md={8}>
                                     <TextField
                                         fullWidth
                                         label="Remarks"
@@ -350,14 +357,14 @@ const PledgeMasterPage = () => {
                             </Grid>
                         </Box>
                         <Grid item xs={12}  >
-                            <TableContainer sx={{ mb: 2, border: '1px solid #e0e0e0', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', mt: 2 }}>
+                            <TableContainer sx={{ mb: 2, border: '1px solid #e0e0e0', borderRadius: '8px 8px 0px 0px', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', mt: 2 }}>
                                 {tableData.length === 0 ? (
                                     <p style={{ fontSize: '14px', color: '#757575', padding: '16px', }}>No data available</p>
                                 ) : (
                                     <Table stickyHeader aria-label="sticky table" >
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell colSpan={7} sx={{ padding: '8px', borderBottom: '2px solid #ddd', backgroundColor: '#f9f9f9' }}>
+                                                <TableCell colSpan={7} sx={{ padding: '8px', borderBottom: '2px solid #ddd', backgroundColor: '#fffff' }}>
                                                     <Autocomplete
                                                         multiple
                                                         options={glNumberOptions}
@@ -389,7 +396,38 @@ const PledgeMasterPage = () => {
                                                         }}
                                                     />
 
+                                                    <Box sx={{
+                                                        textAlign: 'right',
+                                                        mt: -4,
+
+                                                    }}
+                                                    >
+                                                        <FormControlLabel
+                                                            sx={{
+                                                                width: '80px',  // Added quotes for consistency
+                                                                height: '30px', // Added quotes for consistency
+                                                                marginRight: '18px',  // Corrected to camelCase
+                                                                marginLeft: '0px',     // Corrected to camelCase
+                                                                paddingTop: '15px',
+                                                                paddingBottom: '15px'
+
+                                                            }}
+                                                            control={
+                                                                < Switch
+
+                                                                    checked={paymentMode === 'Credit'
+                                                                    }
+                                                                    onChange={handleSwitchChange}
+                                                                    color="primary"
+                                                                />
+                                                            }
+                                                            label={paymentMode === 'Credit' ? 'Credit' : 'Cash'}
+                                                        />
+                                                    </Box>
+
                                                 </TableCell>
+
+
                                             </TableRow>
                                             <TableRow>
                                                 {['Item Details', 'No', 'Gross Wt', 'Stone Wt', 'Dep Wt', 'Net Wt', 'Actions'].map((header) => (
@@ -438,6 +476,8 @@ const PledgeMasterPage = () => {
                                                     />
 
                                                 </TableCell>
+
+
 
                                                 {['quantity', 'grossWeight', 'stoneWeight', 'depreciation'].map((field) => (
                                                     <TableCell key={field} sx={{ fontSize: '8px', padding: '4px', borderBottom: '1px solid #ccc' }}>
@@ -503,6 +543,7 @@ const PledgeMasterPage = () => {
                                                     key={item.id}
                                                     onDoubleClick={() => toggleEditMode(item.id)}
                                                     sx={{
+
 
                                                         height: '10px', // Adjust row height
                                                         '&:hover': { backgroundColor: '#f5f5f5' }, // Optional hover effect
@@ -596,21 +637,32 @@ const PledgeMasterPage = () => {
 
                             <table style={{
                                 width: '100%',
-                                borderCollapse: 'collapse',
-                                marginTop: '-10px',
+                                marginTop: '-18px',
                                 backgroundColor: '#ffffff',
+                                border: '1px solid #ddd',
+                                borderRadius: '0 0 10px 10px',
+                                overflow: 'hidden',
+                                borderCollapse: 'separate',
+                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', // Added shadow                            
                             }}>
                                 <tbody>
                                     <tr>
-                                        <td style={{ padding: '6px', border: '1px solid #ddd', fontSize: '12px' }}>No: 5</td>
-                                        <td style={{ padding: '6px', border: '1px solid #ddd', fontSize: '12px' }}>Qty: {totalQuantity.toFixed(2)}</td>
-                                        <td style={{ padding: '6px', border: '1px solid #ddd', fontSize: '12px' }}>Gr Wt: {totalGrossWeight.toFixed(2)}</td>
-                                        <td style={{ padding: '6px', border: '1px solid #ddd', fontSize: '12px' }}>St Wt:{totalStoneWeight.toFixed(2)}</td>
-                                        <td style={{ padding: '6px', border: '1px solid #ddd', fontSize: '12px' }}>Dpt Wt: {totalDepWeight.toFixed(2)}</td>
-                                        <td style={{ padding: '6px', border: '1px solid #ddd', fontSize: '12px' }}>Net Wt: {totalNetWeight.toFixed(2)}</td>
+                                        <td style={{ padding: '2px 6px', fontSize: '12px', borderRight: '1px solid #ddd' }}>No: 5</td>
+                                        <td style={{ padding: '2px 6px', fontSize: '12px', borderRight: '1px solid #ddd' }}>Qty: {totalQuantity.toFixed(2)}</td>
+                                        <td style={{ padding: '2px 6px', fontSize: '12px', borderRight: '1px solid #ddd' }}>Gr Wt: {totalGrossWeight.toFixed(2)}</td>
+                                        <td style={{ padding: '2px 6px', fontSize: '12px', borderRight: '1px solid #ddd' }}>St Wt: {totalStoneWeight.toFixed(2)}</td>
+                                        <td style={{ padding: '2px 6px', fontSize: '12px', borderRight: '1px solid #ddd' }}>Dpt Wt: {totalDepWeight.toFixed(2)}</td>
+                                        <td style={{ padding: '2px 6px', fontSize: '12px' }}>Net Wt: {totalNetWeight.toFixed(2)}</td>
                                     </tr>
                                 </tbody>
                             </table>
+
+
+
+
+
+
+
                         </Grid>
 
                         <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
@@ -666,8 +718,8 @@ const PledgeMasterPage = () => {
                         </Table>
                     </TableContainer>
                 </Grid>
-            </Grid>
-        </Box>
+            </Grid >
+        </Box >
     );
 };
 

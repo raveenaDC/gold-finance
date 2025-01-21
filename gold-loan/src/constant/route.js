@@ -8,6 +8,8 @@ export const ROUTES = {
     GL_Transaction_Report: "/gl-transaction-report",
     GL_Customer_Details: "/glcustomerdetails",
     CHART_OF_ACCOUNTS: "/chartsofaccounts",
-    PLEGDE_MASTER: "/pl-master"
+    PLEGDE_MASTER: "/pl-master",
+    PLEDGE_TRANSACTION: "/pledge transaction",
+    FIXED_MASTER: "/fixed master"
 
 }

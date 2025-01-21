@@ -12,9 +12,12 @@ import GlTransactionReport from '../Report/GlTransactionReport';
 import GlCustomerDetails from '../Report/GlCustomerDetails';
 import ChartsOfAccounts from '../pages/Chart of Accounts';
 import PledgeMasterPage from '../pages/Pledge';
+import AddMemberForm from '../pages/Member';
 import LoginPage from '../pages/Login';
 import { ROUTES } from '../constant/route';
 import AuthLayout from '../components/AuthLayout';
+import PledgeTransaction from '../pages/Pledge Transaction';
+import FixedRemittanceMaster from '../pages/Fixed Remittence Master';
 
 
 const PageRoutes = () => {
@@ -32,6 +35,8 @@ const PageRoutes = () => {
                     <Route path={ROUTES.GL_Customer_Details} element={<GlCustomerDetails />} />
                     <Route path={ROUTES.CHART_OF_ACCOUNTS} element={<ChartsOfAccounts />} />
                     <Route path={ROUTES.PLEGDE_MASTER} element={<PledgeMasterPage />} />
+                    <Route path={ROUTES.PLEDGE_TRANSACTION} element={<PledgeTransaction />} />
+                    <Route path={ROUTES.FIXED_MASTER} element={<FixedRemittanceMaster />} />
                 </Route>
                 <Route path="*" element={<h2>404: Page Not Found</h2>} />
             </Routes>

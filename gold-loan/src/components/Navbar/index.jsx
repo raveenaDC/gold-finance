@@ -9,6 +9,7 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { RateSetting, InterestPlanModal } from '../index';
 import { ROUTES } from '../../constant/route';
+import CustomerForm from '../../pages/Member';
 
 
 const drawerWidth = 240;
@@ -88,7 +89,7 @@ export default function Navbar({ handleDrawerOpen, open }) {
                     {/* Align items to the right */}
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <Button color="inherit" sx={{ mr: 2, color: 'black' }}>Login Details</Button>
-                        <Button color="inherit" sx={{ mr: 2, color: 'black' }}>Members</Button>
+                        <CustomerForm />
 
                         {/* Material UI Dropdown for Reports */}
                         <Button
