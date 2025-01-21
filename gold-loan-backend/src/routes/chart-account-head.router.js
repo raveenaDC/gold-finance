@@ -9,5 +9,6 @@ router.post('/general-ledger', chartAccountService.getGeneralLedger);
 router.post('/view/payment-receipt', chartAccountService.getReceiptPayment);
 router.post('/view/trial/balance', chartAccountService.getTrialBalance)
 router.post('/:chartId/add-amount', chartAccountService.createReceiptPayment)
+router.get('/:chartId', chartAccountService.getTotalBalanceAmount)
 
 export default router;
