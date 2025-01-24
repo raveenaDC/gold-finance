@@ -18,6 +18,7 @@ import { ROUTES } from '../constant/route';
 import AuthLayout from '../components/AuthLayout';
 import PledgeTransaction from '../pages/Pledge Transaction';
 import FixedRemittanceMaster from '../pages/Fixed Remittence Master';
+import FixedRemittanceTransaction from '../pages/Fixed Remittence Transaction';
 
 
 const PageRoutes = () => {
@@ -37,6 +38,7 @@ const PageRoutes = () => {
                     <Route path={ROUTES.PLEGDE_MASTER} element={<PledgeMasterPage />} />
                     <Route path={ROUTES.PLEDGE_TRANSACTION} element={<PledgeTransaction />} />
                     <Route path={ROUTES.FIXED_MASTER} element={<FixedRemittanceMaster />} />
+                    <Route path={ROUTES.FIXED_TRANSACTION} element={<FixedRemittanceTransaction />} />
                 </Route>
                 <Route path="*" element={<h2>404: Page Not Found</h2>} />
             </Routes>

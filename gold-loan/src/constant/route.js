@@ -9,7 +9,7 @@ export const ROUTES = {
     GL_Customer_Details: "/glcustomerdetails",
     CHART_OF_ACCOUNTS: "/chartsofaccounts",
     PLEGDE_MASTER: "/pl-master",
-    PLEDGE_TRANSACTION: "/pledge transaction",
-    FIXED_MASTER: "/fixed master"
-
+    PLEDGE_TRANSACTION: "/pledge-transaction",
+    FIXED_MASTER: "/fixed-master",
+    FIXED_TRANSACTION: "/fixed-transaction",
 }

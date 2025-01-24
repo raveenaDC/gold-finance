@@ -413,6 +413,7 @@ export default function GoldLoanBill() {
     const diffDays = differenceInDays(new Date(billDate), new Date(singleloanDetails.lastTransaction),);
     formData.totalAmount = parseFloat(formData.interestRate || 0) + parseFloat(formData.principlePaid || 0);
     const text = diffDays * singleloanDetails.dayAmount;
+    formData.interestRate = text;
 
 
 
@@ -1053,7 +1054,7 @@ export default function GoldLoanBill() {
 
                                         <TableRow>
                                             <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}>No Of Days </TableCell>
-                                            <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}> {singleloanDetails.principleAmount ? singleloanDetails.principleAmount.toFixed(2) : '0.00'}</TableCell>
+                                            <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}> {singleloanDetails.NumberOfDays ? singleloanDetails.NumberOfDays.toFixed(2) : '0.00'}</TableCell>
                                         </TableRow>
                                     </TableBody>
                                 </Table>
