@@ -40,6 +40,9 @@ export default function initializeRoutes(app) {
     //CHART OF ACCOUNT
     app.use('/chart/account', chartOfAccountRouter);
 
+    //SETTINGS ROUTER
+    app.use('/settings', chartOfAccountRouter);
+
     app.use(errorHandleMiddleware);
     //index route
     app.get('/', (req, res) => {

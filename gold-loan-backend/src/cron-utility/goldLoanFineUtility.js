@@ -47,22 +47,22 @@ export async function cronFineCalculation() {
                     switch (loan.interestMode) {
                         case 'monthly':
                             fineBalancePrice = latestLoanAmount + dailyInterest * 30;
-                            totalInterestRate = interestCalculation;
+                            totalInterestRate = dailyInterest * 30;
                             break;
 
                         case 'quarterly':
                             fineBalancePrice = latestLoanAmount + dailyInterest * 90;
-                            totalInterestRate = interestCalculation * 3;
+                            totalInterestRate = dailyInterest * 90;
                             break;
 
                         case 'halfyearly':
                             fineBalancePrice = latestLoanAmount + dailyInterest * 180;
-                            totalInterestRate = interestCalculation * 6;
+                            totalInterestRate = dailyInterest * 180;
                             break;
 
                         case 'yearly':
                             fineBalancePrice = latestLoanAmount + interestCalculation * 12;
-                            totalInterestRate = interestCalculation * 12;
+                            totalInterestRate = dailyInterest * 365;
                             break;
 
                         case 'weekly':

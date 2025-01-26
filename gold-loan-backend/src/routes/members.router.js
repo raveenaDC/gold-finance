@@ -15,4 +15,11 @@ router.post('/create', middlewares.handleMulterErrors(
     middlewares.fileUploadMiddleWare('images/')
 ), memberServices.createMember)
 
+//Roles
+
+router.get('/roles', memberServices.getAllRoles)
+router.post('/role', memberServices.addRoles);
+router.patch('/role/:roleId', memberServices.deleteRole)
+router.patch('/role/:roleId/update', memberServices.updateRole)
+
 export default router;

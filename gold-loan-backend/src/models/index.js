@@ -3,11 +3,13 @@ import customerModel from "./customerModel.js";
 import goldItemModel from "./goldItemModel.js";
 import goldLoanModel from "./goldLoanModel.js";
 import memberModel from "./memberModel.js";
-import interestCalculationModel from "./interestCalculationModel.js";
 import goldLoanPdfModel from "./goldLoanPdfModel.js";
 import fineGoldLoanModel from "./fineGoldLoanModel.js";
 import chartAccountModel from "./chartOfAccountHeadModel.js"
 import chartAccountTypeModel from "./paymentReceiptModel.js"
+import additionalChargesModel from "./additionalChargesModel.js";
+import interestSettingsModel from "./interestSettingsModel.js";
+import roleModel from "./roleModel.js";
 
 export {
     billingModel,
@@ -15,9 +17,11 @@ export {
     goldItemModel,
     goldLoanModel,
     memberModel,
-    interestCalculationModel,
     goldLoanPdfModel,
     fineGoldLoanModel,
     chartAccountModel,
-    chartAccountTypeModel
+    chartAccountTypeModel,
+    additionalChargesModel,
+    interestSettingsModel,
+    roleModel
 };
