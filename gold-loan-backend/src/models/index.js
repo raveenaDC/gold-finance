@@ -10,7 +10,9 @@ import chartAccountTypeModel from "./paymentReceiptModel.js"
 import additionalChargesModel from "./additionalChargesModel.js";
 import interestSettingsModel from "./interestSettingsModel.js";
 import roleModel from "./roleModel.js";
-
+import bankPledgeDataModel from "./bankPledgeDataModel.js";
+import pledgeModel
+    from "./pledgeModel.js";
 export {
     billingModel,
     customerModel,
@@ -23,5 +25,7 @@ export {
     chartAccountTypeModel,
     additionalChargesModel,
     interestSettingsModel,
-    roleModel
+    roleModel,
+    bankPledgeDataModel,
+    pledgeModel
 };
