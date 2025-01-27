@@ -7,41 +7,44 @@ const defaultPageLimit = process.env.PAGE_LIMIT;
 
 export async function addPledgeTransactions(req, res, next) {
     try {
-        let { pledgeNumber,
-            bankPledgeDataModel,
+        let {
+            pledgeNumber,
+            pledgeDate,
             bankPledgeNumber,
             bankId,
+            interestRate,
+            otherCharges,
+            dueDate,
             principleAmount,
             glNumber,
             paymentMode,
-            itemDetails,
+            itemDetails
         } = req.body;
 
-        let bank = await models.bankPledgeDataModel.find({ bankName: { $regex: new RegExp(bankName, 'i') } });
-
-        if (bank.length > 0) {
-            return responseHelper(
-                res,
-                httpStatus.CONFLICT,
-                true,
-                'This bank already exists'
-            );
-        }
-
-        const bankData = await models.bankPledgeDataModel.create({
-            bankName,
+        const pledgeData = await models.pledgeModel.create({
+            pledgeNumber,
+            pledgeDate,
+            bankPledgeNumber,
+            bankId,
             interestRate,
             otherCharges,
-            duration,
-            remark
+            dueDate,
+            principleAmount,
+            glNumber,
+            paymentMode,
+            itemDetails
         });
 
+        await models.goldLoanModel.updateMany(
+            { _id: { $in: glNumber } },
+            { pledgeId: pledgeData._id }
+        );
         return responseHelper(
             res,
             httpStatus.CREATED,
             false,
-            'Bank details added successfully',
-            bankData
+            'Pledge details added successfully',
+            pledgeData
         );
     } catch (error) {
         return next(new Error(error));
@@ -110,6 +113,37 @@ export async function getBankName(req, res, next) {
             false,
             'Bank details added successfully',
             bank
+        );
+    } catch (error) {
+        return next(new Error(error));
+    }
+
+}
+
+export async function pledgeTransactionsBill(req, res, next) {
+    try {
+        let {
+            pledge,
+            paidPrinciple,
+            paidOtherCharges,
+            paidInterest,
+            paidAmount
+        } = req.body;
+
+        const pledgeData = await models.pledgeTransactionModel.create({
+            pledge,
+            paidPrinciple,
+            paidOtherCharges,
+            paidInterest,
+            paidAmount
+        });
+
+        return responseHelper(
+            res,
+            httpStatus.CREATED,
+            false,
+            'Pledge transaction added successfully',
+            pledgeData
         );
     } catch (error) {
         return next(new Error(error));

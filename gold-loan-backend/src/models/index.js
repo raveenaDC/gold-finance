@@ -11,8 +11,8 @@ import additionalChargesModel from "./additionalChargesModel.js";
 import interestSettingsModel from "./interestSettingsModel.js";
 import roleModel from "./roleModel.js";
 import bankPledgeDataModel from "./bankPledgeDataModel.js";
-import pledgeModel
-    from "./pledgeModel.js";
+import pledgeModel from "./pledgeModel.js";
+import pledgeTransactionModel from "./pledgeTransactionModel.js";
 export {
     billingModel,
     customerModel,
@@ -27,5 +27,6 @@ export {
     interestSettingsModel,
     roleModel,
     bankPledgeDataModel,
-    pledgeModel
+    pledgeModel,
+    pledgeTransactionModel
 };

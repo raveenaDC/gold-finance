@@ -34,6 +34,15 @@ const pledgeDetailsSchema = new Schema(
         pledgeDate: Date,
         bankPledgeNumber: String,
         bankId: { type: Schema.Types.ObjectId, ref: 'bankPledgeData' },
+        interestRate: {
+            type: Number,
+            default: 0
+        },
+        otherCharges: {
+            type: Number,
+            default: 0
+        },
+        dueDate: Date,
         principleAmount: {
             type: Number,
             default: 0
