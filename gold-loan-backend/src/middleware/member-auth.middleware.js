@@ -26,7 +26,8 @@ export default async function memberAuthentication(req, res, next) {
             firstName: member.firstName,
             lastName: member.lastName,
             email: member.email,
-            role: member.role
+            role: member.role,
+            member_id: member._id
         }
         req.member = userDetails;
         next();

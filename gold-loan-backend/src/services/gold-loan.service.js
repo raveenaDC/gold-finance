@@ -83,7 +83,7 @@ export async function viewGoldLoan(req, res) {
         }
 
         let loanList = await models.goldLoanModel.find(query).select(
-            'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage totalCharges totalChargesAndBalanceAmount interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode insurance  processingFee otherCharges packingFee appraiser principleAmount dayAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage isClosed totalInterestRate createdAt'
+            'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage totalCharges totalChargesAndBalanceAmount interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode cgst sgst pledgeId insurance  processingFee otherCharges packingFee appraiser principleAmount dayAmount amountPaid interestPaid balanceAmount currentGoldValue profitOrLoss goldImage isClosed totalInterestRate createdAt'
         ).populate({
             path: 'itemDetails.goldItem', // Path to populate
             select: 'goldItem'   // Fields from the `goldItem` schema to include
@@ -109,7 +109,7 @@ export async function viewGoldLoan(req, res) {
         for (const loan of loanList) {
             const fineHistory = await models.fineGoldLoanModel
                 .findOne({ goldLoanId: loan._id })
-            const loanDetails = fineHistory && fineHistory.isFine && fineHistory.balanceAmount != 0
+            const loanDetails = fineHistory && fineHistory.isFine && fineHistory.balanceAmount > 0
                 ? {
                     purchaseDate: fineHistory.purchaseDate,
                     lastDate: fineHistory.lastDate,
@@ -147,10 +147,14 @@ export async function viewGoldLoan(req, res) {
                 appraiser: loan.appraiser,
                 otherCharges: loan.otherCharges,
                 amountPaid: loan.amountPaid,
+                interestPaid: loan.interestPaid,
                 totalCharges: loan.totalCharges,
                 profitOrLoss: loan.profitOrLoss,
                 goldImage: loan.goldImage,
                 isClosed: loan.isClosed,
+                cgst: loan.cgst,
+                sgst: loan.sgst,
+                pledgeId: loan.pledgeId,
                 goldItemDetails: loan.itemDetails,
             });
         }
@@ -197,6 +201,8 @@ export async function addGoldLoan(req, res, next) {
             memberId,//need to remove
             principleAmount,
             currentGoldValue,
+            cgst,
+            sgst
         } = req.body;
         let { goldImage } = req.files;
         // let { memberId } = req.user
@@ -232,22 +238,22 @@ export async function addGoldLoan(req, res, next) {
         switch (interestMode) {
             case 'monthly':
                 balancePrice = parseFloat(principleAmount) + (parseFloat(day) * 30);
-                tInterestRate = interestCalculation;
+                tInterestRate = day * 30;
                 endDate.setDate(endDate.getDate() + 30);
                 break;
             case 'yearly':
                 balancePrice = parseFloat(principleAmount) + (parseFloat(interestCalculation) * 12);
-                tInterestRate = interestCalculation * 12;
+                tInterestRate = day * 365;
                 endDate.setDate(endDate.getDate() + 365);
                 break;
             case 'quarterly':
                 balancePrice = parseFloat(principleAmount) + (parseFloat(day) * 90);
-                tInterestRate = interestCalculation * 3;
+                tInterestRate = day * 90;
                 endDate.setDate(endDate.getDate() + 90);
                 break;
             case 'halfyearly':
                 balancePrice = parseFloat(principleAmount) + (parseFloat(day) * 180);
-                tInterestRate = interestCalculation * 6;
+                tInterestRate = day * 180;
                 endDate.setDate(endDate.getDate() + 180);
                 break;
             case 'days':
@@ -302,6 +308,8 @@ export async function addGoldLoan(req, res, next) {
             totalChargesAndBalanceAmount: parseFloat(cutBalancePrice) + parseFloat(totalCharges),
             balanceAmount: cutBalancePrice,
             //currentGoldValue,
+            cgst,
+            sgst,
             profitOrLoss: profitLossAmount,
         });
 
@@ -522,7 +530,7 @@ export async function viewGoldLoanById(req, res, next) {
             .findOne({ goldLoanId: loanId })
             .sort({ createdAt: -1 });
 
-        const loanDetails = fineHistory && fineHistory.isFine && fineHistory.balanceAmount != 0
+        const loanDetails = fineHistory && fineHistory.isFine && fineHistory.balanceAmount > 0
             ? {
                 purchaseDate: fineHistory.purchaseDate,
                 lastDate: fineHistory.lastDate,
@@ -557,7 +565,18 @@ export async function viewGoldLoanById(req, res, next) {
         });
 
         let fineDetails = await models.fineGoldLoanModel.find({ goldLoanId: loanId })
+        if (fineDetails.length > 0) {
+            fineDetails = fineDetails.map(detail => {
+                const fineGoldIssuedDays = Math.ceil((new Date() - new Date(detail.purchaseDate)) / (1000 * 60 * 60 * 24)) - 1;
 
+                return {
+                    ...detail.toObject(),
+                    fineNumberOfDays: fineGoldIssuedDays,
+                };
+            });
+        } else {
+            fineDetails = '';
+        }
         const loanData = {
             ...loanDetails,
             glNo: loans.glNo,
@@ -580,11 +599,15 @@ export async function viewGoldLoanById(req, res, next) {
             appraiser: loans.appraiser,
             otherCharges: loans.otherCharges,
             amountPaid: loans.amountPaid,
+            interestPaid: loans.interestPaid,
             totalCharges: loans.totalCharges,
             currentGoldValue: loans.currentGoldValue,
             profitOrLoss: loans.profitOrLoss,
             goldImage: loans.goldImage,
             isClosed: loans.isClosed,
+            cgst: loans.cgst,
+            sgst: loans.sgst,
+            pledgeId: loans.pledgeId,
             fineDetails: fineDetails
         };
 
@@ -634,7 +657,7 @@ export async function viewGoldLoanByGoldNumber(req, res, next) {
         }
 
         let loanList = await models.goldLoanModel.find(query).select(
-            'glNo purchaseDate customerId createdAt'
+            'glNo purchaseDate customerId pledgeId createdAt'
         ).collation({ locale: 'en', strength: 2 });
 
         if (loanList.length == 0) {

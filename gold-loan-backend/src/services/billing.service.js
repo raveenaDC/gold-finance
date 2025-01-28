@@ -16,7 +16,6 @@ export async function createGoldLoanBilling(req, res, next) {
             packingFee,
             appraiser,
             otherCharges,
-            totalCharges,
             principlePaid,
             paymentMode,
             paymentNumber,
@@ -56,26 +55,28 @@ export async function createGoldLoanBilling(req, res, next) {
             .findOne({ goldLoanId })
             .sort({ createdAt: -1 });
 
-        const loanDetails = fineHistory && fineHistory.isFine && fineHistory.balanceAmount != 0
+        const loanDetails = fineHistory && fineHistory.isFine && fineHistory.balanceAmount > 0
             ? fineHistory
             : existLoan;
 
         const minusInterestRate = parseFloat(loanDetails.totalInterestRate) - parseFloat(interestRate);
         const minusPrincipleAmount = parseFloat(loanDetails.principleAmount) - parseFloat(principlePaid);
-        const newBalanceAmount = parseFloat(minusPrincipleAmount) + parseFloat(minusInterestRate);
-        const updatedTotalChargesAndBalance = parseFloat(newBalanceAmount) + parseFloat(totalCharges);
+        // const newBalanceAmount = parseFloat(minusPrincipleAmount) + parseFloat(minusInterestRate);
 
         const updateCharges = (record) => {
+
             record.insurance = parseFloat(record.insurance) + parseFloat(insurance);
             record.processingFee = parseFloat(record.processingFee) + parseFloat(processingFee);
             record.packingFee = parseFloat(record.packingFee) + parseFloat(packingFee);
             record.appraiser = parseFloat(record.appraiser) + parseFloat(appraiser);
             record.otherCharges = parseFloat(record.otherCharges) + parseFloat(otherCharges);
-            record.totalCharges = parseFloat(record.totalCharges) + parseFloat(totalCharges);
-            record.totalChargesAndBalanceAmount = updatedTotalChargesAndBalance;
+            record.totalCharges = parseFloat(record.otherCharges) + parseFloat(record.appraiser) + parseFloat(record.packingFee) + parseFloat(record.processingFee) + parseFloat(record.insurance);
             record.totalInterestRate = loanDetails.totalInterestRate;
-            record.balanceAmount = newBalanceAmount;
+            // record.balanceAmount = newBalanceAmount;
             record.amountPaid = parseFloat(record.amountPaid) + parseFloat(principlePaid);
+            record.interestPaid = parseFloat(record.interestPaid) + parseFloat(interestRate)
+            record.balanceAmount = parseFloat(record.balanceAmount) - (parseFloat(principlePaid) + parseFloat(interestRate))
+            record.totalChargesAndBalanceAmount = parseFloat(record.balanceAmount) + parseFloat(record.totalCharges);
         };
 
         if (fineHistory && fineHistory.isFine) {
@@ -85,9 +86,12 @@ export async function createGoldLoanBilling(req, res, next) {
             updateCharges(existLoan);
             await existLoan.save();
         }
-        if (fineHistory.balanceAmount == 0) {
+        if (fineHistory.balanceAmount <= 0) {
             fineHistory.isFine = false;
             await fineHistory.save();
+        } if (existLoan.balanceAmount <= 0) {
+            existLoan.isClosed = true;
+            await existLoan.save();
         }
 
 
@@ -127,7 +131,7 @@ export async function viewAllGoldLoanBilling(req, res, next) {
             .select('goldLoanId principleInterestRate payment paymentSection billDate billNo insurance processingFee packingFee appraise otherCharges createdAt')
             .populate({
                 path: 'goldLoanId',
-                select: 'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode insurance processingFee otherCharges packingFee appraiser principleAmount dayAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt',
+                select: 'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode insurance processingFee otherCharges packingFee appraiser principleAmount dayAmount amountPaid interestPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt',
                 populate: {
                     path: 'customerId',
                     select: 'firstName lastName primaryNumber email image'
@@ -168,7 +172,7 @@ export async function viewGoldLoanBillingDetails(req, res, next) {
             .select('goldLoanId principleInterestRate payment paymentSection billDate insurance processingFee packingFee appraise otherCharges billNo createdAt')
             .populate({
                 path: 'goldLoanId',
-                select: 'glNo purchaseDate  interestPercentage interestRate dayAmount interestMode  insurance processingFee otherCharges packingFee appraiser principleAmount amountPaid',
+                select: 'glNo purchaseDate  interestPercentage interestRate dayAmount interestMode  insurance processingFee otherCharges packingFee appraiser principleAmount amountPaid interestPaid',
                 populate: {
                     path: 'customerId',
                     select: 'firstName lastName primaryNumber email image'
@@ -207,7 +211,7 @@ export async function viewGoldLoanBillingById(req, res) {
             .select('goldLoanId principleInterestRate payment paymentSection billDate insurance processingFee packingFee appraise otherCharges billNo createdAt')
             .populate({
                 path: 'goldLoanId',
-                select: 'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage dayAmount interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode insurance processingFee otherCharges packingFee appraiser principleAmount amountPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt',
+                select: 'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage dayAmount interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode insurance processingFee otherCharges packingFee appraiser principleAmount amountPaid interestPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt',
                 populate: {
                     path: 'customerId',
                     select: 'firstName lastName primaryNumber email image'

@@ -1,5 +1,4 @@
 import { Schema, model } from 'mongoose';
-import { stringify } from 'uuid';
 
 const customerSchema = new Schema(
     {

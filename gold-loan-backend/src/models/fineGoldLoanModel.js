@@ -46,6 +46,10 @@ const fineGoldLoanSchema = new Schema(
             type: Number,
             default: 0,
         },
+        interestPaid: {
+            type: Number,
+            default: 0,
+        },
         dayAmount: {
             type: Number,
             default: 0,
