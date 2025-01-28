@@ -8,5 +8,7 @@ router.post('/add-bank-details', pledgeService.addBankPledgeDetails)
 router.post('/add/pledge-details', pledgeService.addPledgeTransactions)
 router.post('/transaction', pledgeService.pledgeTransactionsBill)
 router.get('/view/bank-name', pledgeService.getBankName)
+router.get('/', pledgeService.getPledgeNumber)
+router.get('/:pledgeId', pledgeService.getPledgeDetailsById)
 
 export default router;

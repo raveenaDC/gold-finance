@@ -111,7 +111,7 @@ export async function getBankName(req, res, next) {
             res,
             httpStatus.OK,
             false,
-            'Bank details added successfully',
+            'Bank list',
             bank
         );
     } catch (error) {
@@ -144,6 +144,99 @@ export async function pledgeTransactionsBill(req, res, next) {
             false,
             'Pledge transaction added successfully',
             pledgeData
+        );
+    } catch (error) {
+        return next(new Error(error));
+    }
+
+}
+
+export async function getPledgeNumber(req, res, next) {
+    try {
+
+        let pledgeNumbers = await models.pledgeModel.find().select('bankPledgeNumber pledgeNumber');
+
+        if (pledgeNumbers.length == 0) {
+            return responseHelper(
+                res,
+                httpStatus.NOT_FOUND,
+                true,
+                'No pledge numbers found'
+            );
+        }
+
+        return responseHelper(
+            res,
+            httpStatus.OK,
+            false,
+            'Pledge numbers',
+            pledgeNumbers
+        );
+    } catch (error) {
+        return next(new Error(error));
+    }
+
+}
+
+export async function getPledgeDetailsById(req, res, next) {
+    try {
+
+        const { pledgeId } = req.params;
+
+        let pledgeNumbers = await models.pledgeModel.findById({ _id: pledgeId }).select('pledgeNumber  pledgeDate bankPledgeNumber bankId interestRate otherCharges dueDate principleAmount glNumber paymentMode itemDetails createdAt')
+            .populate({
+                path: 'glNumber',
+                select: 'glNo purchaseDate customerId',
+                populate: {
+                    path: 'customerId',
+                    select: 'firstName lastName '
+                },
+            }).populate({
+                path: 'itemDetails.goldItem', // Path to populate
+                select: 'goldItem'   // Fields from the `goldItem` schema to include
+
+            });
+
+        if (pledgeNumbers) {
+            pledgeNumbers = pledgeNumbers.toObject(); // Convert Mongoose document to plain JavaScript object
+
+            pledgeNumbers.glNumber = pledgeNumbers.glNumber.map(gl => ({
+                _id: gl._id,
+                glNo: gl.glNo,
+                purchaseDate: gl.purchaseDate,
+                customer_id: gl.customerId._id,
+                firstName: gl.customerId.firstName,
+                lastName: gl.customerId.lastName
+            }));
+
+            pledgeNumbers.itemDetails = pledgeNumbers.itemDetails.map(item => ({
+                goldItem_id: item.goldItem._id,
+                goldItem: item.goldItem.goldItem,
+                netWeight: item.netWeight,
+                grossWeight: item.grossWeight,
+                quantity: item.quantity,
+                depreciation: item.depreciation,
+                stoneWeight: item.stoneWeight,
+                _id: item._id
+            }));
+        }
+
+
+        if (pledgeNumbers.length == 0) {
+            return responseHelper(
+                res,
+                httpStatus.NOT_FOUND,
+                true,
+                'No pledge numbers found'
+            );
+        }
+
+        return responseHelper(
+            res,
+            httpStatus.OK,
+            false,
+            'Pledge numbers',
+            pledgeNumbers
         );
     } catch (error) {
         return next(new Error(error));
