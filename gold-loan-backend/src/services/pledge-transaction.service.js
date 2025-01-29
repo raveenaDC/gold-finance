@@ -2,6 +2,7 @@ import * as models from '../models/index.js'
 import httpStatus from 'http-status';
 import { responseHelper } from '../utils/response.helper.js';
 import { paginateData } from '../utils/pagination-data.js';
+import { promises } from 'node:dns';
 
 const defaultPageLimit = process.env.PAGE_LIMIT;
 
@@ -123,19 +124,20 @@ export async function getBankName(req, res, next) {
 export async function pledgeTransactionsBill(req, res, next) {
     try {
         let {
-            pledge,
+            pledgeId,
             paidPrinciple,
             paidOtherCharges,
             paidInterest,
             paidAmount
         } = req.body;
-
+        let bank = await models.pledgeModel.findById({ _id: pledgeId })
         const pledgeData = await models.pledgeTransactionModel.create({
-            pledge,
+            pledgeId,
             paidPrinciple,
             paidOtherCharges,
             paidInterest,
-            paidAmount
+            paidAmount,
+            bankId: bank.bankId
         });
 
         return responseHelper(
@@ -192,22 +194,26 @@ export async function getPledgeDetailsById(req, res, next) {
                     select: 'firstName lastName '
                 },
             }).populate({
-                path: 'itemDetails.goldItem', // Path to populate
-                select: 'goldItem'   // Fields from the `goldItem` schema to include
+                path: 'itemDetails.goldItem',
+                select: 'goldItem'
 
+            }).populate({
+                path: 'bankId',
+                select: 'bankName'
             });
 
         if (pledgeNumbers) {
-            pledgeNumbers = pledgeNumbers.toObject(); // Convert Mongoose document to plain JavaScript object
-
-            pledgeNumbers.glNumber = pledgeNumbers.glNumber.map(gl => ({
-                _id: gl._id,
-                glNo: gl.glNo,
-                purchaseDate: gl.purchaseDate,
-                customer_id: gl.customerId._id,
-                firstName: gl.customerId.firstName,
-                lastName: gl.customerId.lastName
-            }));
+            pledgeNumbers = pledgeNumbers.toObject();
+            pledgeNumbers.bankName = pledgeNumbers.bankId.bankName,
+                pledgeNumbers.bankId = pledgeNumbers.bankId._id,
+                pledgeNumbers.glNumber = pledgeNumbers.glNumber.map(gl => ({
+                    _id: gl._id,
+                    glNo: gl.glNo,
+                    purchaseDate: gl.purchaseDate,
+                    customer_id: gl.customerId._id,
+                    firstName: gl.customerId.firstName,
+                    lastName: gl.customerId.lastName
+                }));
 
             pledgeNumbers.itemDetails = pledgeNumbers.itemDetails.map(item => ({
                 goldItem_id: item.goldItem._id,
@@ -237,6 +243,177 @@ export async function getPledgeDetailsById(req, res, next) {
             false,
             'Pledge numbers',
             pledgeNumbers
+        );
+    } catch (error) {
+        return next(new Error(error));
+    }
+
+}
+
+export async function listPledgeDetails(req, res, next) {
+    try {
+
+        let { startDate, endDate, search, pageLimit } = req.body
+        pageLimit = parseInt(pageLimit || defaultPageLimit);
+        const page = parseInt(req.query.page) || 1;
+        let query = {};
+        if (startDate && endDate && !search) {
+
+            query = { pledgeDate: { $gte: startDate, $lte: endDate } };
+
+        }
+        else if (search && !(startDate && endDate)) {
+            let bankList = await models.bankPledgeDataModel.find({
+                bankName: { $regex: new RegExp(search, 'i') }
+            }).select('_id');
+
+            let bankIds = bankList.map(bank => bank._id);
+
+            if (bankIds.length > 0) {
+                query.$or = [{ bankId: { $in: bankIds } }];
+            }
+        }
+
+        let pledgeLists = await models.pledgeModel.find(query).select('pledgeNumber  pledgeDate bankPledgeNumber bankId interestRate otherCharges dueDate principleAmount glNumber paymentMode itemDetails createdAt')
+            .populate({
+                path: 'glNumber',
+                select: 'glNo purchaseDate customerId',
+                populate: {
+                    path: 'customerId',
+                    select: 'firstName lastName '
+                },
+            }).populate({
+                path: 'itemDetails.goldItem',
+                select: 'goldItem'
+            }).populate({
+                path: 'bankId',
+                select: 'bankName'
+            }).sort({ pledgeDate: -1 });
+
+        if (pledgeLists.length > 0) {
+            pledgeLists = pledgeLists.map(pledge => {
+                const plainPledge = pledge.toObject();
+
+                return {
+                    ...plainPledge,
+                    bankName: plainPledge.bankId.bankName,
+                    bankId: plainPledge.bankId._id,
+                    glNumber: plainPledge.glNumber?.map(item => ({
+                        _id: item._id,
+                        glNo: item.glNo,
+                        purchaseDate: item.purchaseDate,
+                        customer_id: item.customerId?._id,
+                        firstName: item.customerId?.firstName,
+                        lastName: item.customerId?.lastName
+                    })) || [],
+                    itemDetails: plainPledge.itemDetails?.map(item => ({
+                        goldItem_id: item.goldItem?._id,
+                        goldItem: item.goldItem?.goldItem,
+                        netWeight: item.netWeight,
+                        grossWeight: item.grossWeight,
+                        quantity: item.quantity,
+                        depreciation: item.depreciation,
+                        stoneWeight: item.stoneWeight,
+                        _id: item._id
+                    })) || []
+                };
+            });
+        }
+
+        if (pledgeLists.length == 0) {
+            return responseHelper(
+                res,
+                httpStatus.NOT_FOUND,
+                true,
+                'No pledge list found'
+            );
+        }
+        const paginationResult = await paginateData(pledgeLists, page, pageLimit);
+
+        return responseHelper(
+            res,
+            httpStatus.OK,
+            false,
+            'Pledge lists',
+            {
+                items: paginationResult.data,
+                pagination: paginationResult.pagination
+            }
+        );
+    } catch (error) {
+        return next(new Error(error));
+    }
+
+}
+
+export async function listPledgeTransaction(req, res, next) {
+    try {
+
+        let { startDate, endDate, search, pageLimit, pledgeId } = req.body
+        pageLimit = parseInt(pageLimit || defaultPageLimit);
+        const page = parseInt(req.query.page) || 1;
+        let query = pledgeId ? { pledgeId } : {};
+
+        if (startDate && endDate && !search) {
+            query = { createAt: { $gte: startDate, $lte: endDate } };
+
+        }
+        else if (search && !(startDate && endDate)) {
+            let bankList = await models.bankPledgeDataModel.find({
+                bankName: { $regex: new RegExp(search, 'i') }
+            }).select('_id');
+
+            let bankIds = bankList.map(bank => bank._id);
+
+            if (bankIds.length > 0) {
+                query.$or = [{ bankId: { $in: bankIds } }];
+            }
+        }
+
+        let pledgeBillLists = await models.pledgeTransactionModel.find(query).select('pledgeId paidPrinciple paidOtherCharges paidInterest paidAmount bankId createdAt')
+            .populate({
+                path: 'pledgeId',
+                select: 'pledgeNumber pledgeDate bankPledgeNumber pledgeDate',
+            }).populate({
+                path: 'bankId',
+                select: 'bankName'
+            }).sort({ createdAt: -1 });
+
+        if (pledgeBillLists.length > 0) {
+            pledgeBillLists = pledgeBillLists.map(pledge => {
+                const plainPledge = pledge.toObject();
+
+                return {
+                    ...plainPledge,
+                    bankName: plainPledge.bankId.bankName,
+                    bankId: plainPledge.bankId._id,
+                    pledgeNumber: plainPledge.pledgeId.pledgeNumber,
+                    pledgeId: plainPledge.pledgeId._id,
+                    pledgeDate: plainPledge.pledgeId.pledgeDate,
+                    bankPledgeNumber: plainPledge.pledgeId.bankPledgeNumber
+                };
+            });
+        }
+
+        if (pledgeBillLists.length == 0) {
+            return responseHelper(
+                res,
+                httpStatus.NOT_FOUND,
+                true,
+                'No pledge transaction list found'
+            );
+        }
+        const paginationResult = await paginateData(pledgeBillLists, page, pageLimit);
+
+        return responseHelper(
+            res,
+            httpStatus.OK,
+            false,
+            'Pledge transaction lists',
+            {
+                items: paginationResult.data,
+                pagination: paginationResult.pagination
+            }
         );
     } catch (error) {
         return next(new Error(error));

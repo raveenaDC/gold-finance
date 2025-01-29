@@ -10,5 +10,7 @@ router.post('/transaction', pledgeService.pledgeTransactionsBill)
 router.get('/view/bank-name', pledgeService.getBankName)
 router.get('/', pledgeService.getPledgeNumber)
 router.get('/:pledgeId', pledgeService.getPledgeDetailsById)
+router.post('/view-all', pledgeService.listPledgeDetails)
+router.post('/bill/transaction', pledgeService.listPledgeTransaction)
 
 export default router;

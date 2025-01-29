@@ -18,7 +18,8 @@ const pledgeTransactionSchema = new Schema(
             type: Number,
             default: 0,
         },
-        pledge: { type: Schema.Types.ObjectId, ref: 'pledge' },
+        pledgeId: { type: Schema.Types.ObjectId, ref: 'PledgeTransaction' },
+        bankId: { type: Schema.Types.ObjectId, ref: 'bankPledgeData' },
 
     },
     {
