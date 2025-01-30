@@ -46,9 +46,9 @@ export const getgolddetailtable = async (loanId) => {
 
 }
 
-export const getgoldbillhistorytable = async (loanId) => {
+export const getgoldbillhistorytable = async (goldLoanId) => {
     try {
-        const response = await fetch(API_BASE_URL + API_ENDPOINT.GET_GOLD_DETAIL_TABLE.replace("[loanId]", loanId));
+        const response = await fetch(API_BASE_URL + API_ENDPOINT.GET_GOLD_BILL_HISTORY.replace("[goldLoanId]", goldLoanId));
         const data = await response.json();
         console.log("***********");
         console.log("history", data.data);

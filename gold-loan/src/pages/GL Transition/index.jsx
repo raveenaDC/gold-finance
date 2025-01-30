@@ -34,14 +34,14 @@ export default function GoldLoanBill() {
     const [formData, setFormData] = useState({
         interestRate: "",
         principlePaid: "",
-        includeCharges: "",
+
         totalAmount: "",
         insurance: "",
         processingFee: "",
         packingFee: "",
         appraiser: "",
         otherCharges: "",
-        totalCharges: "100",
+
         paymentMode: "cash",
         paymentName: "",
         paymentNumber: "",
@@ -84,6 +84,8 @@ export default function GoldLoanBill() {
     const [itemDetails, setItemDetails] = useState([]);
     const [singleloanDetails, setSingleloanDetails] = useState([]);
     const [fineDetails, setFineDetails] = useState([]);
+    const [historyDetails, setHistoryDetails] = useState([]);
+
 
 
     const [loading, setLoading] = useState(false);
@@ -303,7 +305,7 @@ export default function GoldLoanBill() {
     const fetchCustomerGoldTable = async () => {
         try {
             const response = await getgolddetailtable(goldLoanId);
-            // console.log("checking", response.items);
+            console.log("checking.......", response.items);
             const itemDetails = response.items.itemDetails || []; // Safely extract the items array
             const items = response.items || [];
             const fine = response.items.fineDetails || [];
@@ -319,9 +321,13 @@ export default function GoldLoanBill() {
     const fetchCustomerGoldHistoryTable = async () => {
         try {
             const response = await getgoldbillhistorytable(goldLoanId);
-            console.log("checking2", response.items);
+            console.log("checking2", response.items.data.billData);
+            console.log(goldLoanId);
+            const items = response.items.data.billData || [];
+            setHistoryDetails(items);
+
             // const itemDetails = response.items.itemDetails || []; // Safely extract the items array
-            // const items = response.items || [];
+
             // const fine = response.items.fineDetails || [];
             // setFineDetails(fine);
             // setSingleloanDetails(items);
@@ -687,7 +693,7 @@ export default function GoldLoanBill() {
                                     size="small"
                                     label="INSURANCE"
                                     fullWidth
-                                    placeholder="Enter Insurance"
+                                    placeholder={singleloanDetails.insurance}
                                     sx={{
                                         '& .MuiInputLabel-root': {
                                             fontSize: '14px', // Increased label font size
@@ -715,7 +721,7 @@ export default function GoldLoanBill() {
                                     label="PROCESSING FEE"
                                     size="small"
                                     fullWidth
-                                    placeholder="Enter Processing Fee"
+                                    placeholder={singleloanDetails.processingFee}
                                     sx={{
                                         '& .MuiInputLabel-root': {
                                             fontSize: '14px', // Increased label font size
@@ -742,7 +748,7 @@ export default function GoldLoanBill() {
                                     label="PACKING FEE"
                                     size="small"
                                     fullWidth
-                                    placeholder="Enter Packing Fee"
+                                    placeholder={singleloanDetails.packingFee}
                                     sx={{
                                         '& .MuiInputLabel-root': {
                                             fontSize: '14px', // Increased label font size
@@ -769,7 +775,7 @@ export default function GoldLoanBill() {
                                     label="APPRAISER"
                                     size="small"
                                     fullWidth
-                                    placeholder="Enter Appraiser"
+                                    placeholder={singleloanDetails.appraiser}
                                     sx={{
                                         '& .MuiInputLabel-root': {
                                             fontSize: '14px', // Increased label font size
@@ -796,7 +802,7 @@ export default function GoldLoanBill() {
                                     label="OTHER CHARGES"
                                     size="small"
                                     fullWidth
-                                    placeholder="Enter Other Charges"
+                                    placeholder={singleloanDetails.otherCharges}
                                     sx={{
                                         '& .MuiInputLabel-root': {
                                             fontSize: '14px', // Increased label font size
@@ -1482,21 +1488,24 @@ export default function GoldLoanBill() {
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    <TableRow
+                                    {historyDetails.map((detail, index) => (
+                                        <TableRow
+                                            key={index}
 
-                                        sx={{
-                                            '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
-                                            '&:nth-of-type(even)': { backgroundColor: '#ffffff' },
-                                            height: '24px',
-                                        }}
-                                    >
-                                        <TableCell align="center" sx={{ padding: '4px' }}>{singleloanDetails.glNo}</TableCell>
-                                        <TableCell align="center" sx={{ padding: '4px' }}>{singleloanDetails.lastTransaction}</TableCell>
-                                        <TableCell align="center" sx={{ padding: '4px' }}>detail.</TableCell>
-                                        <TableCell align="center" sx={{ padding: '4px' }}>{singleloanDetails.amountPaid}</TableCell>
-                                        <TableCell align="center" sx={{ padding: '4px' }}>detail.</TableCell>
-                                        <TableCell align="center" sx={{ padding: '4px' }}>detail.</TableCell>
-                                    </TableRow>
+                                            sx={{
+                                                '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
+                                                '&:nth-of-type(even)': { backgroundColor: '#ffffff' },
+                                                height: '24px',
+                                            }}
+                                        >
+                                            <TableCell align="center" sx={{ padding: '4px' }}>{detail.goldLoanId.glNo}</TableCell>
+                                            <TableCell align="center" sx={{ padding: '4px' }}>{detail.billDate}</TableCell>
+                                            <TableCell align="center" sx={{ padding: '4px' }}></TableCell>
+                                            <TableCell align="center" sx={{ padding: '4px' }}>{detail.payment}</TableCell>
+                                            <TableCell align="center" sx={{ padding: '4px' }}>{detail.principleInterestRate} </TableCell>
+                                            <TableCell align="center" sx={{ padding: '4px' }}>{detail.goldLoanId.principleAmount}</TableCell>
+                                        </TableRow>
+                                    ))}
 
                                 </TableBody>
 

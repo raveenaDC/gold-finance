@@ -96,6 +96,10 @@ const goldLoanSchema = new Schema(
             type: Number,
             default: 0,
         },
+        interestPaid: {
+            type: Number,
+            default: 0,
+        },
         balanceAmount: {
             type: Number,
             default: 0,

@@ -8,7 +8,7 @@ export const API_ENDPOINT = {
     GET_CUSTOMER_GOLD_LOAN_DETAILS: "/customer/gold/loan-details/customer/[customerId]",
     GET_GOLD_DETAIL_TABLE: "/customer/gold/loan/[loanId]",
     LOGIN: "/member/login/api",
-    GET_GOLD_BILL_HISTORY: "/billing/transaction/gold-loan/[LoanId]/bills",
+    GET_GOLD_BILL_HISTORY: "/billing/transaction/gold-loan/[goldLoanId]/bills",
     CHART_OF_ACCOUNT: "/chart/account/head/create",
     GET_ACCOUNT_HEAD_NAME: "/chart/account/",
     SAVE_PAYMENTS_RECIEPTS: "/chart/account/[chartId]/add-amount",

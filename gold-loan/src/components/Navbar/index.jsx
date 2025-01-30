@@ -10,7 +10,8 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { RateSetting, InterestPlanModal } from '../index';
 import { ROUTES } from '../../constant/route';
 import CustomerForm from '../../pages/Member';
-
+import StaffModal from '../Add Designation Role';
+import PermissionForm from '../../pages/Roles of Memeber'
 
 const drawerWidth = 240;
 
@@ -137,6 +138,8 @@ export default function Navbar({ handleDrawerOpen, open }) {
                             <MenuItem onClick={handleClose}>Print Setup</MenuItem>
                             <MenuItem onClick={handleClose}>User Setting</MenuItem>
                             <MenuItem onClick={handleClose}>Password </MenuItem>
+                            <MenuItem ><PermissionForm /> </MenuItem>
+                            <MenuItem ><StaffModal /> </MenuItem>
 
                         </Menu>
 

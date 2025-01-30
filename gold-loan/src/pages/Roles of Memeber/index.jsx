@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { Button, TextField, Checkbox, FormControlLabel, Typography, Box, IconButton, Grid, Dialog, DialogActions, DialogContent, DialogTitle, Stepper, Step, StepLabel } from '@mui/material';
-import { Person, Email, Phone, Work, CalendarToday, ArrowBack, ArrowForward, Done, CheckCircle, LocationOn } from '@mui/icons-material';
+import { Button, TextField, Checkbox, FormControlLabel, Typography, Box, IconButton, Grid, Dialog, DialogActions, DialogContent, DialogTitle, Stepper, Step, StepLabel, Autocomplete } from '@mui/material';
+import { Person, Email, Phone, Work, CalendarToday, ArrowBack, ArrowForward, Done, CheckCircle } from '@mui/icons-material';
 import { styled } from '@mui/system';
 import { motion } from 'framer-motion';
 
-
-const steps = ['Basic Information', 'Permissions', 'Confirmation'];
+const steps = ['Permissions', 'Confirmation'];
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
     marginBottom: theme.spacing(2),
@@ -27,16 +26,9 @@ const StyledText = styled(Typography)(({ theme }) => ({
 
 const PermissionForm = () => {
     const [activeStep, setActiveStep] = useState(0);
+    const [openModal, setOpenModal] = useState(false); // State to control the modal open/close
+    const [designation, setDesignation] = useState('');
     const [formData, setFormData] = useState({
-        firstName: '',
-        lastName: '',
-        mobile: '',
-        altMobile: '',
-        email: '',
-        address: '',
-        city: '',
-        landmark: '',
-        pinCode: '',
         permissions: {
             sunday: false,
             monday: false,
@@ -45,240 +37,90 @@ const PermissionForm = () => {
             thursday: false,
             friday: false,
             saturday: false,
-            goldLoan: false,
-            pledge: false,
+            goldLoanMasterCreate: false,
+            goldLoanTransaction: false,
+            goldLoanEditing: false,
+            pledgeMasterCreate: false,
+            pledgeTransaction: false,
         },
     });
-    const [openModal, setOpenModal] = useState(false); // State to control the modal open/close
 
     const handleNext = () => setActiveStep((prevStep) => prevStep + 1);
     const handleBack = () => setActiveStep((prevStep) => prevStep - 1);
-
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
-    };
 
     const handleCheckboxChange = (e) => {
         const { name, checked } = e.target;
         setFormData({ ...formData, permissions: { ...formData.permissions, [name]: checked } });
     };
 
-    const handleSubmit = () => {
-        console.log('Form Data:', formData);
-        // Reset the form
-        setFormData({
-            firstName: '',
-            lastName: '',
-            mobile: '',
-            altMobile: '',
-            email: '',
-            address: '',
-            city: '',
-            landmark: '',
-            pinCode: '',
-            permissions: {
-                sunday: false,
-                monday: false,
-                tuesday: false,
-                wednesday: false,
-                thursday: false,
-                friday: false,
-                saturday: false,
-                goldLoan: false,
-                pledge: false,
-            },
-        });
-        setActiveStep(0); // Reset to Basic Information step
-        setOpenModal(false); // Close the modal
-    };
+    const handleOpenModal = () => setOpenModal(true);
+    const handleCloseModal = () => setOpenModal(false);
 
-    const renderBasicInformation = () => (
-        <Box>
-            <StyledTextField
-                name="firstName"
-                label={<IconLabel icon={Person} label="First Name" />}
-                fullWidth
-                variant="outlined"
-                onChange={handleInputChange}
-                size='small'
-            />
-            <StyledTextField
-                name="lastName"
-                label={<IconLabel icon={Person} label="Last Name" />}
-                fullWidth
-                variant="outlined"
-                onChange={handleInputChange}
-                size='small'
-            />
-            <StyledTextField
-                name="mobile"
-                label={<IconLabel icon={Phone} label="Mobile" />}
-                fullWidth
-                variant="outlined"
-                onChange={handleInputChange}
-                size='small'
-            />
-            <StyledTextField
-                name="altMobile"
-                label={<IconLabel icon={Phone} label="Alternative Mobile" />}
-                fullWidth
-                variant="outlined"
-                onChange={handleInputChange}
-                size='small'
-            />
-            <StyledTextField
-                name="email"
-                label={<IconLabel icon={Email} label="Email" />}
-                fullWidth
-                variant="outlined"
-                onChange={handleInputChange}
-                size='small'
-            />
-            <StyledTextField
-                name="address"
-                label={<IconLabel icon={LocationOn} label="Address" />}
-                fullWidth
-                variant="outlined"
-                onChange={handleInputChange}
-                size='small'
-            />
-            <Grid container spacing={2}>
-                <Grid item xs={6}>
-                    <StyledTextField
-                        name="city"
-                        label={<IconLabel icon={LocationOn} label="City" />}
-                        fullWidth
-                        variant="outlined"
-                        onChange={handleInputChange}
-                        size='small'
-                    />
-                </Grid>
-                <Grid item xs={6}>
-                    <StyledTextField
-                        name="landmark"
-                        label={<IconLabel icon={LocationOn} label="Landmark" />}
-                        fullWidth
-                        variant="outlined"
-                        onChange={handleInputChange}
-                        size='small'
-                    />
-                </Grid>
-            </Grid>
-            <StyledTextField
-                name="pinCode"
-                label={<IconLabel icon={LocationOn} label="Pin Code" />}
-                fullWidth
-                variant="outlined"
-                onChange={handleInputChange}
-                size='small'
-            />
-        </Box>
-    );
+
 
     const renderPermissions = () => (
         <Box>
-            <>
-                <StyledText variant="h6">Select Days of Week</StyledText>
-                {['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].map((day) => (
-                    <FormControlLabel
-                        control={<Checkbox name={day} checked={formData.permissions[day]} onChange={handleCheckboxChange} />}
-                        label={day.charAt(0).toUpperCase() + day.slice(1)}
-                        key={day}
-                    />
-                ))}
+            <Autocomplete
+                label="Designation"
+                value={designation}
+                onChange={(e, newValue) => setDesignation(newValue)}
+                options={['Manager', 'Staff', 'Supervisor']} // Example options, adjust as needed
+                getOptionLabel={(option) => option}
+                renderInput={(params) => <TextField {...params} label="Designation" />}
+                fullWidth sx={{ mb: 2 }}
+            />
 
-                <StyledText variant="h6" sx={{ mt: 3 }}>Gold Loan Permissions</StyledText>
+            <StyledText variant="h6">Select Days of Week</StyledText>
+            {['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].map((day) => (
                 <FormControlLabel
-                    control={<Checkbox name="goldLoanMasterCreate" checked={formData.permissions.goldLoanMasterCreate} onChange={handleCheckboxChange} />}
-                    label="Gold Loan Master Create"
+                    control={<Checkbox name={day} checked={formData.permissions[day]} onChange={handleCheckboxChange} />}
+                    label={day.charAt(0).toUpperCase() + day.slice(1)}
+                    key={day}
                 />
-                <FormControlLabel
-                    control={<Checkbox name="goldLoanTransaction" checked={formData.permissions.goldLoanTransaction} onChange={handleCheckboxChange} />}
-                    label="Gold Loan Transaction"
-                />
-                <FormControlLabel
-                    control={<Checkbox name="goldLoanEditing" checked={formData.permissions.goldLoanEditing} onChange={handleCheckboxChange} />}
-                    label="Gold Loan Editing"
-                />
+            ))}
 
-                <StyledText variant="h6" sx={{ mt: 3 }}>Pledge Permissions</StyledText>
-                <FormControlLabel
-                    control={<Checkbox name="pledgeMasterCreate" checked={formData.permissions.pledgeMasterCreate} onChange={handleCheckboxChange} />}
-                    label="Pledge Master Create"
-                />
-                <FormControlLabel
-                    control={<Checkbox name="pledgeTransaction" checked={formData.permissions.pledgeTransaction} onChange={handleCheckboxChange} />}
-                    label="Pledge Transaction"
-                />
-            </>
+            <StyledText variant="h6" sx={{ mt: 3 }}>Gold Loan Permissions</StyledText>
+            <FormControlLabel
+                control={<Checkbox name="goldLoanMasterCreate" checked={formData.permissions.goldLoanMasterCreate} onChange={handleCheckboxChange} />}
+                label="Gold Loan Master Create"
+            />
+            <FormControlLabel
+                control={<Checkbox name="goldLoanTransaction" checked={formData.permissions.goldLoanTransaction} onChange={handleCheckboxChange} />}
+                label="Gold Loan Transaction"
+            />
+            <FormControlLabel
+                control={<Checkbox name="goldLoanEditing" checked={formData.permissions.goldLoanEditing} onChange={handleCheckboxChange} />}
+                label="Gold Loan Editing"
+            />
+
+            <StyledText variant="h6" sx={{ mt: 3 }}>Pledge Permissions</StyledText>
+            <FormControlLabel
+                control={<Checkbox name="pledgeMasterCreate" checked={formData.permissions.pledgeMasterCreate} onChange={handleCheckboxChange} />}
+                label="Pledge Master Create"
+            />
+            <FormControlLabel
+                control={<Checkbox name="pledgeTransaction" checked={formData.permissions.pledgeTransaction} onChange={handleCheckboxChange} />}
+                label="Pledge Transaction"
+            />
         </Box>
     );
 
     const renderConfirmation = () => (
-        <Box sx={{ padding: 2, backgroundColor: '#f5f5f5', borderRadius: '8px', boxShadow: 3 }}>
-            <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: 2 }}>Confirm Your Details</Typography>
-
-            {/* Basic Information Section */}
-            <Box sx={{ marginBottom: 3 }}>
-                <Typography variant="body1" sx={{ fontWeight: 'bold', marginBottom: 1 }}>Basic Information</Typography>
-                <Grid container spacing={2}>
-                    <Grid item xs={6}>
-                        <Typography variant="body2">First Name: <strong>{formData.firstName}</strong></Typography>
-                        <Typography variant="body2">Mobile: <strong>{formData.mobile}</strong></Typography>
-                        <Typography variant="body2">Email: <strong>{formData.email}</strong></Typography>
-                    </Grid>
-                    <Grid item xs={6}>
-                        <Typography variant="body2">Last Name: <strong>{formData.lastName}</strong></Typography>
-                        <Typography variant="body2">Alternative Mobile: <strong>{formData.altMobile}</strong></Typography>
-                        <Typography variant="body2">Address: <strong>{formData.address}</strong></Typography>
-                    </Grid>
-                </Grid>
-            </Box>
-
-            {/* Location Details */}
-            <Box sx={{ marginBottom: 3 }}>
-                <Typography variant="body1" sx={{ fontWeight: 'bold', marginBottom: 1 }}>Location Details</Typography>
-                <Grid container spacing={2}>
-                    <Grid item xs={6}>
-                        <Typography variant="body2">City: <strong>{formData.city}</strong></Typography>
-                        <Typography variant="body2">Landmark: <strong>{formData.landmark}</strong></Typography>
-                    </Grid>
-                    <Grid item xs={6}>
-                        <Typography variant="body2">Pin Code: <strong>{formData.pinCode}</strong></Typography>
-                    </Grid>
-                </Grid>
-            </Box>
-
-            {/* Selected Days */}
-            <Box sx={{ marginBottom: 3 }}>
-                <Typography variant="body1" sx={{ fontWeight: 'bold', marginBottom: 1 }}>Selected Days</Typography>
-                {['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].map((day) =>
-                    formData.permissions[day] && <Typography variant="body2" key={day} sx={{ display: 'inline-block', marginRight: 2, marginBottom: 1 }}>
-                        <strong>{day.charAt(0).toUpperCase() + day.slice(1)}</strong>
-                    </Typography>
-                )}
-            </Box>
-
-            {/* Gold Loan Permissions */}
-            <Box sx={{ marginBottom: 3 }}>
-                <Typography variant="body1" sx={{ fontWeight: 'bold', marginBottom: 1 }}>Gold Loan Permissions</Typography>
-                {formData.permissions.goldLoanMasterCreate && <Typography variant="body2">- Gold Loan Master Create</Typography>}
-                {formData.permissions.goldLoanTransaction && <Typography variant="body2">- Gold Loan Transaction</Typography>}
-                {formData.permissions.goldLoanEditing && <Typography variant="body2">- Gold Loan Editing</Typography>}
-            </Box>
-
-            {/* Pledge Permissions */}
-            <Box>
-                <Typography variant="body1" sx={{ fontWeight: 'bold', marginBottom: 1 }}>Pledge Permissions</Typography>
-                {formData.permissions.pledgeMasterCreate && <Typography variant="body2">- Pledge Master Create</Typography>}
-                {formData.permissions.pledgeTransaction && <Typography variant="body2">- Pledge Transaction</Typography>}
+        <Box sx={{ mt: 2 }}>
+            <Typography variant="h6">Designations List</Typography>
+            <Box sx={{ p: 1, border: '1px solid grey', mb: 1, borderRadius: 1 }}>
+                <Typography variant="body1"><strong>{designation}</strong></Typography>
+                <Typography variant="body2">Permissions: {formData.permissions.goldLoanMasterCreate ? 'Gold Loan Master Create ' : ''}{formData.permissions.goldLoanTransaction ? 'Gold Loan Transaction ' : ''}</Typography>
+                <Typography variant="body2">Access Days: {Object.keys(formData.permissions).filter(day => formData.permissions[day] && day !== 'goldLoanMasterCreate' && day !== 'goldLoanTransaction').join(', ')}</Typography>
             </Box>
         </Box>
     );
 
-    const handleOpenModal = () => setOpenModal(true);
-    const handleCloseModal = () => setOpenModal(false);
+    const handleSubmit = () => {
+        // Handle form submission here
+        console.log('Form submitted with:', formData);
+        handleCloseModal();
+    };
 
     return (
         <div>
@@ -298,7 +140,6 @@ const PermissionForm = () => {
                             ))}
                         </Stepper>
 
-
                         {activeStep === steps.length ? (
                             <Box textAlign="center">
                                 <Typography variant="h6">All steps completed - your form is ready to submit!</Typography>
@@ -308,9 +149,9 @@ const PermissionForm = () => {
                             </Box>
                         ) : (
                             <Box component={motion.div} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-                                {activeStep === 0 && renderBasicInformation()}
-                                {activeStep === 1 && renderPermissions()}
-                                {activeStep === 2 && renderConfirmation()}
+
+                                {activeStep === 0 && renderPermissions()}
+                                {activeStep === 1 && renderConfirmation()}
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
                                     <IconButton color="primary" onClick={handleBack} disabled={activeStep === 0}>
                                         <ArrowBack />
@@ -321,11 +162,9 @@ const PermissionForm = () => {
                                 </Box>
                             </Box>
                         )}
-
                     </Box>
                 </DialogContent>
                 <DialogActions>
-
                 </DialogActions>
             </Dialog>
         </div>
