@@ -154,8 +154,11 @@ export async function viewMembers(req, res) {
         }
 
         let memberSet = await models.memberModel.find(query).select(
-            ' firstName lastName email memberImage role address aadhar phone pin city landMark  isAccess state createdAt'
-        ).collation({ locale: 'en', strength: 2 });
+            'roleId firstName lastName email address  aadhar  primaryNumber secondaryNumber dateOfBirth gender upId pin city joiningDate place district landMark panCardNumber panCardName  bankUserName bankAccount isAccess  ifsc  bankName state createdAt'
+        ).populate({
+            path: 'roleId',
+            select: 'roleName roleStatus'
+        }).collation({ locale: 'en', strength: 2 });
 
         if (orderBy === 'firstName') {
             memberSet.sort((a, b) => a.firstName.localeCompare(b.firstName) * order);
@@ -208,23 +211,37 @@ export async function viewMembers(req, res) {
 
 }
 
-export async function createMember(req, res) {
+export async function createMember(req, res, next) {
     try {
         let { firstName,
             lastName,
             email,
-            role,
+            roleId,
+            password,
             address,
             aadhar,
-            phone,
+            primaryNumber,
+            secondaryNumber,
+            dateOfBirth,
+            gender,
+            upId,
             pin,
             city,
-            state,
-            landMark } = req.body;
-        let { memberImage } = req.files;
+            joiningDate,
+            place,
+            district,
+            landMark,
+            panCardNumber,
+            panCardName,
+            bankUserName,
+            bankAccount,
+            ifsc,
+            bankName,
+            state } = req.body;
+        let { memberImage, passBookImage, aadharImage } = req.files;
 
         const memberExist = await models.memberModel.findOne({ email });
-        if (memberExist) {
+        if (memberExist?.length > 0) {
             return responseHelper(
                 res,
                 httpStatus.CONFLICT,
@@ -233,25 +250,54 @@ export async function createMember(req, res) {
             );
         }
 
+        const existAadhar = await models.memberModel.findOne({ aadhar: aadhar })
+        if (existAadhar?.length > 0) {
+            return responseHelper(
+                res,
+                httpStatus.CONFLICT,
+                true,
+                'This aadhar has already exist.',
+
+            );
+        }
+
         const passCode = generateRandomPassword();
 
         const member = await models.memberModel.create({
+            password: await generatePasswordHash(passCode),
+            roleId,
             firstName,
             lastName,
             email,
-            role,
-            password: await generatePasswordHash(passCode),
+            password,
             address,
             aadhar,
-            phone,
+            primaryNumber,
+            secondaryNumber,
+            dateOfBirth,
+            gender,
+            upId,
             pin,
             city,
-            state,
-            landMark
+            joiningDate,
+            place,
+            district,
+            landMark,
+            panCardNumber,
+            panCardName,
+            bankUserName,
+            bankAccount,
+            ifsc,
+            bankName,
+            state
         });
 
         if (memberImage && memberImage.length > 0) {
             member.goldImage = transFormImageUploadResponseArray(memberImage)[0];
+        } if (aadharImage && aadharImage.length > 0) {
+            member.aadharImage = transFormImageUploadResponseArray(aadharImage);
+        } if (passBookImage && passBookImage.length > 0) {
+            member.passBookImage = transFormImageUploadResponseArray(passBookImage)[0];
         }
 
         let memberName = firstName + ' ' + lastName;
@@ -274,6 +320,8 @@ export async function createMember(req, res) {
             member
         );
     } catch (error) {
+        console.log(error);
+
         return next(new Error(error));
     }
 
@@ -286,7 +334,7 @@ export async function updateMember(req, res) {
             role,
             address,
             aadhar,
-            phone,
+            primaryNumber,
             pin,
             city,
             state,
@@ -319,7 +367,7 @@ export async function updateMember(req, res) {
                 role,
                 address,
                 aadhar,
-                phone,
+                phone: primaryNumber,
                 pin,
                 state,
                 city,
@@ -375,8 +423,11 @@ export async function viewMemberById(req, res) {
     try {
         const { memberId } = req.params
         const member = await models.memberModel.findById(memberId).select(
-            'firstName lastName email memberImage role address aadhar phone pin city landMark loginDetails isAccess state'
-        );
+            'roleId firstName lastName email address  aadhar  primaryNumber secondaryNumber dateOfBirth gender upId pin city joiningDate place district landMark panCardNumber panCardName  bankUserName bankAccount  ifsc  bankName isAccess state createdAt'
+        ).populate({
+            path: 'roleId',
+            select: 'roleName roleStatus'
+        });
         if (!member) {
             return responseHelper(
                 res, httpStatus.NOT_FOUND,
@@ -393,5 +444,141 @@ export async function viewMemberById(req, res) {
 
     } catch {
         return next(new Error(error));
+    }
+}
+
+//Roles
+export async function addRoles(req, res, next) {
+    try {
+        let { roleName } = req.body;
+        let roles = await models.roleModel.find({ roleName: { $regex: new RegExp(roleName, 'i') } });
+
+        if (roles.length > 0) {
+            return responseHelper(
+                res,
+                httpStatus.CONFLICT,
+                true,
+                'Role already exists'
+            );
+        }
+        const role = await models.roleModel.create({ roleName });
+        return responseHelper(
+            res,
+            httpStatus.CREATED,
+            false,
+            'New role created successfully',
+            { role }
+        );
+    } catch (error) {
+        return next(new Error(error));
+    }
+}
+
+export async function getAllRoles(req, res, next) {
+    try {
+        let {
+            page = 1,
+            pageLimit = defaultPageLimit,
+            search = '',
+        } = req.query;
+        pageLimit = parseInt(pageLimit);
+        page = parseInt(page);
+        let filter = { roleStatus: 1 };
+        if (search) {
+            filter.roleName = { $regex: new RegExp(search, 'i') };
+        }
+
+        let roles = await models.roleModel
+            .find(filter)
+            .collation({ locale: 'en', strength: 2 })
+            .sort({ createdAt: -1 });
+        if (!roles.length) {
+            return responseHelper(res, httpStatus.NOT_FOUND, true, 'No roles found');
+        }
+        const paginatedResult = paginateData(roles, page, pageLimit);
+        return responseHelper(res, httpStatus.OK, false, '', {
+            pagination: paginatedResult.pagination,
+            roles: paginatedResult.data,
+        });
+    } catch (error) {
+        return next(error);
+    }
+}
+
+export async function updateRole(req, res, next) {
+    try {
+        const { roleId } = req.params;
+        const { roleName } = req.body;
+
+
+        const role = await models.roleModel.findById(roleId);
+        if (!role) {
+            return responseHelper(res, httpStatus.NOT_FOUND, true, 'role not found');
+        }
+        const existingRole = await models.roleModel.findOne({
+            roleName: { $regex: new RegExp(roleName, 'i') },
+            _id: { $ne: roleId },
+        });
+
+        if (existingRole) {
+            return responseHelper(
+                res,
+                httpStatus.CONFLICT,
+                true,
+                `Role already exists: ${existingRole.roleName}`
+            );
+        }
+
+        const updatedRole = await models.roleModel.findByIdAndUpdate(
+            roleId,
+            { roleName },
+            {
+                new: true,
+            }
+        );
+
+        return responseHelper(
+            res,
+            httpStatus.OK,
+            false,
+            'Role is updated successfully',
+            { role: updatedRole }
+        );
+    } catch (error) {
+        return next(new Error(error));
+    }
+}
+
+export async function deleteRole(req, res) {
+    try {
+        const { roleId } = req.params;//roleStatus
+        const roleModelCheck = await models.roleModel.findById(roleId);
+        if (!roleModelCheck) {
+            return responseHelper(res, httpStatus.NOT_FOUND, true, 'Role not found');
+        }
+
+
+        const updatedStatus = await models.roleModel.findByIdAndUpdate(
+            roleId,
+            req.body,
+            {
+                new: true,
+            }
+        );
+
+        return responseHelper(
+            res,
+            httpStatus.OK,
+            false,
+            `Role deleted successfully`,
+            { Role: updatedStatus }
+        );
+    } catch (error) {
+        return responseHelper(
+            res,
+            httpStatus.INTERNAL_SERVER_ERROR,
+            true,
+            error.message
+        );
     }
 }

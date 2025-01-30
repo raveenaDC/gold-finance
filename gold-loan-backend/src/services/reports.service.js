@@ -159,6 +159,9 @@ export async function viewAllGoldLoan(req, res, next) {
                 goldImage: loan.goldImage,
                 isClosed: loan.isClosed,
                 goldItemDetails: loan.itemDetails,
+                cgst: loan.cgst,
+                sgst: loan.sgst,
+                pledgeId: loan.pledgeId,
                 lastTransactionDate: lastTransactionDate
             });
         }

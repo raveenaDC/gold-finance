@@ -152,6 +152,9 @@ export async function viewGoldLoan(req, res) {
                 profitOrLoss: loan.profitOrLoss,
                 goldImage: loan.goldImage,
                 isClosed: loan.isClosed,
+                cgst: loan.cgst,
+                sgst: loan.sgst,
+                pledgeId: loan.pledgeId,
                 goldItemDetails: loan.itemDetails,
             });
         }
@@ -198,6 +201,8 @@ export async function addGoldLoan(req, res, next) {
             memberId,//need to remove
             principleAmount,
             currentGoldValue,
+            cgst,
+            sgst
         } = req.body;
         let { goldImage } = req.files;
         // let { memberId } = req.user
@@ -303,6 +308,8 @@ export async function addGoldLoan(req, res, next) {
             totalChargesAndBalanceAmount: parseFloat(cutBalancePrice) + parseFloat(totalCharges),
             balanceAmount: cutBalancePrice,
             //currentGoldValue,
+            cgst,
+            sgst,
             profitOrLoss: profitLossAmount,
         });
 
@@ -599,6 +606,9 @@ export async function viewGoldLoanById(req, res, next) {
             profitOrLoss: loans.profitOrLoss,
             goldImage: loans.goldImage,
             isClosed: loans.isClosed,
+            cgst: loans.cgst,
+            sgst: loans.sgst,
+            pledgeId: loans.pledgeId,
             fineDetails: fineDetails
         };
 
@@ -648,7 +658,7 @@ export async function viewGoldLoanByGoldNumber(req, res, next) {
         }
 
         let loanList = await models.goldLoanModel.find(query).select(
-            'glNo purchaseDate customerId createdAt'
+            'glNo purchaseDate customerId pledgeId createdAt'
         ).collation({ locale: 'en', strength: 2 });
 
         if (loanList.length == 0) {

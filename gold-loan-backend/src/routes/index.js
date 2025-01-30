@@ -7,6 +7,8 @@ import billingRouter from './billing.router.js';
 import dashboardRouter from './dashboard.router.js';
 import reportRouter from './reports.router.js';
 import chartOfAccountRouter from './chart-account-head.router.js';
+import settingsRouter from './settings.router.js'
+import pledgeRouter from './pledge-transaction.router.js'
 
 import httpStatus from 'http-status';
 import { responseHelper } from '../utils/response.helper.js';
@@ -39,6 +41,12 @@ export default function initializeRoutes(app) {
 
     //CHART OF ACCOUNT
     app.use('/chart/account', chartOfAccountRouter);
+
+    //SETTINGS ROUTER
+    app.use('/settings', settingsRouter);
+
+    //PLEDGE ROUTER
+    app.use('/pledge', pledgeRouter);
 
     app.use(errorHandleMiddleware);
     //index route

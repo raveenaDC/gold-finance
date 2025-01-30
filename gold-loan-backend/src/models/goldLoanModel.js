@@ -129,7 +129,16 @@ const goldLoanSchema = new Schema(
         isClosed: {
             type: Boolean,
             default: false
-        }
+        },
+        cgst: {
+            type: Number,
+            default: 0,
+        },
+        sgst: {
+            type: Number,
+            default: 0,
+        },
+        pledgeId: { type: Schema.Types.ObjectId, ref: 'pledge' }
     },
     {
         timestamps: true,
