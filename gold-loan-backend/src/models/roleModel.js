@@ -5,7 +5,7 @@ const roleSchema = new Schema(
         roleName: String,
         roleStatus: {
             type: Boolean,
-            default: 1,
+            default: true,
         },
     },
     { timestamps: true }

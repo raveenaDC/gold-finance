@@ -483,7 +483,7 @@ export async function getAllRoles(req, res, next) {
         } = req.query;
         pageLimit = parseInt(pageLimit);
         page = parseInt(page);
-        let filter = { roleStatus: 1 };
+        let filter = { roleStatus: true };
         if (search) {
             filter.roleName = { $regex: new RegExp(search, 'i') };
         }
