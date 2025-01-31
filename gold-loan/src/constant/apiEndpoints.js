@@ -13,4 +13,7 @@ export const API_ENDPOINT = {
     GET_ACCOUNT_HEAD_NAME: "/chart/account/",
     SAVE_PAYMENTS_RECIEPTS: "/chart/account/[chartId]/add-amount",
     GET_PAYMENTS_RECIEPTS: "/chart/account/view/payment-receipt ",
+    SAVE_DESIGINATION_ROLE: "/member/role",
+    SAVE_MEMBER_DETAILS: "/member/create",
+    GET_DESIGNATION_ROLES: "/member/roles",
 }

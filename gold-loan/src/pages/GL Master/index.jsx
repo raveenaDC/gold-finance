@@ -244,6 +244,11 @@ export default function GlMaster() {
                             color: '#00000', // White text
                             boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)', // Subtle shadow for depth
                             position: 'relative', // To position the image inside the box
+                            transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                            '&:hover': {
+                                transform: 'translateY(-5px)',
+                                boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)',
+                            },
                             '&:hover .image': {
                                 opacity: 1, // Show the image when the box is hovered
                             },

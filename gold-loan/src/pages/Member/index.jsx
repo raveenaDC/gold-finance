@@ -1,9 +1,9 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import Webcam from 'react-webcam';
-import { Box, Button, TextField, Grid, Typography, Modal, IconButton, Container, MenuItem, } from '@mui/material';
+import { Box, InputAdornment, Autocomplete, Button, TextField, Grid, Typography, Modal, IconButton, Container, MenuItem, } from '@mui/material';
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 import CloseIcon from '@mui/icons-material/Close';
-import signatureIcon from '../../assets/signatureIcon.png';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -14,14 +14,16 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 
 import { submitDocument } from '../../api';
+import { viewDesignationRole } from '../../services/system/system.service'
 
 export default function CustomerForm({ onCustomerAdded }) {
     const [open, setOpen] = useState(false); // Modal state
+    const [showPassword, setShowPassword] = useState(false);
     const [usingAadharcam, setUsingAadharcam] = useState(false); // Toggle between file upload and webcam
     const [usingSigncam, setUsingSigncam] = useState(false); // Toggle between file upload and webcam
     const [usingWebcam, setUsingWebcam] = useState(false); // Toggle between file upload and webcam
 
-    const [fileImage, setFileImage] = useState({ image: null, signature: null, aadharImage: [], capture: null, sCapture: null, aCapture: [], passBookImage: null }); // State to store the uploaded image and signature
+    const [fileImage, setFileImage] = useState({ memberImage: null, signature: null, aadharImage: [], capture: null, sCapture: null, aCapture: [], passBookImage: null }); // State to store the uploaded image and signature
 
 
     const [formData, setFormData] = useState({
@@ -37,7 +39,7 @@ export default function CustomerForm({ onCustomerAdded }) {
         primaryNumber: '',
         secondaryNumber: '',
         designation: '',
-        nearBy: '',
+        landMark: '',
         bankUserName: '',
         bankAccount: '',
         ifsc: '',
@@ -46,9 +48,10 @@ export default function CustomerForm({ onCustomerAdded }) {
         gender: '',
         email: '', // Add email field       
         dateOfBirth: '',
-        joinedDate: '',
+        joiningDate: '',
         panCardName: '',
         panCardNumber: '',
+        password: '',
     });
 
     const [errors, setErrors] = useState({});
@@ -153,7 +156,7 @@ export default function CustomerForm({ onCustomerAdded }) {
 
     // Function to handle closing the image
     const handleCloseImage = () => {
-        setFileImage({ ...fileImage, image: null }); // Clear the uploaded image
+        setFileImage({ ...fileImage, memberImage: null }); // Clear the uploaded image
         if (fileInputcamRef.current) {
             fileInputcamRef.current.value = ""; // Clear the input value
         }
@@ -236,7 +239,7 @@ export default function CustomerForm({ onCustomerAdded }) {
         if (!formData.address.trim()) formErrors.address = "Address is required";
 
         // Near by validation
-        if (!formData.nearBy.trim()) formErrors.nearBy = "Near By location  is required";
+        if (!formData.landMark.trim()) formErrors.nearBy = "Near By location  is required";
 
         // Care of validation
         if (!formData.city.trim()) formErrors.city = "City is required";
@@ -317,7 +320,7 @@ export default function CustomerForm({ onCustomerAdded }) {
         }
 
         // Conditional validation for image and signature
-        if (!fileImage.image && !fileImage.capture) {
+        if (!fileImage.memberImage && !fileImage.capture) {
             formErrors.image = "Either upload an image or capture one with the webcam";
         }
 
@@ -328,6 +331,13 @@ export default function CustomerForm({ onCustomerAdded }) {
         // if (!fileImage.aadharImage && !fileImage.aCapture) {
         //     formErrors.aadharImage = "Either upload an Aadhar image or capture one with the webcam";
         // }
+
+        if (!formData.password) {
+            formErrors.password = "Password is required";
+        } else if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(formData.password)) {
+            formErrors.password = "Password must be at least 8 characters long and include letters and numbers";
+        }
+
 
         // Pan card Name Verification
         if (!formData.panCardName) {
@@ -367,7 +377,7 @@ export default function CustomerForm({ onCustomerAdded }) {
         data.append('city', formData.city);
         data.append('place', formData.place);
         data.append('state', formData.state);
-        data.append('nearBy', formData.nearBy);
+        data.append('nearBy', formData.landMark);
         data.append('aadhar', formData.aadhar);
         data.append('pin', formData.pin);
         data.append('primaryNumber', formData.primaryNumber);
@@ -380,12 +390,12 @@ export default function CustomerForm({ onCustomerAdded }) {
         data.append('ifsc', formData.ifsc);
         data.append('email', formData.email);
         data.append('upId', formData.upId);
-        data.append('createdDate', formData.joinedDate);
+        data.append('createdDate', formData.joiningDate);
         data.append('gender', formData.gender);
         data.append('dateOfBirth', formData.dateOfBirth);
         data.append('panCardName', formData.panCardName);
         data.append('panCardNumber', formData.panCardNumber);
-        data.append('image', fileImage.image);
+        data.append('image', fileImage.memberImage);
         data.append('signature', fileImage.signature);
         data.append('passBookImage', fileImage.passBookImage);
         fileImage.aadharImage.forEach((aadharImage, index) => {
@@ -399,8 +409,8 @@ export default function CustomerForm({ onCustomerAdded }) {
             const timestamp = new Date().toISOString().replace(/[-:.]/g, ''); // Removes characters not allowed in filenames
             const filename = `webcam_image_${timestamp}.jpg`; // e.g., 'webcam_image_20241018T123456.jpg'
             const fileWithFileName = new File([blob], filename, { type: 'image/jpeg' });// Create a new File from the Blob to include the filename
-            fileImage.image = fileWithFileName; // Assign it to fileImage.image
-            data.append('image', fileImage.image); // Append Blob with a file name
+            fileImage.memberImage = fileWithFileName; // Assign it to fileImage.image
+            data.append('image', fileImage.memberImage); // Append Blob with a file name
         }
 
         // Handle captured signature (convert Base64 to Blob)
@@ -431,7 +441,7 @@ export default function CustomerForm({ onCustomerAdded }) {
             const customerData = {
                 info: data,
                 method: 'post',
-                path: 'customer/create'
+                path: 'member/create'
             }
             // await createCustomer(customerData)
             const response = await submitDocument(customerData); // Call the API function
@@ -452,7 +462,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                 aadhar: '',
                 primaryNumber: '',
                 secondaryNumber: '',
-                nearBy: '',
+                landMark: '',
                 designation: '',
                 bankUserName: '',
                 bankAccount: '',
@@ -464,7 +474,7 @@ export default function CustomerForm({ onCustomerAdded }) {
 
             });
             setFileImage({
-                image: null,
+                memberImage: null,
                 signature: null,
                 capture: null,
                 sCapture: null,
@@ -482,6 +492,25 @@ export default function CustomerForm({ onCustomerAdded }) {
             alert('Failed to upload data. Please try again.');
         }
     };
+
+    const [roles, setRoles] = useState([]);
+    const [selectedRoles, setSelectedRoles] = useState([]);
+
+    useEffect(() => {
+        const fetchDesignationRole = async () => {
+            try {
+                const response = await viewDesignationRole();
+                console.log("Roles Fetched:", response.result.data.roles);
+
+                if (response?.isSuccess) {
+                    setRoles(response.result.data.roles); // Assuming it's an array
+                }
+            } catch (error) {
+                console.error("Error fetching roles:", error);
+            }
+        };
+        fetchDesignationRole();
+    }, []);
 
     return (
         <>
@@ -705,7 +734,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         name="nearBy"
                                         label="LandMark"
                                         variant="outlined"
-                                        value={formData.nearBy}
+                                        value={formData.landMark}
                                         onChange={handleChange}
                                         error={!!errors.nearBy} // Add error prop
                                         helperText={errors.nearBy} // Display error message
@@ -815,19 +844,44 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         size="small"
                                     />
                                 </Grid>
+                                <Grid item xs={12}>
+                                    <TextField
+                                        fullWidth
+                                        id="password"
+                                        name="password"
+                                        label="Password"
+                                        variant="outlined"
+                                        required
+                                        type={showPassword ? "text" : "password"}
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                        error={!!errors.password} // Add error prop
+                                        helperText={errors.password} // Display error message
+                                        sx={commonTextFieldSx} // Apply common style
+                                        size="small"
+                                        InputProps={{
+                                            endAdornment: (
+                                                <InputAdornment position="end">
+                                                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                                                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                                                    </IconButton>
+                                                </InputAdornment>
+                                            ),
+                                        }}
+                                    />
+                                </Grid>
+
 
                                 {/* GST Number */}
                                 <Grid item xs={12} sm={6}>
-                                    <TextField
-                                        fullWidth
-                                        id="designation"
-                                        name="designation"
-                                        label="Designation"
-                                        variant="outlined"
-                                        value={formData.designation}
-                                        onChange={handleChange}
-                                        sx={commonTextFieldSx} // Apply common style
-                                        size="small"
+                                    <Autocomplete
+                                        multiple
+                                        size='small'
+                                        options={roles}
+                                        getOptionLabel={(option) => option._id} // Adjust according to your data
+                                        value={selectedRoles}
+                                        onChange={(event, newValue) => setSelectedRoles(newValue)}
+                                        renderInput={(params) => <TextField {...params} label="Select Roles" variant="outlined" />}
                                     />
                                 </Grid>
 
@@ -840,7 +894,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         type="date" // Enables both typing and picking a date
                                         variant="outlined"
                                         required
-                                        value={formData.joinedDate} // Controlled component value
+                                        value={formData.joiningDate} // Controlled component value
                                         onChange={handleChange} // Update state on change
                                         error={!!errors.dob} // Display error state if applicable
                                         helperText={errors.dob} // Error message
@@ -1163,9 +1217,9 @@ export default function CustomerForm({ onCustomerAdded }) {
                                             {usingWebcam ? 'Cancel' : null}
                                         </Button>
                                         {/* Display uploaded image */}
-                                        {fileImage.image && !fileImage.capture && (
+                                        {fileImage.memberImage && !fileImage.capture && (
                                             <Box mt={2} position="relative">
-                                                <img src={URL.createObjectURL(fileImage.image)} alt="Uploaded Image" style={{ width: '100px' }} />
+                                                <img src={URL.createObjectURL(fileImage.memberImage)} alt="Uploaded Image" style={{ width: '100px' }} />
                                                 <IconButton
                                                     onClick={handleCloseImage}
                                                     style={{ position: 'absolute', top: 0, right: 0, padding: '0' }}

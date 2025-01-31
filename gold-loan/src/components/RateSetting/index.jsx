@@ -40,7 +40,7 @@ const RateSettingModal = () => {
         transform: 'translate(-50%, -50%)',
         width: 400,
         bgcolor: 'background.paper',
-        border: '2px solid #000',
+
         boxShadow: 24,
         p: 4,
         borderRadius: 2,
@@ -65,7 +65,8 @@ const RateSettingModal = () => {
                         InputLabelProps={{
                             shrink: true,
                         }}
-                        sx={{ mb: 2 }}
+                        size='small'
+                        sx={{ mb: 2, boxShadow: '0px 3px 6px rgba(0, 0, 0, 0.1)' }}
                     />
                     <TextField
                         label="Gold Rate"
@@ -73,7 +74,8 @@ const RateSettingModal = () => {
                         value={goldRate}
                         onChange={(e) => setGoldRate(e.target.value)}
                         fullWidth
-                        sx={{ mb: 2 }}
+                        size='small'
+                        sx={{ mb: 2, boxShadow: '0px 3px 6px rgba(0, 0, 0, 0.1)' }}
                     />
                     <TextField
                         label="Gold Loan Rate"
@@ -81,13 +83,15 @@ const RateSettingModal = () => {
                         value={companyGoldRate}
                         onChange={(e) => setCompanyGoldRate(e.target.value)}
                         fullWidth
-                        sx={{ mb: 2 }}
+                        sx={{ mb: 2, boxShadow: '0px 3px 6px rgba(0, 0, 0, 0.1)' }}
+                        size='small'
                     />
                     <Button
                         variant="contained"
                         color="success"
                         onClick={handleSubmit}
                         fullWidth
+                        size='small'
                     >
                         Submit
                     </Button>

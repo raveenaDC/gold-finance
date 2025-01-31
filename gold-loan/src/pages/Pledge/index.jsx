@@ -10,6 +10,7 @@ import SearchModal from '../../components/Pledge details';
 import { getgolditemdetails } from '../../services/goldItems/goldItems.service';
 import SaveIcon from '@mui/icons-material/Save'; // Import the Save icon
 import AddIcon from '@mui/icons-material/Add';
+import StaffDesignation from '../../components/Add Member Role';
 
 const PledgeMasterPage = () => {
     const [pledges, setPledges] = useState([]);
@@ -718,6 +719,8 @@ const PledgeMasterPage = () => {
                         </Table>
                     </TableContainer>
                 </Grid>
+
+                <StaffDesignation />
             </Grid >
         </Box >
     );

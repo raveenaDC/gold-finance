@@ -6,7 +6,7 @@ import {
     Typography, ToggleButtonGroup, ToggleButton, FormControl,
     InputLabel, Select, MenuItem, Divider, Rating
 } from '@mui/material';
-import rateReducer from '../../Redux/rateSlice';
+import { CustomerForm } from '../../Forms';
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../constant/route";
 import { Card, CardContent, Avatar, FormControlLabel, Switch, } from '@mui/material';
@@ -21,8 +21,7 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
-import SaveIcon from '@mui/icons-material/Save'; // Import the Save icon
-
+import SaveIcon from '@mui/icons-material/Save';
 
 import AddNomineeDetails from '../../components/NomineeSearch';
 import { incrementGLNo } from '../../Redux/GlNoSlice';
@@ -37,11 +36,9 @@ import { getgolditemdetails, getcustomergoldloandetails } from '../../services/g
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 
-
-
 const GoldLoanForm = () => {
     const dispatch = useDispatch();
-    const webcamRef = useRef(null); // Ref to access the webcam
+    const webcamRef = useRef(null);
     const formRef = useRef();
     const navigate = useNavigate();
 
@@ -65,17 +62,17 @@ const GoldLoanForm = () => {
         grossWeight: '',
         stoneWeight: '',
         depreciation: '',
-        netWeight: '', // User input for net weight
+        netWeight: '',
     });
 
     const [customerData, setCustomerData] = useState(null);
     const [options, setOptions] = useState([]);
-    const [fileImage, setFileImage] = useState({ goldImage: null, capture: null, }); // State to store the uploaded image and signature
-    const [usingWebcam, setUsingWebcam] = useState(false); // Toggle between file upload and webcam   
+    const [fileImage, setFileImage] = useState({ goldImage: null, capture: null });
+    const [usingWebcam, setUsingWebcam] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [paymentMode, setPaymentMode] = useState('Cash');
     const [purchaseDate, setSelectedDate] = useState(null);
-    const [rating, setRating] = useState(0); // State to store the rating value
+    const [rating, setRating] = useState(0);
     const [interestType, setInterestType] = useState('simple');
     const [loading, setLoading] = useState(false);
     const [tableData, setTableData] = useState([]);
@@ -83,14 +80,13 @@ const GoldLoanForm = () => {
 
     const glNo = useSelector((state) => state.glNo.glNo);
     const voucherNo = useSelector((state) => state.voucherNo.voucherNo);
-    const { date, goldRate, companyGoldRate } = useSelector((state) => state.rateSetting); // Accessing data from Redux
-
+    const { date, goldRate, companyGoldRate } = useSelector((state) => state.rateSetting);
 
     const { customerId } = useParams();
-    const { nominee } = useNominee();// Access nominee data from context
+    const { nominee } = useNominee();
     const nId = nominee.nomineeId;
 
-    const [showErrors, setShowErrors] = useState(false); // Controls when to show validation errors
+    const [showErrors, setShowErrors] = useState(false);
     const [errors, setErrors] = useState({
         principleAmount: false,
         insurance: false,
@@ -102,8 +98,6 @@ const GoldLoanForm = () => {
         goldImage: false,
     });
 
-
-
     const totalNetWeight = items.reduce((total, item) => total + (parseFloat(item.netWeight) || 0), 0);
     const totalGrossWeight = items.reduce((total, item) => total + (parseFloat(item.grossWeight) || 0), 0);
     const totalStoneWeight = items.reduce((total, item) => total + (parseFloat(item.stoneWeight) || 0), 0);
@@ -113,26 +107,22 @@ const GoldLoanForm = () => {
     const maxGoldAmount = totalNetWeight * companyGoldRate;
     const totalCharges = (parseFloat(form.otherCharges) || 0) + (parseFloat(form.appraiser) || 0) + (parseFloat(form.insurance) || 0) + (parseFloat(form.processingFee) || 0) + (parseFloat(form.packingFee) || 0);
 
-    // Function to auto-calculate Net Weight
     const calculateNetWeight = (quantity, grossWeight, stoneWeight, depreciation) => {
-
         const grossWt = parseFloat(grossWeight) || 0;
         const stoneWt = parseFloat(stoneWeight) || 0;
         const depWt = parseFloat(depreciation) || 0;
         const netWeight = grossWt - (stoneWt + depWt);
-        return netWeight
+        return netWeight;
     };
 
-    // Add a new row to the table
     const handleAddRow = () => {
         if (newItem.netWeight !== "") {
             setItems((prevItems) => [
                 ...prevItems,
                 { ...newItem, id: prevItems.length + 1 }
             ]);
-            // Reset newItem to its initial state
             setNewItems({
-                id: newItem.id + 1, // Increment ID for the next item
+                id: newItem.id + 1,
                 type: 'Select',
                 quantity: '',
                 grossWeight: '',
@@ -150,12 +140,10 @@ const GoldLoanForm = () => {
                 [field]: value,
             };
 
-            // Assign goldItem ID if provided
             if (goldItemId) {
                 updatedItem.goldItem = goldItemId;
             }
 
-            // Calculate netWeight if relevant fields are updated
             if (["quantity", "grossWeight", "stoneWeight", "depreciation"].includes(field)) {
                 updatedItem.netWeight = calculateNetWeight(
                     updatedItem.quantity || 0,
@@ -165,7 +153,6 @@ const GoldLoanForm = () => {
                 );
             }
 
-            // Handle type for dropdown selections (goldItem)
             if (field === "goldItem" && value) {
                 updatedItem.type = options.find((option) => option._id === value)?.goldItem || "Select";
             }
@@ -186,7 +173,6 @@ const GoldLoanForm = () => {
                         updatedItem.goldItem = gId;
                         updatedItem.type = options.find((option) => option._id === gId)?.goldItem || item.type;
                     }
-                    // Recalculate net weight if applicable
                     if (["quantity", "grossWeight", "stoneWeight", "depreciation"].includes(field)) {
                         updatedItem.netWeight = calculateNetWeight(
                             updatedItem.quantity,
@@ -202,13 +188,10 @@ const GoldLoanForm = () => {
         );
     };
 
-    // Handle changes when editing a row
     const handleChangeInRow = (id, field, value) => {
         const updatedItems = items.map((item) => {
             if (item.id === id) {
-                const updatedItem = { ...item, [field]: value }; // Update the specific field
-
-                // Recalculate netWeight if relevant fields are updated
+                const updatedItem = { ...item, [field]: value };
                 if (["quantity", "grossWeight", "stoneWeight", "depreciation"].includes(field)) {
                     updatedItem.netWeight = calculateNetWeight(
                         updatedItem.quantity || 0,
@@ -217,7 +200,6 @@ const GoldLoanForm = () => {
                         updatedItem.depreciation || 0
                     );
                 }
-
                 return updatedItem;
             }
             return item;
@@ -225,8 +207,6 @@ const GoldLoanForm = () => {
         setItems(updatedItems);
     };
 
-
-    // Toggle edit mode for a specific row
     const toggleEditMode = (id) => {
         const updatedItems = items.map((item) => {
             if (item.id === id) {
@@ -237,15 +217,13 @@ const GoldLoanForm = () => {
         setItems(updatedItems);
     };
 
-    // Handle deleting a row
     const handleDelete = (id) => {
         const updatedItems = items.filter((item) => item.id !== id);
         setItems(updatedItems);
     };
 
-    // Handle saving the changes after editing
     const handleSaveRow = (id) => {
-        toggleEditMode(id); // Save changes and toggle back to view mode
+        toggleEditMode(id);
     };
 
     const handleChangeForm = (e) => {
@@ -259,66 +237,54 @@ const GoldLoanForm = () => {
     const handleSwitchChange = (event) => {
         const newMode = event.target.checked ? 'Debit' : 'Cash';
         setPaymentMode(newMode);
-        console.log('Payment Mode:', newMode); // Log the new payment mode
     };
 
     const handleInterestChange = (event, newType) => {
-        setInterestType(newType);  // Update the interestType state
-        // Update the interestType state
-
-        console.log(newType);
-
-        // If 'multiple' is selected, set interestMode to a valid option like 'monthly'
+        setInterestType(newType);
         if (newType === 'multiple') {
             setForm(prevState => ({
                 ...prevState,
-                interestMode: 'monthly'  // Default valid value when 'multiple' is selected
+                interestMode: 'monthly'
             }));
         } else {
-            // For other values like 'simple' or 'range', reset the interestMode if necessary
             setForm(prevState => ({
                 ...prevState,
-                interestMode: newType // Reset or keep it empty for other types
+                interestMode: newType
             }));
         }
     };
 
-    // Handle dropdown value change (when 'multiple' mode is selected)
     const handleChangeMode = (event) => {
         const { value } = event.target;
         setForm(prevState => ({
             ...prevState,
-            interestMode: value  // Update the interestMode directly based on dropdown selection
+            interestMode: value
         }));
     };
 
     const handleButtonClick = () => {
         const fileInput = document.getElementById("goldImage");
-        // Attach a one-time event listener to capture the selected file
         fileInput.addEventListener("change", (e) => {
             const { files, name } = e.target;
             if (files && files[0]) {
                 setFileImage({ ...fileImage, [name]: files[0] });
             }
         }, { once: true });
-
-        // Trigger file input click
         fileInput.click();
     };
 
     const handleCloseImage = () => {
-        setFileImage({ ...fileImage, goldImage: null }); // Clear the uploaded image
+        setFileImage({ ...fileImage, goldImage: null });
     };
 
     const handleCloseCapture = () => {
-        setFileImage({ ...fileImage, capture: null }); // Clear the captured image
+        setFileImage({ ...fileImage, capture: null });
     };
 
-    function calculateProfileCompletion(customerData) {
-        const totalFields = 24; // Adjust based on how many fields you're checking
+    const calculateProfileCompletion = (customerData) => {
+        const totalFields = 24;
         let completedFields = 0;
 
-        // Check if the fields are provided
         if (customerData.primaryNumber) completedFields++;
         if (customerData.secondaryNumber) completedFields++;
         if (customerData.address) completedFields++;
@@ -328,7 +294,6 @@ const GoldLoanForm = () => {
         if (customerData.bankName) completedFields++;
         if (customerData.bankUserName) completedFields++;
         if (customerData.city) completedFields++;
-        if (customerData.email) completedFields++;
         if (customerData.gender) completedFields++;
         if (customerData.ifsc) completedFields++;
         if (customerData.image) completedFields++;
@@ -344,13 +309,10 @@ const GoldLoanForm = () => {
         if (customerData.upId) completedFields++;
         if (customerData.gst) completedFields++;
 
-
-
         return parseFloat(((completedFields / totalFields) * 100).toFixed(1));
-        // Return completion percentage
-    }
+    };
 
-    function handleShowMissingDetails(customerData) {
+    const handleShowMissingDetails = (customerData) => {
         const missingDetails = [];
         if (!customerData.primaryNumber) missingDetails.push('Mobile number');
         if (!customerData.secondaryNumber) missingDetails.push('Secondary mobile number');
@@ -361,7 +323,6 @@ const GoldLoanForm = () => {
         if (!customerData.bankName) missingDetails.push('bankName');
         if (!customerData.bankUserName) missingDetails.push('bankUserName');
         if (!customerData.city) missingDetails.push('city');
-        if (!customerData.email) missingDetails.push('email');
         if (!customerData.gender) missingDetails.push('gender');
         if (!customerData.ifsc) missingDetails.push('ifsc');
         if (!customerData.image) missingDetails.push('image');
@@ -377,19 +338,16 @@ const GoldLoanForm = () => {
         if (!customerData.upId) missingDetails.push('upId');
         if (!customerData.gst) missingDetails.push('gst');
 
-
         alert(`Missing details: ${missingDetails.join(', ')}`);
-    }
+    };
 
-    // Use the customerId to fetch customer data
     const fetchCustomerData = async () => {
         try {
             const response = await getCustomerDetails(customerId);
             if (response.isSuccess && response.userDetails) {
                 setCustomerData(response.userDetails);
-                setRating(response.userDetails.rating); // Sync initial rating
+                setRating(response.userDetails.rating);
             }
-            console.log(response);
         } catch (error) {
             console.error('Error fetching customer details:', error);
         }
@@ -401,8 +359,6 @@ const GoldLoanForm = () => {
             if (response.isSuccess && response.items) {
                 setOptions(response.items);
             }
-            console.log(response);
-
         } catch (error) {
             console.error("Error fetching customer data:", error);
             setLoading(false);
@@ -412,8 +368,8 @@ const GoldLoanForm = () => {
     const fetchCustomerGoldDetailsData = async () => {
         try {
             const response = await getcustomergoldloandetails(customerId);
-            const items = response.items || []; // Safely extract the items array
-            setLoanDetails(items); // Store the items in the state
+            const items = response.items || [];
+            setLoanDetails(items);
         } catch (error) {
             console.error('Error fetching customer details:', error);
         }
@@ -425,21 +381,13 @@ const GoldLoanForm = () => {
         fetchCustomerGoldDetailsData();
     }, [customerId]);
 
-    // Display GL number when form loads
-    useEffect(() => {
-    }, [glNo]);
-    useEffect(() => {
-        // Log or display the voucher number in your UI, or handle any initialization
-    }, [voucherNo]);
     useEffect(() => {
         const today = new Date();
-        const formattedDate = today.toISOString().split('T')[0]; // Formats as YYYY-MM-DD
+        const formattedDate = today.toISOString().split('T')[0];
         setSelectedDate(formattedDate);
     }, []);
 
-    // Example to load some sample data for the table
     useEffect(() => {
-        // Simulate fetching or setting table data
         setTableData([
             { column1: 'Data 1', column2: 'Data 2' },
             { column1: 'Data 3', column2: 'Data 4' },
@@ -449,28 +397,24 @@ const GoldLoanForm = () => {
 
     const handleRatingChange = async (event, newValue) => {
         try {
-            setRating(newValue); // Optimistically update the UI with the new rating
-
+            setRating(newValue);
             const response = await updateCustomerRating(customerId, newValue);
-
             if (response.isSuccess) {
-                // Update customer data locally after API success
                 setCustomerData((prevData) => ({ ...prevData, rating: newValue }));
             }
         } catch (error) {
-            setLoading(false); // Reset loading state
+            setLoading(false);
         }
     };
 
-    // Handle webcam capture
     const captureImage = useCallback(() => {
-        const imageSrc = webcamRef.current.getScreenshot(); // Capture image from webcam as Base64
-        setFileImage({ ...fileImage, capture: imageSrc });  // Set Base64 image
-        setUsingWebcam(false); // Hide the webcam after capture
+        const imageSrc = webcamRef.current.getScreenshot();
+        setFileImage({ ...fileImage, capture: imageSrc });
+        setUsingWebcam(false);
     }, [webcamRef, fileImage]);
 
     const base64ToBlob = (base64Data, contentType = '') => {
-        const byteCharacters = atob(base64Data.split(',')[1]); // Decode Base64 string
+        const byteCharacters = atob(base64Data.split(',')[1]);
         const byteNumbers = new Array(byteCharacters.length);
         for (let i = 0; i < byteCharacters.length; i++) {
             byteNumbers[i] = byteCharacters.charCodeAt(i);
@@ -490,20 +434,15 @@ const GoldLoanForm = () => {
             appraiser: form.appraiser === '',
             otherCharges: form.otherCharges === '',
             nId: !nId || nId === '',
-            goldImage: !(fileImage.goldImage || fileImage.capture), // Ensure at least one image is provided
+            goldImage: !(fileImage.goldImage || fileImage.capture),
         };
 
-
         setErrors(newErrors);
-        setShowErrors(true); // Show validation messages only on submit
+        setShowErrors(true);
 
-        console.log(errors.fileImage);
-        console.log(fileImage.goldImage);
-        // If any field is invalid, return early
         if (Object.values(newErrors).includes(true)) {
             return;
         }
-
 
         const invalidRow = items.some(item => {
             return (
@@ -514,14 +453,9 @@ const GoldLoanForm = () => {
             );
         });
 
-        console.log(totalNetWeight);
-
         if (invalidRow) {
             return alert('Please fill out all fields correctly before adding a new item.');
         }
-        console.log(form.interestMode);
-
-
 
         const formData = new FormData();
         formData.append('principleAmount', form.principleAmount);
@@ -537,25 +471,21 @@ const GoldLoanForm = () => {
         formData.append("interestPercentage", form.interestPercentage);
         formData.append("paymentMode", paymentMode);
         formData.append("companyGoldRate", companyGoldRate);
-        formData.append("glNo", glNo);  // Example for GL Number
-        formData.append("voucherNo", voucherNo);  // Example for Voucher Number
+        formData.append("glNo", glNo);
+        formData.append("voucherNo", voucherNo);
         formData.append("customerId", customerId);
         formData.append("purchaseDate", purchaseDate);
         formData.append("goldRate", goldRate);
         formData.append("totalCharges", totalCharges);
-        // Add the image (either captured or selected)
+
         if (fileImage.capture) {
-            let blob = base64ToBlob(fileImage.capture, 'image/jpeg'); // Convert Base64 to Blob
-            // Generate a unique filename using current date and time
-            const timestamp = new Date().toISOString().replace(/[-:.]/g, ''); // Removes characters not allowed in filenames
-            const filename = `webcam_image_${timestamp}.jpg`; // e.g., 'webcam_image_20241018T123456.jpg'
-            const fileWithFileName = new File([blob], filename, { type: 'image/jpeg' });// Create a new File from the Blob to include the filename
-            fileImage.goldImage = fileWithFileName; // Assign it to fileImage.image
-            formData.append('goldImage', fileImage.goldImage); // Append Blob with a file name
+            let blob = base64ToBlob(fileImage.capture, 'image/jpeg');
+            const timestamp = new Date().toISOString().replace(/[-:.]/g, '');
+            const filename = `webcam_image_${timestamp}.jpg`;
+            const fileWithFileName = new File([blob], filename, { type: 'image/jpeg' });
+            fileImage.goldImage = fileWithFileName;
+            formData.append('goldImage', fileImage.goldImage);
         }
-        console.log(newItem);
-        console.log("nothing");
-        console.log(items);
 
         items.forEach((item, index) => {
             formData.append(`itemDetails[${index}].goldItem`, item.goldItem);
@@ -565,17 +495,15 @@ const GoldLoanForm = () => {
             formData.append(`itemDetails[${index}].depreciation`, item.depreciation);
             formData.append(`itemDetails[${index}].stoneWeight`, item.stoneWeight);
         });
+
         try {
             const response = {
                 info: formData,
                 method: 'post',
                 path: 'customer/gold/loan-details'
-            }
-            console.log(response);
-
+            };
 
             let res = await submitDocument(response);
-            console.log(res);
             alert(res.message);
 
             setForm({
@@ -586,7 +514,7 @@ const GoldLoanForm = () => {
                 appraiser: '',
                 otherCharges: '',
                 range: '',
-            })
+            });
             setNewItems({
                 id: 1,
                 type: 'Select',
@@ -595,17 +523,13 @@ const GoldLoanForm = () => {
                 stoneWeight: '',
                 depreciation: '',
                 netWeight: '',
-            })
+            });
             setFileImage({
                 goldImage: null,
                 capture: null,
-            })
-
-
-
+            });
 
             if (res.status === 201) {
-
                 dispatch(incrementGLNo());
                 dispatch(incrementVoucherNo());
                 navigate(ROUTES.GOLD_LOAN);
@@ -619,119 +543,67 @@ const GoldLoanForm = () => {
     };
 
     const handleDownloadPDF = async () => {
-        // Ensure that the table is rendered before capturing
         const input = document.getElementById('table-section');
         if (input) {
             const canvas = await html2canvas(input, { scale: 2 });
             const imgData = canvas.toDataURL("image/png");
 
             const pdf = new jsPDF("p", "mm", "a4");
-            const imgWidth = 190; // Adjust this width for your layout
+            const imgWidth = 190;
             const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-            // Add the image to the PDF, then save it
             pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
             pdf.save("table-details.pdf");
         }
     };
 
     return (
-        <Box sx={{ display: 'flex', p: 2, width: '100%', mx: 'auto', mt: 1 }}>
+        <Box sx={{ display: 'flex', p: 2, width: '100%', mx: 'auto', mt: 1, flexDirection: { xs: 'column', md: 'row' } }}>
+            {/* Left Section: Form */}
             <Box sx={{ flex: 2, p: 1, mt: -4 }} ref={formRef}>
-
-                <h5 style={{
-                    color: '#B8860B',
-                    fontSize: '18px',
-                    marginBottom: '0px',
-                    fontWeight: '600',
-                    textAlign: 'center', // Centers the text
-                }}>
+                <Typography variant="h6" sx={{ mb: 2, textAlign: 'center', fontWeight: '600' }}>
                     GOLD LOAN
-                </h5>
+                </Typography>
 
-                <Box id="table-section"
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="space-between"
-                    sx={{ width: '100%' }}
-                >
-
-                    <center> <Typography variant="overline">GL No: {glNo} </Typography > </center>
-
+                <Box id="table-section" display="flex" alignItems="center" justifyContent="space-between" sx={{ width: '100%' }}>
+                    <Typography variant="overline">GL No: {glNo}</Typography>
                     <TextField
                         label="Select Date"
                         type="date"
                         value={purchaseDate}
                         onChange={(e) => setSelectedDate(e.target.value)}
-                        InputLabelProps={{
-                            shrink: true, // Ensures the label is positioned correctly
-                        }}
-                        size="small" // Makes the input compact
+                        InputLabelProps={{ shrink: true }}
+                        size="small"
                         sx={{
-                            height: '35px', // Reduces the height of the TextField
-                            '& .MuiInputBase-root': {
-                                minHeight: '20px', // Ensures the inner input area is smaller
-                                fontSize: '0.7rem', // Adjusts font size for a more compact look
-                                padding: '4px 8px', // Adds padding to make the input more compact
-                            },
-                            '& .MuiInputLabel-root': {
-                                fontSize: '0.77rem', // Adjusts label font size
-                            },
+                            height: '35px',
+                            '& .MuiInputBase-root': { minHeight: '20px', fontSize: '0.7rem', padding: '4px 8px' },
+                            '& .MuiInputLabel-root': { fontSize: '0.77rem' },
                         }}
                     />
                 </Box>
-                {/* <ItemDetailsTable /> */}
 
-                {errors.nId ? (
-                    <Typography style={{ color: 'red', marginRight: '12%', fontSize: '0.675rem', width: '100%' }}>
-                        Nominee ID is required
-                    </Typography>
-                ) : (
-                    <Typography style={{ color: 'transparent', fontSize: '0.675rem', width: '100%' }}>
-                        {/* Placeholder for non-error state, this keeps the layout intact */}
-                    </Typography>
-                )}
-
-                <TableContainer sx={{ mb: 2, height: 200, overflowY: 'auto', '&::-webkit-scrollbar': { width: '1px' }, '&::-webkit-scrollbar-thumb': { backgroundColor: '#888', borderRadius: '4px', '&:hover': { backgroundColor: '#555' } }, '&::-webkit-scrollbar-track': { backgroundColor: '#f1f1f1', borderRadius: '4px' } }}>
-                    {/* Check if tableData is not empty */}
-                    {tableData.length === 0 ? (
-                        <p>No data available</p>
-                    ) : (<Table stickyHeader aria-label="sticky table">
+                <TableContainer sx={{ mb: 2, height: 200, overflowY: 'auto' }}>
+                    <Table stickyHeader aria-label="sticky table">
                         <TableHead>
                             <TableRow sx={{ height: '5px', '& .MuiTableCell-root': { padding: '0px' } }}>
                                 <TableCell colSpan={8} sx={{ padding: '2px', borderBottom: '1px solid #ccc' }}>
-                                    {/* Left side: AddNomineeDetails and Error message */}
                                     <Box display="flex" alignItems="center">
                                         <AddNomineeDetails />
-
                                     </Box>
-                                    {/* Right side: Add Item button */}
                                     <Box mt={-5} display="flex" justifyContent="flex-end" alignItems="center">
-                                        {/* Webcam Toggle Button */}
-
-                                        {/* Centered Ornaments Text with Icon */}
                                         <Box display="flex" alignItems="center" mx={2}>
                                             <Typography variant="body2" component="span" sx={{ mr: 0 }}>
                                                 Ornaments
                                             </Typography>
-                                            <IconButton color="primary" onClick={() => setUsingWebcam(!usingWebcam)} aria-label="Toggle Webcam" sx={{ mr: -3 }}>
+                                            <IconButton color="primary" onClick={() => setUsingWebcam(!usingWebcam)} sx={{ mr: -3 }}>
                                                 <PhotoCamera />
                                             </IconButton>
                                         </Box>
-
-                                        {/* File Upload Button */}
-                                        <input
-                                            type="file"
-                                            id="goldImage"
-                                            name="goldImage"
-                                            style={{ display: 'none' }}
-                                            accept="image/*"
-                                        />
+                                        <input type="file" id="goldImage" name="goldImage" style={{ display: 'none' }} accept="image/*" />
                                         <IconButton color="primary" onClick={handleButtonClick}>
                                             <FileUploadIcon />
                                         </IconButton>
                                     </Box>
-
                                 </TableCell>
                             </TableRow>
                             <TableRow>
@@ -743,12 +615,8 @@ const GoldLoanForm = () => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {/* New Item Input Row */}
-                            <TableRow sx={{
-                                height: '10px', // Adjust row height 
-                            }}>
-                                < TableCell sx={{ fontSize: '6px', padding: '1px', borderBottom: '1px solid #ccc' }}>
-
+                            <TableRow sx={{ height: '10px' }}>
+                                <TableCell sx={{ fontSize: '6px', padding: '1px', borderBottom: '1px solid #ccc' }}>
                                     <Autocomplete
                                         options={options}
                                         getOptionLabel={(option) => option.goldItem || "Select"}
@@ -767,95 +635,56 @@ const GoldLoanForm = () => {
                                             />
                                         )}
                                         sx={{
-                                            '& .MuiAutocomplete-inputRoot': {
-                                                fontSize: '0.675rem',
-                                                height: 20,
-                                            },
-                                            '& .MuiInputBase-input': {
-                                                padding: '1px 1px',
-                                            },
+                                            '& .MuiAutocomplete-inputRoot': { fontSize: '0.675rem', height: 20 },
+                                            '& .MuiInputBase-input': { padding: '1px 1px' },
                                             width: 130,
-
                                         }}
                                     />
-
                                 </TableCell>
-
                                 {['quantity', 'grossWeight', 'stoneWeight', 'depreciation'].map((field) => (
                                     <TableCell key={field} sx={{ fontSize: '8px', padding: '4px', borderBottom: '1px solid #ccc' }}>
                                         <TextField
                                             value={newItem[field] || ""}
-                                            onChange={(e) =>
-                                                handleChange(field, e.target.value, "goldItem", newItem.goldItem || "")
-                                            }
+                                            onChange={(e) => handleChange(field, e.target.value, "goldItem", newItem.goldItem || "")}
                                             variant="outlined"
                                             size="small"
                                             fullWidth
                                             sx={{
                                                 fontSize: '0.875rem',
-                                                '& .MuiOutlinedInput-root': {
-                                                    height: '20px',
-                                                    fontSize: '0.875rem',
-                                                },
-                                                '& .MuiInputBase-input': {
-                                                    padding: '1px 1px',
-                                                },
+                                                '& .MuiOutlinedInput-root': { height: '20px', fontSize: '0.875rem' },
+                                                '& .MuiInputBase-input': { padding: '1px 1px' },
                                             }}
                                         />
                                     </TableCell>
                                 ))}
-
                                 <TableCell sx={{ fontSize: '8px', padding: '4px', borderBottom: '1px solid #ccc' }}>
                                     <TextField
                                         value={newItem.netWeight || ""}
-                                        onChange={(e) =>
-                                            handleChange('netWeight', e.target.value, "goldItem", newItem.goldItem || "")
-                                        }
+                                        onChange={(e) => handleChange('netWeight', e.target.value, "goldItem", newItem.goldItem || "")}
                                         variant="outlined"
                                         size="small"
                                         fullWidth
                                         sx={{
                                             fontSize: '0.875rem',
-                                            '& .MuiOutlinedInput-root': {
-                                                height: '20px',
-                                                fontSize: '0.875rem',
-                                            },
-                                            '& .MuiInputBase-input': {
-                                                padding: '1px 1px',
-                                            },
+                                            '& .MuiOutlinedInput-root': { height: '20px', fontSize: '0.875rem' },
+                                            '& .MuiInputBase-input': { padding: '1px 1px' },
                                         }}
                                     />
                                 </TableCell>
-
                                 <TableCell sx={{ padding: '4px' }}>
-                                    <IconButton
-                                        size="small"
-                                        color="primary"
-                                        onClick={handleAddRow}
-                                    >
+                                    <IconButton size="small" color="primary" onClick={handleAddRow}>
                                         <AddIcon fontSize="small" />
                                     </IconButton>
                                 </TableCell>
-
                             </TableRow>
-
-                            {/* Displaying Items */}
                             {items.map((item) => (
-                                <TableRow
-                                    key={item.id}
-                                    onDoubleClick={() => toggleEditMode(item.id)}
-                                    sx={{
-
-                                        height: '10px', // Adjust row height
-                                        '&:hover': { backgroundColor: '#f5f5f5' }, // Optional hover effect
-                                    }}
-                                >
-                                    <TableCell sx={{ padding: '2px', fontSize: '0.65rem', height: '10px', }}>
+                                <TableRow key={item.id} onDoubleClick={() => toggleEditMode(item.id)} sx={{ height: '10px', '&:hover': { backgroundColor: '#f5f5f5' } }}>
+                                    <TableCell sx={{ padding: '2px', fontSize: '0.65rem', height: '10px' }}>
                                         {item.isEditing ? (
                                             <Autocomplete
                                                 options={options}
                                                 getOptionLabel={(option) => option.goldItem || "Select"}
-                                                value={options.find((opt) => opt._id === item.goldItem) || null} // Current selected value
+                                                value={options.find((opt) => opt._id === item.goldItem) || null}
                                                 onChange={(event, newValue) => {
                                                     const goldItemId = newValue?._id || "";
                                                     handleChangeItem(item.id, goldItemId, "goldItem", newValue?.goldItem || "Select");
@@ -863,26 +692,18 @@ const GoldLoanForm = () => {
                                                 renderInput={(params) => (
                                                     <TextField {...params} variant="outlined" size="small" placeholder="Select Gold Item" />
                                                 )}
-
                                                 sx={{
-                                                    '& .MuiAutocomplete-inputRoot': {
-                                                        fontSize: '0.675rem',
-                                                        height: 20,
-                                                    },
-                                                    '& .MuiInputBase-input': {
-                                                        padding: '1px 1px',
-                                                    },
+                                                    '& .MuiAutocomplete-inputRoot': { fontSize: '0.675rem', height: 20 },
+                                                    '& .MuiInputBase-input': { padding: '1px 1px' },
                                                     width: 130,
-
                                                 }}
                                             />
                                         ) : (
                                             <span style={{ fontSize: "0.6rem" }}>{item.type}</span>
                                         )}
                                     </TableCell>
-
                                     {['quantity', 'grossWeight', 'stoneWeight', 'depreciation', 'netWeight'].map((field) => (
-                                        <TableCell key={field} sx={{ padding: '2px', fontSize: '0.65rem', height: '10px', }}>
+                                        <TableCell key={field} sx={{ padding: '2px', fontSize: '0.65rem', height: '10px' }}>
                                             {item.isEditing ? (
                                                 <TextField
                                                     value={item[field]}
@@ -892,13 +713,8 @@ const GoldLoanForm = () => {
                                                     fullWidth
                                                     sx={{
                                                         fontSize: '0.875rem',
-                                                        '& .MuiOutlinedInput-root': {
-                                                            height: '22px',
-                                                            fontSize: '0.75rem',
-                                                        },
-                                                        '& .MuiInputBase-input': {
-                                                            padding: '2px 2px',
-                                                        },
+                                                        '& .MuiOutlinedInput-root': { height: '22px', fontSize: '0.75rem' },
+                                                        '& .MuiInputBase-input': { padding: '2px 2px' },
                                                     }}
                                                 />
                                             ) : (
@@ -906,42 +722,23 @@ const GoldLoanForm = () => {
                                             )}
                                         </TableCell>
                                     ))}
-
                                     <TableCell sx={{ padding: '0px' }}>
-                                        <IconButton
-                                            size="small"
-                                            color="error"
-                                            onClick={() => handleDelete(item.id)}
-                                            sx={{ padding: '1px' }} // Reduce button padding
-
-                                        >
+                                        <IconButton size="small" color="error" onClick={() => handleDelete(item.id)} sx={{ padding: '1px' }}>
                                             <DeleteIcon fontSize="small" />
                                         </IconButton>
                                         {item.isEditing && (
-                                            <IconButton
-                                                size="small"
-                                                color="primary"
-                                                onClick={() => handleSaveRow(item.id)}
-                                                sx={{ padding: '1px' }} // Reduce button padding
-                                            >
-                                                <SaveIcon fontSize="small" /> {/* Add the Save icon */}
+                                            <IconButton size="small" color="primary" onClick={() => handleSaveRow(item.id)} sx={{ padding: '1px' }}>
+                                                <SaveIcon fontSize="small" />
                                             </IconButton>
                                         )}
                                     </TableCell>
                                 </TableRow>
                             ))}
-
                         </TableBody>
-                    </Table>)}
-
+                    </Table>
                 </TableContainer>
 
-                <table style={{
-                    width: '100%',
-                    borderCollapse: 'collapse',
-                    marginTop: '-15px',
-                    backgroundColor: '#ffffff',
-                }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '-15px', backgroundColor: '#ffffff' }}>
                     <tbody>
                         <tr>
                             <td style={{ padding: '6px', border: '1px solid #ddd', fontSize: '12px' }}>No: 5</td>
@@ -969,45 +766,27 @@ const GoldLoanForm = () => {
                                 label={field.label}
                                 name={field.name}
                                 value={form[field.name]}
-                                error={errors[field.name]} // Display error if field has error
-                                helperText={errors[field.name] ? `${field.label} must be a valid number` : ''} // Error message below the field
+                                error={errors[field.name]}
+                                helperText={errors[field.name] ? `${field.label} must be a valid number` : ''}
                                 onChange={handleChangeForm}
                                 fullWidth
                                 margin="dense"
                                 size="small"
                                 sx={{
-                                    '& .MuiInputLabel-root': {
-                                        fontSize: '12.5px',
-                                        marginBottom: '0px',
-                                    },
-                                    '& .MuiInputBase-root': {
-                                        fontSize: '12.5px',
-                                        paddingTop: '0px',
-                                        paddingBottom: '0px',
-                                    }
+                                    '& .MuiInputLabel-root': { fontSize: '12.5px', marginBottom: '0px' },
+                                    '& .MuiInputBase-root': { fontSize: '12.5px', paddingTop: '0px', paddingBottom: '0px' }
                                 }}
                             />
                         </Grid>
                     ))}
                 </Grid>
 
-                {/* interest calaculation and image upload and capture */}
                 <Typography variant="subtitle1" sx={{ mb: 1 }}>Interest Calculation</Typography>
-
                 <Box sx={{ textAlign: 'right', mt: -4 }}>
-                    <div>
-                        <FormControlLabel
-                            control={
-                                <Switch
-                                    checked={paymentMode === 'Debit'}
-                                    onChange={handleSwitchChange}
-                                    color="primary"
-                                />
-                            }
-                            label={paymentMode === 'Debit' ? 'Debit' : 'Cash'}
-                        />
-                    </div>
-
+                    <FormControlLabel
+                        control={<Switch checked={paymentMode === 'Debit'} onChange={handleSwitchChange} color="primary" />}
+                        label={paymentMode === 'Debit' ? 'Debit' : 'Cash'}
+                    />
                 </Box>
 
                 <ToggleButtonGroup
@@ -1016,7 +795,7 @@ const GoldLoanForm = () => {
                     exclusive
                     onChange={handleInterestChange}
                     size="small"
-                    sx={{ mt: 0, textAlign: 'left', }}
+                    sx={{ mt: 0, textAlign: 'left' }}
                 >
                     <ToggleButton value="simple">Simple</ToggleButton>
                     <ToggleButton value="multiple">Multiple</ToggleButton>
@@ -1083,47 +862,36 @@ const GoldLoanForm = () => {
                     </Box>
                 )}
 
-
                 <Grid container justifyContent="flex-end" sx={{ mt: 2, position: 'sticky', bottom: 0, backgroundColor: 'white', zIndex: 1 }}>
                     <Grid item>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={handleSubmit} // Your submit handler function
-                        >
+                        <Button variant="contained" color="primary" onClick={handleSubmit}>
                             Submit
                         </Button>
                     </Grid>
-                    {/* PDF Download Button with Icon */}
-                    <IconButton
-                        color="primary"
-                        onClick={handleDownloadPDF}
-                        sx={{ ml: 2 }}
-                    >
+                    <IconButton color="primary" onClick={handleDownloadPDF} sx={{ ml: 2 }}>
                         <PictureAsPdfIcon />
                     </IconButton>
                 </Grid>
             </Box>
 
-            {/* display the image and summary details */}
-
+            {/* Right Section: Image and Summary */}
             <Box sx={{ flex: 1, p: 1, mt: -2 }}>
                 <Box
                     mt={2}
                     sx={{
                         position: 'relative',
                         width: '100%',
-                        maxWidth: '600px',  // Maximum width for a more contained layout
-                        height: '200px',    // Fixed height for consistency
-                        backgroundColor: '#f4f4f9', // Light, professional background
-                        borderRadius: '8px', // Rounded corners for a modern look
-                        boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)', // Soft shadow for depth
+                        maxWidth: '600px',
+                        height: '200px',
+                        backgroundColor: '#f4f4f9',
+                        borderRadius: '8px',
+                        boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'center',
                         alignItems: 'center',
-                        padding: '16px', // Padding inside the box
-                        overflow: 'hidden', // Hide excess content for a clean look
+                        padding: '16px',
+                        overflow: 'hidden',
                     }}
                 >
                     {usingWebcam && (
@@ -1132,29 +900,19 @@ const GoldLoanForm = () => {
                                 audio={false}
                                 ref={webcamRef}
                                 screenshotFormat="image/jpeg"
-                                width="100%"  // Ensures webcam stretches to the full width of the box
+                                width="100%"
                                 height="130px"
                             />
-                            <Button
-                                variant="outlined"
-                                color="primary"
-                                onClick={captureImage}
-                                sx={{ mt: 2 }}
-                                size='small'
-                            >
+                            <Button variant="outlined" color="primary" onClick={captureImage} sx={{ mt: 2 }} size='small'>
                                 Capture Image
                             </Button>
                         </Box>
                     )}
 
-                    {/* Display the selected image preview  */}
                     {fileImage.goldImage && !fileImage.capture && (
                         <div style={{ marginTop: '10px' }}>
-                            <img src={URL.createObjectURL(fileImage.goldImage)} alt="Selected" style={{ maxWidth: '100%', height: 'auto', objectFit: 'cover', }} />
-                            <IconButton
-                                onClick={handleCloseImage}
-                                style={{ position: 'absolute', top: 0, right: 0, padding: '0' }}
-                            >
+                            <img src={URL.createObjectURL(fileImage.goldImage)} alt="Selected" style={{ maxWidth: '100%', height: 'auto', objectFit: 'cover' }} />
+                            <IconButton onClick={handleCloseImage} style={{ position: 'absolute', top: 0, right: 0, padding: '0' }}>
                                 <CloseIcon />
                             </IconButton>
                         </div>
@@ -1162,31 +920,26 @@ const GoldLoanForm = () => {
                     {fileImage.capture && (
                         <Box mt={2} position="relative">
                             <img src={fileImage.capture} alt="Captured Image" style={{ maxWidth: '100%', height: '180px' }} />
-                            <IconButton
-                                onClick={handleCloseCapture}
-                                style={{ position: 'absolute', top: 0, right: 0, padding: '0' }}
-                            >
+                            <IconButton onClick={handleCloseCapture} style={{ position: 'absolute', top: 0, right: 0, padding: '0' }}>
                                 <CloseIcon />
                             </IconButton>
                         </Box>
                     )}
                 </Box>
-                {/* Validation message for goldImage */}
+
                 {showErrors && errors.goldImage && (
                     <Typography sx={{ mt: 2, color: 'red', fontSize: '0.975rem' }}>
                         Gold image or captured image is required
                     </Typography>
                 )}
-                {/* Summary Table at the bottom */}
-                <Box sx={{ flex: 1, p: 2, }}>
+
+                <Box sx={{ flex: 1, p: 2 }}>
                     <Typography variant="subtitle1">Summary Table</Typography>
                     <TableContainer component={Paper} sx={{ mb: 3 }}>
                         <Table>
-
                             <TableHead>
-                                <Typography variant="overline"> Vr No: {voucherNo}</Typography >
+                                <Typography variant="overline"> Vr No: {voucherNo}</Typography>
                             </TableHead>
-
                             <TableBody sx={{ '& .MuiTableRow-root': { height: '30px' } }}>
                                 <TableRow>
                                     <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}>Current Gold Rate</TableCell>
@@ -1217,60 +970,59 @@ const GoldLoanForm = () => {
                                     <TableCell sx={{ fontSize: '0.675rem', padding: '2px 4px' }}>{totalCharges}</TableCell>
                                 </TableRow>
                             </TableBody>
-
                         </Table>
                     </TableContainer>
                 </Box>
             </Box>
 
             {/* Customer Details */}
-
             <Box sx={{ flex: 1, p: 2 }}>
                 {customerData && (
                     <Card
                         sx={{
-                            width: { xs: '50%', sm: '365px' },
+                            width: { xs: '100%', sm: '365px' }, // Full width on mobile, fixed width on larger screens
                             borderRadius: 2,
                             boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.1)',
                             backgroundColor: '#ffffff',
                             display: 'flex',
-                            flexDirection: 'row',
+                            flexDirection: { xs: 'column', sm: 'row' }, // Stack vertically on mobile, row on larger screens
                             padding: 2,
                             gap: 2,
-                            mt: -1,
+                            mt: { xs: 2, sm: -1 }, // Adjust margin for mobile
                         }}
                     >
-                        {/* Left Section: Avatar with Background */}
+                        {/* Avatar Section */}
                         <Box
                             sx={{
-                                width: '30%',
+                                width: { xs: '100%', sm: '30%' }, // Full width on mobile, 30% on larger screens
                                 display: 'flex',
                                 justifyContent: 'center',
                                 alignItems: 'center',
-                                backgroundColor: ' #e8f5e9',
+                                backgroundColor: '#e8f5e9',
                                 borderRadius: 2,
+                                padding: { xs: 1, sm: 0 }, // Add padding on mobile
                             }}
                         >
                             <Avatar
                                 alt="Profile"
                                 src={`http://localhost:4000${customerData.image.path}`}
                                 sx={{
-                                    width: 90,
-                                    height: 100,
+                                    width: { xs: 80, sm: 90 }, // Smaller avatar on mobile
+                                    height: { xs: 80, sm: 100 },
                                     border: '4px solid #ffffff',
                                     objectFit: 'cover',
                                 }}
                             />
                         </Box>
 
-                        {/* Right Section: Details */}
+                        {/* Details Section */}
                         <Box
                             sx={{
                                 flex: 1,
                                 display: 'flex',
                                 flexDirection: 'column',
                                 justifyContent: 'space-between',
-                                padding: 1,
+                                padding: { xs: 0, sm: 1 }, // Adjust padding for mobile
                             }}
                         >
                             {/* Header */}
@@ -1278,16 +1030,16 @@ const GoldLoanForm = () => {
                                 <Typography
                                     variant="body1"
                                     fontWeight="bold"
-                                    sx={{ color: '#004d40' }}
+                                    sx={{ color: '#004d40', fontSize: { xs: '1rem', sm: '1.125rem' } }} // Adjust font size for mobile
                                 >
                                     {customerData.firstName} {customerData.lastName}
                                 </Typography>
                                 <Typography
                                     variant="body2"
                                     color="black"
-                                    sx={{ mb: 1 }}
+                                    sx={{ mb: 1, fontSize: { xs: '0.875rem', sm: '0.9375rem' } }} // Adjust font size for mobile
                                 >
-                                    {customerData.state},INDIA
+                                    {customerData.state}, INDIA
                                 </Typography>
                             </Box>
 
@@ -1298,6 +1050,7 @@ const GoldLoanForm = () => {
                                     value={customerData.rating}
                                     onChange={handleRatingChange}
                                     precision={0.5}
+                                    size={window.innerWidth < 600 ? 'small' : 'medium'} // Smaller rating stars on mobile
                                 />
                             </Box>
 
@@ -1310,43 +1063,42 @@ const GoldLoanForm = () => {
                                     color: 'black',
                                 }}
                             >
-                                <Box sx={{ display: 'flex', fontSize: 11.5, alignItems: 'flex-start' }}>
+                                <Box sx={{ display: 'flex', fontSize: { xs: '0.75rem', sm: '0.8125rem' }, alignItems: 'flex-start' }}>
                                     <Box sx={{ display: 'flex', width: '55px', justifyContent: 'space-between' }}>
                                         <strong style={{ textAlign: 'left' }}>Address</strong>
-                                        <strong>:&nbsp;</strong>  {/* Bold colon with space */}
+                                        <strong>:&nbsp;</strong>
                                     </Box>
                                     <Box sx={{ flex: 1 }}>
                                         {customerData.address}, {customerData.place}, {customerData.pin}
                                     </Box>
                                 </Box>
-                                <Box sx={{ display: 'flex', fontSize: 11.5, alignItems: 'flex-start' }}>
+                                <Box sx={{ display: 'flex', fontSize: { xs: '0.75rem', sm: '0.8125rem' }, alignItems: 'flex-start' }}>
                                     <Box sx={{ display: 'flex', width: '55px', justifyContent: 'space-between' }}>
                                         <strong style={{ textAlign: 'left' }}>Mobile</strong>
-                                        <strong>:&nbsp;</strong>  {/* Bold colon with space */}
+                                        <strong>:&nbsp;</strong>
                                     </Box>
                                     <Box sx={{ flex: 1 }}>
                                         {customerData.primaryNumber}, {customerData.secondaryNumber}
                                     </Box>
                                 </Box>
-                                <Box sx={{ display: 'flex', fontSize: 11.5, alignItems: 'flex-start' }}>
+                                <Box sx={{ display: 'flex', fontSize: { xs: '0.75rem', sm: '0.8125rem' }, alignItems: 'flex-start' }}>
                                     <Box sx={{ display: 'flex', width: '55px', justifyContent: 'space-between' }}>
                                         <strong style={{ textAlign: 'left' }}>Email</strong>
-                                        <strong>:&nbsp;</strong>  {/* Bold colon with space */}
+                                        <strong>:&nbsp;</strong>
                                     </Box>
                                     <Box sx={{ flex: 1 }}>
                                         {customerData.email}
                                     </Box>
                                 </Box>
 
-                                <Box sx={{ mt: .5 }}>
+                                {/* Profile Completion */}
+                                <Box sx={{ mt: 0.5 }}>
                                     <Typography
                                         variant="body2"
-                                        sx={{ mt: 0, fontSize: 11.5 }}
+                                        sx={{ mt: 0, fontSize: { xs: '0.75rem', sm: '0.8125rem' } }} // Adjust font size for mobile
                                     >
                                         <strong> Profile Completion</strong>: {calculateProfileCompletion(customerData)}%
                                     </Typography>
-
-
                                     <LinearProgress
                                         variant="determinate"
                                         value={calculateProfileCompletion(customerData)}
@@ -1354,10 +1106,8 @@ const GoldLoanForm = () => {
                                             height: 5,
                                             borderRadius: 10,
                                             cursor: 'pointer',
-                                            backgroundColor: '#e0f2f1', // Light teal background
-                                            '& .MuiLinearProgress-bar': {
-                                                backgroundColor: '#689689', // Your chosen color for the filled part
-                                            },
+                                            backgroundColor: '#e0f2f1',
+                                            '& .MuiLinearProgress-bar': { backgroundColor: '#689689' },
                                         }}
                                         onClick={() => handleShowMissingDetails(customerData)}
                                     />
@@ -1365,34 +1115,21 @@ const GoldLoanForm = () => {
                             </Box>
                         </Box>
                     </Card>
-
                 )}
-
-
 
                 <Box sx={{ maxWidth: 360, margin: '0 auto', mt: 1, textAlign: { xs: 'center', sm: 'left' }, px: { xs: 2, sm: 0 } }}>
                     <TableContainer
                         component={Paper}
                         sx={{
                             mb: 0,
-                            overflow: 'auto', // Enable scrolling
+                            overflow: 'auto',
                             whiteSpace: 'nowrap',
                             textOverflow: 'ellipsis',
                             maxHeight: '400px',
-                            '&::-webkit-scrollbar': {
-                                width: '4px', // Thin scrollbar width
-                                height: '4px', // Thin scrollbar height
-                            },
-                            '&::-webkit-scrollbar-thumb': {
-                                backgroundColor: '#888', // Scrollbar thumb color
-                                borderRadius: '2px', // Rounded corners
-                            },
-                            '&::-webkit-scrollbar-thumb:hover': {
-                                backgroundColor: '#555', // Thumb color on hover
-                            },
-                            '&::-webkit-scrollbar-track': {
-                                backgroundColor: '#f1f1f1', // Track color
-                            },
+                            '&::-webkit-scrollbar': { width: '4px', height: '4px' },
+                            '&::-webkit-scrollbar-thumb': { backgroundColor: '#888', borderRadius: '2px' },
+                            '&::-webkit-scrollbar-thumb:hover': { backgroundColor: '#555' },
+                            '&::-webkit-scrollbar-track': { backgroundColor: '#f1f1f1' },
                         }}
                     >
                         <Table>
@@ -1440,9 +1177,6 @@ const GoldLoanForm = () => {
                                 </TableRow>
                                 <TableRow sx={{ padding: '0px 0' }}>
                                     <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}> Total Charges</TableCell>
-                                    {/* {loanDetails.map((detail, index) => (
-                                        <TableCell key={index} sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>{detail.totalNetWeight}</TableCell>
-                                    ))} */}
                                 </TableRow>
                                 <TableRow sx={{ padding: '0px 0' }}>
                                     <TableCell sx={{ fontSize: '0.675rem', lineHeight: 0.1 }}>Balance Amount</TableCell>
@@ -1465,14 +1199,13 @@ const GoldLoanForm = () => {
                                         const balanceAmount = Number(detail.balanceAmount);
                                         const profitOrLoss = Number(detail.profitOrLoss);
 
-                                        // Determine the color based on the conditions
-                                        let color = 'black'; // Default (neutral)
+                                        let color = 'black';
                                         if (balanceAmount < .3 * profitOrLoss) {
-                                            color = 'green'; // Significant profit (> 30% above balanceAmount)
+                                            color = 'green';
                                         } else if (balanceAmount > 0.8 * profitOrLoss) {
-                                            color = 'red'; // Moderate profit (20%-30% above balanceAmount)
+                                            color = 'red';
                                         } else if (balanceAmount < 0.8 * profitOrLoss) {
-                                            color = 'orange'; // Loss (< 80% of balanceAmount)
+                                            color = 'orange';
                                         }
 
                                         return (
@@ -1482,7 +1215,7 @@ const GoldLoanForm = () => {
                                                     fontSize: '0.675rem',
                                                     lineHeight: 0.1,
                                                     color: color,
-                                                    fontWeight: 'bold', // Optional for emphasis
+                                                    fontWeight: 'bold',
                                                 }}
                                             >
                                                 {profitOrLoss.toFixed(2)}
@@ -1490,15 +1223,13 @@ const GoldLoanForm = () => {
                                         );
                                     })}
                                 </TableRow>
-
                             </TableBody>
                         </Table>
                     </TableContainer>
-
-
                 </Box>
             </Box>
-        </Box >
+        </Box>
     );
 };
+
 export default GoldLoanForm;
