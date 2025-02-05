@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Grid, Typography } from '@mui/material';
-
+import { saveAdditionalFees } from '../../services/system/system.service';
 const Fee = () => {
     const [open, setOpen] = useState(false);
     const [formData, setFormData] = useState({
-        processingFeePercentage: '',
-        processingFeeAmount: '',
+        processingFee: '',
         packingFee: '',
         appraiser: '',
         insurance: '',
@@ -24,10 +23,42 @@ const Fee = () => {
         }));
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+
+        try {
+            // Save the form data
+            const response = await saveAdditionalFees(formData.processingFee, formData.packingFee, formData.appraiser,
+                formData.insurance,
+                formData.firstLetter,
+                formData.secondLetter);
+            if (response?.isError) {
+                console.log('Failed to Saved fees:', response);
+                alert('Failed to save fees');
+
+
+            } else {
+                console.log(' Saved fees:', response);
+                setFormData({
+                    processingFee: '',
+                    packingFee: '',
+                    appraiser: '',
+                    insurance: '',
+                    firstLetter: '',
+                    secondLetter: ''
+                });
+                alert('Fees saved successfully!');
+                handleClose();
+
+            }
+        } catch (error) {
+            console.error('Error saving fees:', error);
+            alert('Error saving fees');
+        }
+
         // Handle form submission logic here
         console.log(formData);
-        handleClose();
+
     };
 
     return (
@@ -38,25 +69,18 @@ const Fee = () => {
             <Dialog open={open} onClose={handleClose}>
                 <DialogTitle>Fees and Details</DialogTitle>
                 <DialogContent>
-                    <Grid container spacing={2}>
+                    <Grid container spacing={2} sx={{ mt: 1 }}>
                         <Grid item xs={12} sm={6}>
                             <TextField
                                 fullWidth
                                 label="Processing Fee (Percentage)"
-                                name="processingFeePercentage"
-                                value={formData.processingFeePercentage}
+                                name="processingFee"
+                                value={formData.processingFee}
                                 onChange={handleChange}
+                                size='small'
                             />
                         </Grid>
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="Processing Fee (Amount)"
-                                name="processingFeeAmount"
-                                value={formData.processingFeeAmount}
-                                onChange={handleChange}
-                            />
-                        </Grid>
+
                         <Grid item xs={12} sm={6}>
                             <TextField
                                 fullWidth
@@ -64,6 +88,7 @@ const Fee = () => {
                                 name="packingFee"
                                 value={formData.packingFee}
                                 onChange={handleChange}
+                                size='small'
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -73,6 +98,7 @@ const Fee = () => {
                                 name="appraiser"
                                 value={formData.appraiser}
                                 onChange={handleChange}
+                                size='small'
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -82,6 +108,7 @@ const Fee = () => {
                                 name="insurance"
                                 value={formData.insurance}
                                 onChange={handleChange}
+                                size='small'
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -91,6 +118,7 @@ const Fee = () => {
                                 name="firstLetter"
                                 value={formData.firstLetter}
                                 onChange={handleChange}
+                                size='small'
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -100,7 +128,9 @@ const Fee = () => {
                                 name="secondLetter"
                                 value={formData.secondLetter}
                                 onChange={handleChange}
+                                size='small'
                             />
+
                         </Grid>
                     </Grid>
                 </DialogContent>

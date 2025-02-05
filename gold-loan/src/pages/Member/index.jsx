@@ -1,9 +1,11 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import Webcam from 'react-webcam';
-import { Box, InputAdornment, Autocomplete, Button, TextField, Grid, Typography, Modal, IconButton, Container, MenuItem, } from '@mui/material';
+import { Box, Autocomplete, Button, TextField, Grid, Typography, Modal, IconButton, Container, MenuItem, } from '@mui/material';
+import { InputAdornment } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 import CloseIcon from '@mui/icons-material/Close';
+import signatureIcon from '../../assets/signatureIcon.png';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -14,22 +16,25 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 
 import { submitDocument } from '../../api';
-import { viewDesignationRole } from '../../services/system/system.service'
+import { viewDesignationRole } from '../../services/system/system.service';
 
-export default function CustomerForm({ onCustomerAdded }) {
+export default function CustomerForm({ onCustomerAdded, }) {
     const [open, setOpen] = useState(false); // Modal state
-    const [showPassword, setShowPassword] = useState(false);
     const [usingAadharcam, setUsingAadharcam] = useState(false); // Toggle between file upload and webcam
     const [usingSigncam, setUsingSigncam] = useState(false); // Toggle between file upload and webcam
     const [usingWebcam, setUsingWebcam] = useState(false); // Toggle between file upload and webcam
+    const [showPassword, setShowPassword] = useState(false); // Toggle password visibility
 
-    const [fileImage, setFileImage] = useState({ memberImage: null, signature: null, aadharImage: [], capture: null, sCapture: null, aCapture: [], passBookImage: null }); // State to store the uploaded image and signature
-
+    const [fileImage, setFileImage] = useState({ memberImage: null, aadharImage: [], capture: null, aCapture: [], passBookImage: null }); // State to store the uploaded image and signature
+    const [designations, setDesignations] = useState([]);  // Stores API data
+    const [selectedDesignations, setSelectedDesignations] = useState([]); // Stores selected objects
+    const [roleId, setRoleId] = useState([]); // Stores selected IDs
 
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
         address: '',
+        password: '',
         city: '',
         place: '',
         state: '',
@@ -38,7 +43,6 @@ export default function CustomerForm({ onCustomerAdded }) {
         aadhar: '',
         primaryNumber: '',
         secondaryNumber: '',
-        designation: '',
         landMark: '',
         bankUserName: '',
         bankAccount: '',
@@ -51,8 +55,8 @@ export default function CustomerForm({ onCustomerAdded }) {
         joiningDate: '',
         panCardName: '',
         panCardNumber: '',
-        password: '',
     });
+
 
     const [errors, setErrors] = useState({});
     const webcamRef = useRef(null); // Ref to access the webcam
@@ -64,6 +68,11 @@ export default function CustomerForm({ onCustomerAdded }) {
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
 
+    const handleClickShowPassword = () => {
+        setShowPassword((prev) => !prev);
+    };
+
+
     // Handle webcam capture
     const captureImage = useCallback(() => {
         const imageSrc = webcamRef.current.getScreenshot(); // Capture image from webcam as Base64
@@ -71,14 +80,9 @@ export default function CustomerForm({ onCustomerAdded }) {
         setUsingWebcam(false); // Hide the webcam after capture
     }, [webcamRef, fileImage]);
 
-    // Handle Signaturecam capture
-    const captureSign = useCallback(() => {
-        const imageSrc = webcamRef.current.getScreenshot(); // Capture image from webcam as Base64
-        setFileImage({ ...fileImage, sCapture: imageSrc });  // Set Base64 image
-        setUsingSigncam(false); // Hide the webcam after capture
-    }, [webcamRef, fileImage]);
 
-    // Handle Signaturecam capture
+
+
     const captureAadhar = useCallback(() => {
         if (!webcamRef.current) return;
         const imageSrc = webcamRef.current.getScreenshot(); // Capture image from webcam\
@@ -135,7 +139,7 @@ export default function CustomerForm({ onCustomerAdded }) {
     const handleChange = (e) => {
         setFormData({
             ...formData,
-            [e.target.id]: e.target.value,
+            [e.target.name]: e.target.value, // Use name instead of id
         });
     };
     const handleButtonClick = () => {
@@ -166,19 +170,8 @@ export default function CustomerForm({ onCustomerAdded }) {
         setFileImage({ ...fileImage, capture: null }); // Clear the captured image
     };
 
-    // Function to handle closing the signature image
-    const handleCloseSignature = () => {
-        setFileImage({ ...fileImage, signature: null }); // Clear the uploaded signature
-        if (fileInputSignRef.current) {
-            fileInputSignRef.current.value = ""; // Clear the input value
-        }
 
 
-    };
-
-    const handleCloseSCapture = () => {
-        setFileImage({ ...fileImage, sCapture: null }); // Clear the captured signature
-    };
 
 
     // Handle removal of an image
@@ -321,23 +314,14 @@ export default function CustomerForm({ onCustomerAdded }) {
 
         // Conditional validation for image and signature
         if (!fileImage.memberImage && !fileImage.capture) {
-            formErrors.image = "Either upload an image or capture one with the webcam";
+            formErrors.memberImage = "Either upload an image or capture one with the webcam";
         }
 
-        if (!fileImage.signature && !fileImage.sCapture) {
-            formErrors.signature = "Either upload a signature or capture one with the webcam";
-        }
+
 
         // if (!fileImage.aadharImage && !fileImage.aCapture) {
         //     formErrors.aadharImage = "Either upload an Aadhar image or capture one with the webcam";
         // }
-
-        if (!formData.password) {
-            formErrors.password = "Password is required";
-        } else if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(formData.password)) {
-            formErrors.password = "Password must be at least 8 characters long and include letters and numbers";
-        }
-
 
         // Pan card Name Verification
         if (!formData.panCardName) {
@@ -382,7 +366,7 @@ export default function CustomerForm({ onCustomerAdded }) {
         data.append('pin', formData.pin);
         data.append('primaryNumber', formData.primaryNumber);
         if (formData.secondaryNumber != '') { data.append('secondaryNumber', formData.secondaryNumber); }
-        data.append('gst', formData.designation);
+        data.append('gst', formData.gst);
         data.append('district', formData.district);
         data.append('bankAccount', formData.bankAccount);
         data.append('bankName', formData.bankName);
@@ -390,38 +374,43 @@ export default function CustomerForm({ onCustomerAdded }) {
         data.append('ifsc', formData.ifsc);
         data.append('email', formData.email);
         data.append('upId', formData.upId);
-        data.append('createdDate', formData.joiningDate);
+        data.append('joiningDate', formData.joiningDate);
         data.append('gender', formData.gender);
         data.append('dateOfBirth', formData.dateOfBirth);
         data.append('panCardName', formData.panCardName);
         data.append('panCardNumber', formData.panCardNumber);
-        data.append('image', fileImage.memberImage);
-        data.append('signature', fileImage.signature);
+        data.append('memberImage', fileImage.memberImage);
+        data.append('password', formData.password);
+
         data.append('passBookImage', fileImage.passBookImage);
+
         fileImage.aadharImage.forEach((aadharImage, index) => {
             data.append('aadharImage', aadharImage); // Append each image to the form data
         });
+        // Append each selected ID with index format
+        if (roleId.length === 0) {
+            console.error("No role ID selected!");
+            return;
+        }
+
+        roleId.forEach((id, index) => {
+            if (id) data.append(`roleId[${index}]`, id);
+            console.log("roleId", id);
+
+        });
+
 
         // Add captured image if available (convert Base64 to Blob and append)
         if (fileImage.capture) {
-            let blob = base64ToBlob(fileImage.capture, 'image/jpeg'); // Convert Base64 to Blob
+            let blob = base64ToBlob(fileImage.capture, 'image/jpeg'); // Convert Base64lo to Blob
             // Generate a unique filename using current date and time
             const timestamp = new Date().toISOString().replace(/[-:.]/g, ''); // Removes characters not allowed in filenames
             const filename = `webcam_image_${timestamp}.jpg`; // e.g., 'webcam_image_20241018T123456.jpg'
             const fileWithFileName = new File([blob], filename, { type: 'image/jpeg' });// Create a new File from the Blob to include the filename
             fileImage.memberImage = fileWithFileName; // Assign it to fileImage.image
-            data.append('image', fileImage.memberImage); // Append Blob with a file name
+            data.append('memberImage', fileImage.memberImage); // Append Blob with a file name
         }
 
-        // Handle captured signature (convert Base64 to Blob)
-        if (fileImage.sCapture) {
-            let blob = base64ToBlob(fileImage.sCapture, 'image/jpeg');
-            const timestamp = new Date().toISOString().replace(/[-:.]/g, '');
-            const filename = `webcam_signature_${timestamp}.jpg`;
-            const fileWithFileName = new File([blob], filename, { type: 'image/jpeg' });
-            fileImage.signature = fileWithFileName; // Assign it to fileImage.image
-            data.append('signature', fileWithFileName); // Append the signature file
-        }
         console.log(fileImage.aCapture, fileImage.aCapture.length);
 
         // Handle captured signature (convert Base64 to Blob)
@@ -441,11 +430,14 @@ export default function CustomerForm({ onCustomerAdded }) {
             const customerData = {
                 info: data,
                 method: 'post',
-                path: 'member/create'
+                path: 'member/create',
             }
+            console.log("MemberrData", customerData);
             // await createCustomer(customerData)
             const response = await submitDocument(customerData); // Call the API function
             // todo - show success alert only if doc submission is succeess // check with status code or flag
+            console.log("member response", response);
+
             alert('Successfully uploaded!');
 
 
@@ -463,7 +455,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                 primaryNumber: '',
                 secondaryNumber: '',
                 landMark: '',
-                designation: '',
+                gst: '',
                 bankUserName: '',
                 bankAccount: '',
                 ifsc: '',
@@ -475,9 +467,7 @@ export default function CustomerForm({ onCustomerAdded }) {
             });
             setFileImage({
                 memberImage: null,
-                signature: null,
                 capture: null,
-                sCapture: null,
                 aadharImage: [],
                 aCapture: [],
                 passBookImage: null
@@ -493,31 +483,33 @@ export default function CustomerForm({ onCustomerAdded }) {
         }
     };
 
-    const [roles, setRoles] = useState([]);
-    const [selectedRoles, setSelectedRoles] = useState([]);
 
     useEffect(() => {
         const fetchDesignationRole = async () => {
             try {
                 const response = await viewDesignationRole();
-                console.log("Roles Fetched:", response.result.data.roles);
-
-                if (response?.isSuccess) {
-                    setRoles(response.result.data.roles); // Assuming it's an array
-                }
+                console.log("designation1", response.result.data.roles);
+                setDesignations(response.result.data.roles);  // Ensure this matches API response structure
             } catch (error) {
-                console.error("Error fetching roles:", error);
+                console.error("Error fetching designation role:", error);
             }
         };
+
         fetchDesignationRole();
     }, []);
+
+    const handleChangeDesignation = (event, newValue) => {
+        setSelectedDesignations(newValue); // Stores selected objects
+        setRoleId(newValue.map((item) => item._id)); // Extracts and stores IDs
+    };
+
 
     return (
         <>
 
-
-            <Typography variant='button' onClick={handleOpen} sx={{ cursor: 'pointer', mr: 2, color: 'black' }} >MEMBER</Typography>
-
+            <Typography variant="button" onClick={handleOpen} style={{ color: 'black', cursor: 'pointer' }}>
+                Member
+            </Typography>
 
             <Modal
                 open={open}
@@ -576,7 +568,7 @@ export default function CustomerForm({ onCustomerAdded }) {
 
                         {/* Form Title */}
                         <Typography variant="h6" id="modal-title" sx={{ mb: 2 }}>
-                            MEMBER FORM
+                            Customer Form
                         </Typography>
 
                         {/* Form Content */}
@@ -730,8 +722,8 @@ export default function CustomerForm({ onCustomerAdded }) {
                                 <Grid item xs={12} sm={6}>
                                     <TextField
                                         fullWidth
-                                        id="nearBy"
-                                        name="nearBy"
+                                        id="landMark"
+                                        name="landMark"
                                         label="LandMark"
                                         variant="outlined"
                                         value={formData.landMark}
@@ -844,53 +836,53 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         size="small"
                                     />
                                 </Grid>
+
+
                                 <Grid item xs={12}>
                                     <TextField
-                                        fullWidth
-                                        id="password"
-                                        name="password"
                                         label="Password"
-                                        variant="outlined"
-                                        required
+                                        name="password"
                                         type={showPassword ? "text" : "password"}
+                                        variant="outlined"
+                                        fullWidth
                                         value={formData.password}
                                         onChange={handleChange}
-                                        error={!!errors.password} // Add error prop
-                                        helperText={errors.password} // Display error message
-                                        sx={commonTextFieldSx} // Apply common style
-                                        size="small"
                                         InputProps={{
                                             endAdornment: (
                                                 <InputAdornment position="end">
-                                                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                                                    <IconButton onClick={handleClickShowPassword} edge="end">
                                                         {showPassword ? <VisibilityOff /> : <Visibility />}
                                                     </IconButton>
                                                 </InputAdornment>
                                             ),
                                         }}
+                                        size="small"
                                     />
                                 </Grid>
+
 
 
                                 {/* GST Number */}
                                 <Grid item xs={12} sm={6}>
                                     <Autocomplete
                                         multiple
-                                        size='small'
-                                        options={roles}
-                                        getOptionLabel={(option) => option._id} // Adjust according to your data
-                                        value={selectedRoles}
-                                        onChange={(event, newValue) => setSelectedRoles(newValue)}
-                                        renderInput={(params) => <TextField {...params} label="Select Roles" variant="outlined" />}
+                                        options={designations}
+                                        getOptionLabel={(option) => option.roleName}  // Adjust based on API data structure
+                                        value={selectedDesignations}
+                                        onChange={handleChangeDesignation}
+                                        renderInput={(params) => (
+                                            <TextField {...params} label="Select Designations" variant="outlined" />
+                                        )}
+                                        size="small"
                                     />
                                 </Grid>
 
                                 <Grid item xs={12} sm={6} >
                                     <TextField
                                         fullWidth
-                                        id="joinedDate"
-                                        name="joinedDate"
-                                        label="Joined Date"
+                                        id="joiningDate"
+                                        name="joiningDate"
+                                        label="Joining Date"
                                         type="date" // Enables both typing and picking a date
                                         variant="outlined"
                                         required
@@ -1200,7 +1192,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                             <input
                                                 ref={fileInputcamRef} // Attach the ref here
                                                 type="file"
-                                                name="image"
+                                                name="memberImage"
                                                 hidden
                                                 accept="image/*"
                                                 capture="environment" // Enables capture from the camera
@@ -1263,6 +1255,15 @@ export default function CustomerForm({ onCustomerAdded }) {
                                     </Box>
                                     {errors.image && <Typography color="error">{errors.image}</Typography>}
                                 </Grid>
+
+
+                                {roleId.map((role, index) => (
+                                    <Grid item xs={12} key={index}>
+                                        <Typography variant="subtitle1" sx={{ color: '#626161' }}>
+                                            role {index + 1}    : {role}
+                                        </Typography>
+                                    </Grid>
+                                ))}
 
 
 

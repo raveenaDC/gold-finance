@@ -28,6 +28,9 @@ export const submitDocument = async (data) => {
             body: data.info,
         });
 
+        console.log("member 1", response);
+
+
         if (!response.ok) {
             // Parse error response if available
             const errorData = await response.json();

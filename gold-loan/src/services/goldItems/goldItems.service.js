@@ -1,4 +1,5 @@
 import { API_BASE_URL, API_ENDPOINT } from "../../constant/apiEndpoints"
+import { requests } from "../../config/api.config";
 
 export const getgolditemdetails = async () => {
     try {
@@ -60,5 +61,13 @@ export const getgoldbillhistorytable = async (goldLoanId) => {
 
     }
 
+}
+
+export const saveGoldItems = async () => {
+    return await requests.post({
+        url: API_ENDPOINT.SAVE_GOLD_ITEMS, data: {
+
+        }
+    })
 }
 

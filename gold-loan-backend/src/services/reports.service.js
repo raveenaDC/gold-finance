@@ -35,7 +35,7 @@ export async function viewAllGoldLoan(req, res, next) {
 
 
         let loanList = await models.goldLoanModel.find(query).sort({ purchaseDate: -1 }).select(
-            'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage totalCharges isClosed totalChargesAndBalanceAmount interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode insurance  processingFee otherCharges packingFee appraiser dayAmount principleAmount amountPaid interestPaid balanceAmount currentGoldValue profitOrLoss goldImage totalInterestRate createdAt'
+            'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage totalCharges isClosed totalChargesAndBalanceAmount interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode cgst sgst pledgeId insurance  processingFee otherCharges packingFee appraiser dayAmount principleAmount amountPaid interestPaid balanceAmount currentGoldValue profitOrLoss goldImage totalInterestRate createdAt'
         ).populate({
             path: 'itemDetails.goldItem',
             select: 'goldItem'

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button, Modal, Box, TextField, Typography } from '@mui/material';
+import { savebankdetails } from '../../services/pledge/pledge.service';
 
 const style = {
     position: 'absolute',
@@ -15,9 +16,50 @@ const style = {
 
 const BankDetailsModal = () => {
     const [open, setOpen] = useState(false);
+    const [formData, setFormData] = useState({
+        bankName: '',
+        interestRate: '',
+        otherCharges: '',
+        duration: '',
+        remark: '',
+    });
 
     const handleOpen = () => setOpen(true);
-    const handleClose = () => setOpen(false);
+    const handleClose = () => {
+
+        setOpen(false);
+        setFormData({ bankName: '', interestRate: '', otherCharges: '', duration: '', remark: '' }); // Clear form fields on close
+    };
+
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleSave = async (event) => {
+        event.preventDefault();
+        try {
+            // Save the form data
+            const response = await savebankdetails(formData.bankName, formData.interestRate, formData.otherCharges,
+                formData.duration,
+                formData.remark,
+            );
+            if (response?.isError) {
+                console.log('Failed to Saved fees:', response);
+                alert('Failed to save fees');
+
+            } else {
+                console.log(' Saved fees:', response);
+                setFormData({ bankName: '', interestRate: '', otherCharges: '', duration: '', remark: '' }); // Clear form fields after saving
+                setOpen(false); // Close the modal
+                alert('Fees saved successfully!');
+                handleClose();
+            }
+        } catch (error) {
+            console.error('Error saving fees:', error);
+            alert('Error saving fees');
+        }
+        console.log('Saved Data:', formData); // Replace with actual API call       
+    };
 
     return (
         <div>
@@ -29,13 +71,57 @@ const BankDetailsModal = () => {
                     <Typography variant="h6" component="h2" gutterBottom>
                         Bank Details
                     </Typography>
-                    <TextField fullWidth label="Bank Name" margin="normal" size='small' />
-                    <TextField fullWidth label="Interest Rate (%)" margin="normal" type="number" size='small' />
-                    <TextField fullWidth label="Other Charges" margin="normal" size='small' />
-                    <TextField fullWidth label="Duration (months)" margin="normal" type="number" size='small' />
-                    <TextField fullWidth label="Remark" margin="normal" multiline rows={2} size='small' />
+                    <TextField
+                        fullWidth
+                        label="Bank Name"
+                        name="bankName"
+                        value={formData.bankName}
+                        onChange={handleChange}
+                        margin="normal"
+                        size="small"
+                    />
+                    <TextField
+                        fullWidth
+                        label="Interest Rate (%)"
+                        name="interestRate"
+                        type="number"
+                        value={formData.interestRate}
+                        onChange={handleChange}
+                        margin="normal"
+                        size="small"
+                    />
+                    <TextField
+                        fullWidth
+                        label="Other Charges"
+                        name="otherCharges"
+                        value={formData.otherCharges}
+                        onChange={handleChange}
+                        margin="normal"
+                        size="small"
+                    />
+                    <TextField
+                        fullWidth
+                        label="Duration (months)"
+                        name="duration"
+                        type="number"
+                        value={formData.duration}
+                        onChange={handleChange}
+                        margin="normal"
+                        size="small"
+                    />
+                    <TextField
+                        fullWidth
+                        label="Remark"
+                        name="remark"
+                        multiline
+                        rows={2}
+                        value={formData.remark}
+                        onChange={handleChange}
+                        margin="normal"
+                        size="small"
+                    />
                     <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
-                        <Button variant="contained" onClick={handleClose}>
+                        <Button variant="contained" onClick={handleSave}>
                             Save
                         </Button>
                         <Button variant="outlined" color="secondary" onClick={handleClose}>

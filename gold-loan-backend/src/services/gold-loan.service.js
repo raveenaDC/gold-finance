@@ -83,7 +83,7 @@ export async function viewGoldLoan(req, res) {
         }
 
         let loanList = await models.goldLoanModel.find(query).select(
-            'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage totalCharges totalChargesAndBalanceAmount interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode insurance  processingFee otherCharges packingFee appraiser principleAmount dayAmount amountPaid interestPaid balanceAmount currentGoldValue profitOrLoss goldImage isClosed totalInterestRate createdAt'
+            'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage totalCharges totalChargesAndBalanceAmount interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode cgst sgst pledgeId insurance  processingFee otherCharges packingFee appraiser principleAmount dayAmount amountPaid interestPaid balanceAmount currentGoldValue profitOrLoss goldImage isClosed totalInterestRate createdAt'
         ).populate({
             path: 'itemDetails.goldItem', // Path to populate
             select: 'goldItem'   // Fields from the `goldItem` schema to include
@@ -577,7 +577,6 @@ export async function viewGoldLoanById(req, res, next) {
         } else {
             fineDetails = '';
         }
-
         const loanData = {
             ...loanDetails,
             glNo: loans.glNo,

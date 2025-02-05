@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import {
-    AppBar as MuiAppBar, Toolbar, IconButton, Button, Box, Typography, CssBaseline,
-    Menu, MenuItem, useMediaQuery, useTheme
-} from '@mui/material';
+import { AppBar as MuiAppBar, Toolbar, IconButton, Button, Box, Typography, CssBaseline, Menu, MenuItem } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { styled } from '@mui/material/styles';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -16,13 +13,15 @@ import CustomerForm from '../../pages/Member';
 import StaffModal from '../Add Member Role';
 import Designation from '../Add Designation';
 import Fee from '../Fee';
+import AddGoldItem from '../Add Items';
+
 
 const drawerWidth = 240;
 
 // Styled AppBar
 const AppBar = styled(MuiAppBar, {
     shouldForwardProp: (prop) => prop !== 'open',
-})(({ theme, open }) => ({
+})(({ theme, open, drawerWidth }) => ({
     transition: theme.transitions.create(['margin', 'width'], {
         easing: theme.transitions.easing.sharp,
         duration: theme.transitions.duration.leavingScreen,
@@ -37,13 +36,11 @@ const AppBar = styled(MuiAppBar, {
     }),
 }));
 
+
 export default function Navbar({ handleDrawerOpen, open }) {
     const [anchorElReports, setAnchorElReports] = useState(null);
     const [anchorElUtilities, setAnchorElUtilities] = useState(null);
     const [anchorEl, setAnchorEl] = useState(null);
-
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // Check if the screen is mobile
 
     const handleMenuOpen = (event) => {
         setAnchorEl(event.currentTarget);
@@ -54,8 +51,9 @@ export default function Navbar({ handleDrawerOpen, open }) {
     };
 
     const handleLogout = () => {
+        // Implement logout logic here
         console.log("User logged out");
-        setAnchorEl(null);
+        setAnchorEl(null); // Close menu after logout
     };
 
     const handleReportsClick = (event) => {
@@ -74,9 +72,8 @@ export default function Navbar({ handleDrawerOpen, open }) {
     return (
         <Box sx={{ display: 'flex' }}>
             <CssBaseline />
-            <AppBar position="fixed" open={open} sx={{ backgroundColor: '#ffff', zIndex: theme.zIndex.drawer + 1 }}>
+            <AppBar position="fixed" open={open} sx={{ backgroundColor: '#ffff ' }}  >
                 <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    {/* Left Section: Hamburger Menu and Company Name */}
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <IconButton
                             color="inherit"
@@ -85,7 +82,7 @@ export default function Navbar({ handleDrawerOpen, open }) {
                             edge="start"
                             sx={{
                                 color: 'black', mr: 2, ...(open && { display: 'none' })
-                            }}
+                            }} // Hide when drawer is open
                         >
                             <MenuIcon />
                         </IconButton>
@@ -94,17 +91,12 @@ export default function Navbar({ handleDrawerOpen, open }) {
                         </Typography>
                     </Box>
 
-                    {/* Right Section: Buttons and Dropdowns */}
+                    {/* Align items to the right */}
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        {/* Login Details Button (Hidden on Mobile) */}
-                        {!isMobile && (
-                            <Button color="inherit" sx={{ mr: 2, color: 'black' }}>Login Details</Button>
-                        )}
+                        <Button color="inherit" sx={{ mr: 2, color: 'black' }}>Login Details</Button>
+                        <CustomerForm />
 
-                        {/* Customer Form (Hidden on Mobile) */}
-                        {!isMobile && <CustomerForm />}
-
-                        {/* Reports Dropdown */}
+                        {/* Material UI Dropdown for Reports */}
                         <Button
                             color="inherit"
                             onClick={handleReportsClick}
@@ -117,17 +109,19 @@ export default function Navbar({ handleDrawerOpen, open }) {
                             open={Boolean(anchorElReports)}
                             onClose={handleClose}
                         >
-                            <MenuItem onClick={handleClose}>GL Ledger Report</MenuItem>
-                            <MenuItem onClick={handleClose} component={Link} to={ROUTES.GL_LEDGER_REPORT}>GL Schedule Report</MenuItem>
-                            <MenuItem onClick={handleClose}>GL Ordinary Letter</MenuItem>
-                            <MenuItem onClick={handleClose}>GL Registered Letter</MenuItem>
-                            <MenuItem onClick={handleClose} component={Link} to={ROUTES.GL_Transaction_Report}>GL Transaction Report</MenuItem>
-                            <MenuItem onClick={handleClose} component={Link} to={ROUTES.GL_Customer_Details}>Gl Customer Details</MenuItem>
-                            <MenuItem onClick={handleClose}>GL Closed /Non-Closed Details</MenuItem>
-                            <MenuItem onClick={handleClose}>GL Closed / Non-Closed Details</MenuItem>
+                            <MenuItem onClick={handleClose} >GL Ledger Report </MenuItem>
+                            <MenuItem onClick={handleClose} component={Link} to={ROUTES.GL_LEDGER_REPORT}>GL Schedule Report </MenuItem>
+                            <MenuItem onClick={handleClose}>GL Ordinary Letter  </MenuItem>
+                            <MenuItem onClick={handleClose}>GL Registered Letter </MenuItem>
+                            <MenuItem onClick={handleClose} component={Link} to={ROUTES.GL_Transaction_Report}>GL Transaction Report </MenuItem>
+                            <MenuItem onClick={handleClose} component={Link} to={ROUTES.GL_Customer_Details} >Gl Customer Details</MenuItem>
+                            <MenuItem onClick={handleClose}>GL Closed /Non-Closed Details </MenuItem>
+                            <MenuItem onClick={handleClose}>GL Closed / Non-Closed Details </MenuItem>
+
+
                         </Menu>
 
-                        {/* Utilities Dropdown */}
+                        {/* Material UI Dropdown for Utilities */}
                         <Button
                             color="inherit"
                             onClick={handleUtilitiesClick}
@@ -140,64 +134,49 @@ export default function Navbar({ handleDrawerOpen, open }) {
                             open={Boolean(anchorElUtilities)}
                             onClose={handleClose}
                         >
-                            <MenuItem><RateSetting /></MenuItem>
-                            <MenuItem><InterestPlanModal /></MenuItem>
+                            <MenuItem ><RateSetting /></MenuItem>
+                            <MenuItem > <InterestPlanModal /></MenuItem>
                             <MenuItem onClick={handleClose}>GoldLoan Setting</MenuItem>
                             <MenuItem onClick={handleClose}>Create Financial Year</MenuItem>
                             <MenuItem onClick={handleClose}>Set Financial Year</MenuItem>
                             <MenuItem onClick={handleClose}>Print Setup</MenuItem>
                             <MenuItem onClick={handleClose}>User Setting</MenuItem>
-                            <MenuItem onClick={handleClose}>Password</MenuItem>
+                            <MenuItem onClick={handleClose}>Password </MenuItem>
+                            <MenuItem><AddGoldItem /></MenuItem>
                             <MenuItem><Fee /></MenuItem>
                             <MenuItem><Designation /></MenuItem>
                             <MenuItem><StaffModal /></MenuItem>
+
                         </Menu>
 
-                        {/* Avatar and Dropdown Menu */}
+
+
                         <Avatar
                             sx={{ bgcolor: '#689689', cursor: 'pointer', marginRight: 1 }}
                         >
-                            <AccountCircleIcon sx={{ color: 'black' }} onClick={handleMenuOpen} />
+                            <AccountCircleIcon sx={{ color: 'black' }} onClick={handleMenuOpen} /> {/* User icon */}
                         </Avatar>
+
+                        {/* Down arrow to trigger menu */}
                         <IconButton onClick={handleMenuOpen}>
                             <ArrowDropDownIcon sx={{ color: 'black' }} />
                         </IconButton>
+
+                        {/* Dropdown Menu */}
                         <Menu
                             anchorEl={anchorEl}
                             open={Boolean(anchorEl)}
                             onClose={handleMenuClose}
                         >
+                            {/* <MenuItem onClick={handleLogout}>Logout</MenuItem> */}
                             <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                            {/* Add more menu items if needed */}
                         </Menu>
+
+
                     </Box>
                 </Toolbar>
             </AppBar>
-
-            {/* Main Content */}
-            <Box
-                component="main"
-                sx={{
-                    flexGrow: 1,
-                    p: 3,
-                    marginTop: '64px', // Adjust margin to account for the AppBar height
-                    width: `calc(100% - ${open ? drawerWidth : 0}px)`, // Adjust width when drawer is open
-                    transition: theme.transitions.create(['width', 'margin'], {
-                        easing: theme.transitions.easing.sharp,
-                        duration: theme.transitions.duration.leavingScreen,
-                    }),
-                    ...(open && {
-                        marginLeft: `${drawerWidth}px`,
-                        width: `calc(100% - ${drawerWidth}px)`,
-                        transition: theme.transitions.create(['width', 'margin'], {
-                            easing: theme.transitions.easing.easeOut,
-                            duration: theme.transitions.duration.enteringScreen,
-                        }),
-                    }),
-                }}
-            >
-                {/* Render your page content here */}
-                {/* Example: <YourPageComponent /> */}
-            </Box>
-        </Box>
+        </Box >
     );
 }

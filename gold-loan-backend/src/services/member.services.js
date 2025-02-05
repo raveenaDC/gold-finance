@@ -240,6 +240,7 @@ export async function createMember(req, res, next) {
             state } = req.body;
         let { memberImage, passBookImage, aadharImage } = req.files;
 
+
         const memberExist = await models.memberModel.findOne({ email });
         if (memberExist?.length > 0) {
             return responseHelper(
@@ -293,23 +294,23 @@ export async function createMember(req, res, next) {
         });
 
         if (memberImage && memberImage.length > 0) {
-            member.goldImage = transFormImageUploadResponseArray(memberImage)[0];
+            member.memberImage = transFormImageUploadResponseArray(memberImage)[0];
         } if (aadharImage && aadharImage.length > 0) {
             member.aadharImage = transFormImageUploadResponseArray(aadharImage);
         } if (passBookImage && passBookImage.length > 0) {
             member.passBookImage = transFormImageUploadResponseArray(passBookImage)[0];
         }
 
-        let memberName = firstName + ' ' + lastName;
-        const frontendUrl = process.env.FRONTEND_URL + '/auth/login';
-        const subject = 'Account created successfully';
-        const content = createAccountTemplate(
-            memberName,
-            email,
-            passCode,
-            frontendUrl
-        );
-        const mailResponse = await sendMail(email, subject, content);
+        // let memberName = firstName + ' ' + lastName;
+        // const frontendUrl = process.env.FRONTEND_URL + '/auth/login';
+        // const subject = 'Account created successfully';
+        // const content = createAccountTemplate(
+        //     memberName,
+        //     email,
+        //     passCode,
+        //     frontendUrl
+        // );
+        // const mailResponse = await sendMail(email, subject, content);
 
         await member.save();
         return responseHelper(

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Modal, Box, Typography, TextField, Button } from '@mui/material';
 import { setRateData } from '../../Redux/rateSlice'; // Import the action
+import { saveGoldRate } from '../../services/system/system.service';
 
 const RateSettingModal = () => {
     const dispatch = useDispatch();
@@ -15,21 +16,37 @@ const RateSettingModal = () => {
     };
 
     const [open, setOpen] = useState(false);
-    const [date, setDate] = useState(getTodayDate());
+    const [settingsDate, setSettingsDate] = useState(getTodayDate());
     const [goldRate, setGoldRate] = useState('');
     const [companyGoldRate, setCompanyGoldRate] = useState('');
 
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
 
-    const handleSubmit = () => {
+    const handleSubmit = async (event) => {
+        event.preventDefault();
         // Only dispatch when the form is submitted
-        const rateData = { date, goldRate, companyGoldRate };
+        const rateData = { date: settingsDate, goldRate, companyGoldRate };
         console.log('Submitted Data:', rateData);
-
-        // Dispatch action to update Redux state with the submitted data
-        dispatch(setRateData({ date, goldRate, companyGoldRate }));
-
+        try {
+            const response = await saveGoldRate(goldRate, companyGoldRate, settingsDate);
+            if (response?.isError) {
+                console.log('Failed to save rates:', response);
+                alert('Failed to save rates');
+                return;
+            }
+            else {
+                dispatch(setRateData({ date: settingsDate, goldRate, companyGoldRate }));
+                console.log('Saved rates:', response);
+                alert('Rates saved successfully!');
+                setGoldRate('');
+                setCompanyGoldRate('');
+                handleClose(); // Close modal after submission
+            }
+        } catch (error) {
+            console.error('Error saving rates:', error);
+            alert('Error saving rates');
+        }
         handleClose(); // Close modal after submission
     };
 
@@ -59,8 +76,8 @@ const RateSettingModal = () => {
                     <TextField
                         label="Date"
                         type="date"
-                        value={date}
-                        onChange={(e) => setDate(e.target.value)}
+                        value={settingsDate}
+                        onChange={(e) => setSettingsDate(e.target.value)}
                         fullWidth
                         InputLabelProps={{
                             shrink: true,

@@ -11,15 +11,17 @@ import { getgolditemdetails } from '../../services/goldItems/goldItems.service';
 import SaveIcon from '@mui/icons-material/Save'; // Import the Save icon
 import AddIcon from '@mui/icons-material/Add';
 import StaffDesignation from '../../components/Add Member Role';
+import { submitData } from "../../api";
+import { getBankName } from '../../services/pledge/pledge.service'
 
 const PledgeMasterPage = () => {
     const [pledges, setPledges] = useState([]);
     const [formData, setFormData] = useState({
-        pledgeId: '',
         pledgeNumber: '',
+        bankPledgeNumber: '',
         bankName: '',
-        dateOfPledge: '',
-        glNumber: '',
+        pledgeDate: '',
+        bankId: '',
         principalAmount: '',
         interestRate: '',
         dueDate: '',
@@ -27,12 +29,17 @@ const PledgeMasterPage = () => {
         otherCharges: '',
         remarks: '',
     });
-
+    const today = new Date().toISOString().split('T')[0];
+    const [glOptions, setGlOptions] = useState([]); // GL number dropdown options
     const [paymentMode, setPaymentMode] = useState('Cash');
     const [options, setOptions] = useState([]);
+    const [goldNumber, setGoldNumber] = useState([]);
+    const [glNumber, setGlNumber] = useState([]);
     const [loading, setLoading] = useState(false);
     const [tableData, setTableData] = useState([]);
     const [items, setItems] = useState([]);
+    const [bankOptions, setBankOptions] = useState([]);
+
     const [newItem, setNewItems] = useState({
         id: 1,
         type: 'Select',
@@ -58,11 +65,8 @@ const PledgeMasterPage = () => {
         return netWeight
     };
 
-    const glNumberOptions = [
-        { label: 'GL001', id: 1 },
-        { label: 'GL002', id: 2 },
-        { label: 'GL003', id: 3 }
-    ];
+    const glNumberOptions = [];
+
 
 
     const handleInputChange = (e) => {
@@ -90,6 +94,20 @@ const PledgeMasterPage = () => {
             });
         }
     };
+
+    // const handleGlNumberChange = (event, newValue) => {
+    //     if (newValue) {
+    //         setGoldNumber(newValue.glNo); // Set selected GL number
+    //         setGlNumber(newValue._id);
+    //         // console.log("hiiiiiiiii");
+
+    //         // console.log("nothing", newValue.customerId);
+    //         // console.log(("idghg", newValue._id));
+    //         // console.log("nothing", newValue.glNo);
+    //     } else {
+    //         setGoldNumber('');
+    //     }
+    // }
 
     const handleChange = (field, value, type, goldItemId) => {
         setNewItems((prevState) => {
@@ -203,21 +221,53 @@ const PledgeMasterPage = () => {
     };
 
     const fetchGoldItems = async () => {
+        setLoading(true); // Set loading to true before fetching
         try {
             const response = await getgolditemdetails();
-            if (response.isSuccess && response.items) {
+            if (response?.isSuccess && response?.items) {
                 setOptions(response.items);
+            } else {
+                console.error("Failed to fetch gold items:", response);
             }
-            console.log(response);
-
         } catch (error) {
             console.error("Error fetching customer data:", error);
-            setLoading(false);
+        } finally {
+            setLoading(false); // Ensure loading is stopped in both success & error cases
         }
     };
 
+
+    const fetchGoldNoData = async () => {
+        try {
+            const response = await fetch(
+                `http://localhost:4000/customer/gold/loan/number/view?search=${goldNumber}`
+            );
+            const data = await response.json();
+            setGlOptions(data.data.loanDetails || []); // Populate dropdown options
+        } catch (error) {
+            console.error('Error fetching customer data:', error);
+        }
+    };
+
+    const fetchBankDetails = async () => {
+        try {
+            const response = await getBankName();
+            console.log("testbanking", response.result.data);
+
+
+            if (response?.isSuccess && Array.isArray(response.result.data)) {
+                setBankOptions(response.result.data); // Ensure it's an array
+            }
+        } catch (error) {
+            console.error('Error fetching bank details:', error);
+        }
+    };
+
+
     useEffect(() => {
         fetchGoldItems();
+        fetchGoldNoData();
+        fetchBankDetails();
 
     }, []);
 
@@ -231,23 +281,71 @@ const PledgeMasterPage = () => {
     }, []);
 
 
-    const handleSubmit = (e) => {
+
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        const newPledge = { ...formData, pledgeId: formData.pledgeId || uuidv4() };
-        if (!formData.pledgeId) {
-            setPledges([...pledges, newPledge]);
-        } else {
-            setPledges(pledges.map((p) => (p.pledgeId === formData.pledgeId ? newPledge : p)));
+
+        // // Validate form data
+        // if (!formData.pledgeNumber || !formData.principalAmount || items.length === 0) {
+        //     alert("Please fill in all required fields and add at least one item.");
+        //     return;
+        // }
+
+        // Prepare the data in the required format
+        const data = {
+            pledgeNumber: formData.pledgeNumber,
+            pledgeDate: formData.pledgeDate || today, // Default to today if not provided
+            bankPledgeNumber: formData.bankPledgeNumber,
+            bankId: formData.bankId, // Assuming bankName is the bankId
+            interestRate: parseFloat(formData.interestRate) || 0,
+            otherCharges: parseFloat(formData.otherCharges) || 0,
+            dueDate: formData.dueDate,
+            principleAmount: parseFloat(formData.principalAmount) || 0,
+            glNumber: glNumber, // Assuming glNumber is already an array of IDs
+            paymentMode: paymentMode.toLowerCase(), // Ensure it's in lowercase
+            itemDetails: items.map(item => ({
+                stoneWeight: parseFloat(item.stoneWeight) || 0,
+                depreciation: parseFloat(item.depreciation) || 0,
+                quantity: parseFloat(item.quantity) || 0,
+                grossWeight: parseFloat(item.grossWeight) || 0,
+                netWeight: parseFloat(item.netWeight) || 0,
+                goldItem: item.goldItem // Assuming goldItem is the ID
+            }))
+        };
+
+        // Log the data to verify its structure
+        console.log("Submitting data:", data);
+
+        const customerData = {
+            info: data,
+            method: 'post',
+            path: 'pledge/add/pledge-details',
+        };
+
+        try {
+            const response = await submitData(customerData); // Assuming submitData is defined elsewhere
+            console.log("API Response:", response);
+
+            if (response && response.isSuccess) {
+                alert("Pledge submitted successfully!");
+                resetForm();
+                setItems([]); // Clear the items table
+            } else {
+                throw new Error(response?.message || "Failed to submit pledge.");
+            }
+        } catch (error) {
+            console.error('Error submitting data:', error);
+            alert(error.message || 'Failed to submit the data. Please try again.');
         }
-        resetForm();
     };
 
     const resetForm = () => {
         setFormData({
-            pledgeId: '',
             pledgeNumber: '',
+            bankPledgeNumber: '',
             bankName: '',
-            dateOfPledge: '',
+            pledgeDate: '',
             glNumber: '',
             principalAmount: '',
             interestRate: '',
@@ -289,30 +387,32 @@ const PledgeMasterPage = () => {
 
                                 {/* Date */}
                                 <Box display="flex" alignItems="center" gap={1}>
+
+
                                     <TextField
                                         type="date"
                                         size="small"
                                         label="PLEDGE DATE"
-                                        value={formData.dateOfPledge} // Format the date to YYYY-MM-DD
+                                        value={formData.pledgeDate ? formData.pledgeDate.split('T')[0] : today} // Defaults to today
                                         sx={{
                                             '& .MuiInputLabel-root': {
-                                                fontSize: '14px', // Increased label font size
-                                                fontWeight: 'bold', // Made label bold
-                                                marginBottom: '0px',
+                                                fontSize: '14px',
+                                                fontWeight: 'bold',
                                             },
                                             '& .MuiInputBase-root': {
                                                 fontSize: '14px',
-                                                paddingTop: '0px',
-                                                paddingBottom: '0px',
+                                                height: '36px',
                                             }
                                         }}
                                         InputLabelProps={{
-                                            shrink: true, // Ensures the label doesn't overlap the input
+                                            shrink: true,
                                         }}
                                         InputProps={{
-                                            readOnly: true, // Makes the field read-only
+                                            readOnly: true,
                                         }}
                                     />
+
+
 
                                 </Box>
                             </Box>
@@ -320,22 +420,49 @@ const PledgeMasterPage = () => {
                             <Grid container spacing={2}>
                                 {['pledgeNumber', 'bankName', 'principalAmount', 'interestRate', 'otherCharges', 'dueDate'].map((field, index) => (
                                     <Grid item xs={12} sm={6} md={4} key={index}>
-                                        <TextField
-                                            fullWidth
-                                            label={field.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}
-                                            name={field}
-                                            value={formData[field]}
-                                            onChange={handleInputChange}
-                                            size="small"
-                                            type={['dueDate'].includes(field) ? 'date' : 'text'}
-                                            InputLabelProps={['dueDate'].includes(field) ? { shrink: true } : {}}
-                                            sx={{
-                                                '& .MuiInputLabel-root': { fontSize: '14px', fontWeight: 'bold' },
-                                                '& .MuiInputBase-root': { fontSize: '14px' }
-                                            }}
-                                        />
+                                        {field === 'bankName' ? (
+                                            <Autocomplete
+                                                fullWidth
+                                                options={bankOptions || []} // Ensure it's always an array
+                                                getOptionLabel={(option) => option.bankName || ''} // Display bank name safely
+                                                value={bankOptions?.find(opt => opt._id === formData.bankId) || null} // Match selected bank by ID
+                                                onChange={(event, newValue) => {
+                                                    setFormData((prevData) => ({
+                                                        ...prevData,
+                                                        bankId: newValue ? newValue._id : '', // Save selected bank's ID
+                                                    }));
+                                                }}
+                                                renderInput={(params) => (
+                                                    <TextField
+                                                        {...params}
+                                                        label="Bank Name"
+                                                        size="small"
+                                                        InputLabelProps={{ style: { fontSize: '14px', fontWeight: 'bold' } }}
+                                                        sx={{ '& .MuiInputBase-root': { fontSize: '14px' } }}
+                                                    />
+                                                )}
+                                            />
+
+
+                                        ) : (
+                                            <TextField
+                                                fullWidth
+                                                label={field.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}
+                                                name={field}
+                                                value={formData[field]}
+                                                onChange={handleInputChange}
+                                                size="small"
+                                                type={field === 'dueDate' ? 'date' : 'text'}
+                                                InputLabelProps={field === 'dueDate' ? { shrink: true } : {}}
+                                                sx={{
+                                                    '& .MuiInputLabel-root': { fontSize: '14px', fontWeight: 'bold' },
+                                                    '& .MuiInputBase-root': { fontSize: '14px' }
+                                                }}
+                                            />
+                                        )}
                                     </Grid>
                                 ))}
+
 
 
                                 <Grid item xs={12} sm={8} md={8}>
@@ -368,8 +495,12 @@ const PledgeMasterPage = () => {
                                                 <TableCell colSpan={7} sx={{ padding: '8px', borderBottom: '2px solid #ddd', backgroundColor: '#fffff' }}>
                                                     <Autocomplete
                                                         multiple
-                                                        options={glNumberOptions}
-                                                        getOptionLabel={(option) => option.label}
+                                                        options={glOptions}
+                                                        getOptionLabel={(option) => option.glNo || "Select"}
+                                                        onChange={(event, newValue) => {
+                                                            setGoldNumber(newValue.map(option => option.glNo));
+                                                            setGlNumber(newValue.map(option => option._id));
+                                                        }}
                                                         renderInput={(params) => (
                                                             <TextField
                                                                 {...params}
@@ -378,23 +509,15 @@ const PledgeMasterPage = () => {
                                                                 size="small"
                                                                 fullWidth
                                                                 sx={{
-                                                                    '& .MuiInputLabel-root': { fontSize: '10px', fontWeight: 500 }, // Smaller font size for the label
-                                                                    '& .MuiInputBase-root': { fontSize: '10px', height: '30px' },    // Reduced input height
-                                                                    '& .MuiOutlinedInput-root': { padding: '0 6px' },               // Reduced padding
-                                                                    '& .MuiOutlinedInput-input': { padding: '6px 8px' }             // Reduced inner input padding
+                                                                    '& .MuiInputLabel-root': { fontSize: '10px', fontWeight: 500 },
+                                                                    '& .MuiInputBase-root': { fontSize: '10px', height: '30px' },
+                                                                    '& .MuiOutlinedInput-root': { padding: '0 6px' },
+                                                                    '& .MuiOutlinedInput-input': { padding: '6px 8px' }
                                                                 }}
                                                             />
                                                         )}
-                                                        value={glNumberOptions.filter(option => formData.glNumber.includes(option.label)) || []}
-                                                        onChange={(e, newValue) => {
-                                                            setFormData({
-                                                                ...formData,
-                                                                glNumber: newValue.map(option => option.label)
-                                                            });
-                                                        }}
-                                                        sx={{
-                                                            width: '400px'  // Reduce width of the Autocomplete component
-                                                        }}
+                                                        value={glOptions.filter(option => glNumber.includes(option._id)) || []} // Ensure multiple selection works
+                                                        sx={{ width: '400px' }}
                                                     />
 
                                                     <Box sx={{
@@ -657,18 +780,11 @@ const PledgeMasterPage = () => {
                                     </tr>
                                 </tbody>
                             </table>
-
-
-
-
-
-
-
                         </Grid>
 
                         <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
                             <SearchModal />
-                            <Button type="submit" variant="contained" color="primary" sx={{ ml: 1 }} size='small'>
+                            <Button type="submit" variant="contained" color="primary" sx={{ ml: 1 }} size='small' onClick={handleSubmit}>
                                 Submit
                             </Button>
                         </Grid>

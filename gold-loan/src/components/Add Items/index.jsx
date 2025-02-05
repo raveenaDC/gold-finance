@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Modal, Box, TextField, Button, Typography } from '@mui/material';
-import { saveDesignation } from '../../services/system/system.service';
+import { saveGoldItems } from '../../services/goldItems/goldItems.service';
 
 const App = () => {
     const [openModal, setOpenModal] = useState(false);
-    const [roleName, setDesignation] = useState('');
+    const [goldItems, setGoldItems] = useState('');
     const [error, setError] = useState('');
 
     const handleOpen = () => setOpenModal(true);
@@ -16,8 +16,8 @@ const App = () => {
     const handleSubmit = async () => {
         try {
             // Call the API to save the designation
-            const response = await saveDesignation(roleName,);
-            console.log("designationsaved", response);
+            const response = await saveGoldItems(goldItems,);
+            console.log("add items", response);
 
             if (response?.isError) {
                 alert('Failed to save designation. Please try again.');
@@ -34,14 +34,14 @@ const App = () => {
 
 
     const handleDesignationChange = (e) => {
-        setDesignation(e.target.value);
+        setGoldItems(e.target.value);
 
     };
 
     return (
         <div>
             <Typography variant="button" onClick={handleOpen}>
-                Open Designation Modal
+                Add Gold Items
             </Typography>
 
             <Modal open={openModal} onClose={handleClose}>
@@ -60,9 +60,9 @@ const App = () => {
                 >
                     <Typography variant="h6" mb={2}>Enter Designation</Typography>
                     <TextField
-                        label="Designation"
+                        label="Add Items"
                         fullWidth
-                        value={roleName}
+                        value={goldItems}
                         onChange={handleDesignationChange}
                         error={!!error}
                         helperText={error}

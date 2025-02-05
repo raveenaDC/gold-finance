@@ -16,4 +16,12 @@ export const API_ENDPOINT = {
     SAVE_DESIGINATION_ROLE: "/member/role",
     SAVE_MEMBER_DETAILS: "/member/create",
     GET_DESIGNATION_ROLES: "/member/roles",
+    SAVE_ADDITONAL_FEES: "/settings/additional/charges  ",
+    GET_ADDITONAL_FEES: "/settings/view/additional/charges",
+    SAVE_GOLDRATE: "/settings/rate",
+    GET_GOLDRATE: "/settings/view/rate",
+    SAVE_BANK_DETAILS: "/pledge/bank-nameview/bank-name",
+    SAVE_GOLD_ITEMS: "/gold/add-item",
+    GET_BANK_DETAIL: "/pledge/view/bank-name",
+
 }
