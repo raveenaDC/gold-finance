@@ -136,6 +136,7 @@ export async function pledgeTransactionsBill(req, res, next) {
         } = req.body;
 
         let bank = await models.pledgeModel.findById(pledgeId)
+
         const pledgeData = await models.pledgeTransactionModel.create({
             pledgeId,
             paidPrinciple,
