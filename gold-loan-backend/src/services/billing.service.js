@@ -37,6 +37,7 @@ export async function createGoldLoanBilling(req, res, next) {
             goldLoanId,
             billDate,
             billNo,
+            receiptDate: new Date(),
             insurance,
             processingFee,
             packingFee,
@@ -128,7 +129,7 @@ export async function viewAllGoldLoanBilling(req, res, next) {
         };
 
         let billDetails = await models.billingModel.find(query)
-            .select('goldLoanId principleInterestRate payment paymentSection billDate billNo insurance processingFee packingFee appraise otherCharges createdAt')
+            .select('goldLoanId principleInterestRate payment paymentSection billDate billNo receiptDate insurance processingFee packingFee appraise otherCharges createdAt')
             .populate({
                 path: 'goldLoanId',
                 select: 'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode insurance processingFee otherCharges packingFee appraiser principleAmount dayAmount amountPaid interestPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt',
@@ -169,7 +170,7 @@ export async function viewGoldLoanBillingDetails(req, res, next) {
         let { goldLoanId } = req.params;
 
         let billDetails = await models.billingModel.find({ goldLoanId, isCanceled: false })
-            .select('goldLoanId principleInterestRate payment paymentSection billDate insurance processingFee packingFee appraise otherCharges billNo createdAt')
+            .select('goldLoanId principleInterestRate payment paymentSection billDate insurance receiptDate processingFee packingFee appraise otherCharges billNo createdAt')
             .populate({
                 path: 'goldLoanId',
                 select: 'glNo purchaseDate  interestPercentage interestRate dayAmount interestMode  insurance processingFee otherCharges packingFee appraiser principleAmount amountPaid interestPaid',
@@ -208,7 +209,7 @@ export async function viewGoldLoanBillingById(req, res) {
             )
         }
         const bill = await models.billingModel.findById(billId)
-            .select('goldLoanId principleInterestRate payment paymentSection billDate insurance processingFee packingFee appraise otherCharges billNo createdAt')
+            .select('goldLoanId principleInterestRate payment receiptDate paymentSection billDate insurance processingFee packingFee appraise otherCharges billNo createdAt')
             .populate({
                 path: 'goldLoanId',
                 select: 'glNo purchaseDate voucherNo goldRate companyGoldRate itemDetails interestPercentage dayAmount interestRate totalNetWeight interestMode customerId memberId nomineeId paymentMode insurance processingFee otherCharges packingFee appraiser principleAmount amountPaid interestPaid balanceAmount currentGoldValue profitOrLoss goldImage createdAt',

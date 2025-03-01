@@ -4,6 +4,7 @@ const billingSchema = new Schema(
     {
         billNo: String,
         billDate: Date,
+        receiptDate: Date,
         goldLoanId: { type: Schema.Types.ObjectId, ref: 'goldLoan' },
         paymentSection: {
             paymentMode: String,
