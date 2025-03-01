@@ -43,6 +43,9 @@ const BankDetailsModal = () => {
                 formData.duration,
                 formData.remark,
             );
+            console.log('Response:', response);
+
+
             if (response?.isError) {
                 console.log('Failed to Saved fees:', response);
                 alert('Failed to save fees');

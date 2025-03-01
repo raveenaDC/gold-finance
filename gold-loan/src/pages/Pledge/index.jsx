@@ -3,6 +3,7 @@ import {
     Box, Button, TextField, MenuItem, Table, TableBody, TableCell,
     TableContainer, TableHead, TableRow, Paper, IconButton, Grid, Autocomplete, Typography, FormControlLabel, Switch,
 } from '@mui/material';
+import { useSelector, useDispatch } from "react-redux";
 import DeleteIcon from '@mui/icons-material/Delete';
 import { v4 as uuidv4 } from 'uuid';
 import BankDetailsModal from '../../components/BankSchemes';
@@ -13,8 +14,11 @@ import AddIcon from '@mui/icons-material/Add';
 import StaffDesignation from '../../components/Add Member Role';
 import { submitData } from "../../api";
 import { getBankName } from '../../services/pledge/pledge.service'
+import { incrementPledge, resetPledge } from "../../Redux/pledgeSlice"; // Import the incrementPledge action
 
 const PledgeMasterPage = () => {
+    const dispatch = useDispatch();
+    const pledgeNumber = useSelector((state) => state.pledge.pledgeNumber);
     const [pledges, setPledges] = useState([]);
     const [formData, setFormData] = useState({
         pledgeNumber: '',
@@ -294,7 +298,7 @@ const PledgeMasterPage = () => {
 
         // Prepare the data in the required format
         const data = {
-            pledgeNumber: formData.pledgeNumber,
+            pledgeNumber: pledgeNumber,
             pledgeDate: formData.pledgeDate || today, // Default to today if not provided
             bankPledgeNumber: formData.bankPledgeNumber,
             bankId: formData.bankId, // Assuming bankName is the bankId
@@ -327,10 +331,12 @@ const PledgeMasterPage = () => {
             const response = await submitData(customerData); // Assuming submitData is defined elsewhere
             console.log("API Response:", response);
 
-            if (response && response.isSuccess) {
+            if (response.status === 201) {
                 alert("Pledge submitted successfully!");
                 resetForm();
                 setItems([]); // Clear the items table
+                dispatch(incrementPledge()); // Increment the pledge number
+
             } else {
                 throw new Error(response?.message || "Failed to submit pledge.");
             }
@@ -345,6 +351,7 @@ const PledgeMasterPage = () => {
             pledgeNumber: '',
             bankPledgeNumber: '',
             bankName: '',
+            bankId: '',
             pledgeDate: '',
             glNumber: '',
             principalAmount: '',
@@ -367,7 +374,7 @@ const PledgeMasterPage = () => {
 
                                 <Box display="flex" alignItems="center" gap={1} >
                                     <Typography variant="body2" fontWeight="bold">
-                                        Pledge No:
+                                        Pledge No: {pledgeNumber}
                                     </Typography>
 
                                 </Box>
@@ -418,7 +425,7 @@ const PledgeMasterPage = () => {
                             </Box>
 
                             <Grid container spacing={2}>
-                                {['pledgeNumber', 'bankName', 'principalAmount', 'interestRate', 'otherCharges', 'dueDate'].map((field, index) => (
+                                {['bankPledgeNumber', 'bankName', 'principalAmount', 'interestRate', 'otherCharges', 'dueDate'].map((field, index) => (
                                     <Grid item xs={12} sm={6} md={4} key={index}>
                                         {field === 'bankName' ? (
                                             <Autocomplete
@@ -510,13 +517,28 @@ const PledgeMasterPage = () => {
                                                                 fullWidth
                                                                 sx={{
                                                                     '& .MuiInputLabel-root': { fontSize: '10px', fontWeight: 500 },
-                                                                    '& .MuiInputBase-root': { fontSize: '10px', height: '30px' },
-                                                                    '& .MuiOutlinedInput-root': { padding: '0 6px' },
-                                                                    '& .MuiOutlinedInput-input': { padding: '6px 8px' }
+                                                                    '& .MuiInputBase-root': {
+                                                                        fontSize: '10px',
+                                                                        height: '30px', // Adjust height as needed
+                                                                        display: 'flex',
+                                                                        alignItems: 'center', // Align items vertically in the middle
+                                                                    },
+                                                                    '& .MuiOutlinedInput-root': {
+                                                                        padding: '0 6px',
+                                                                    },
+                                                                    '& .MuiAutocomplete-inputRoot': {
+                                                                        flexWrap: 'nowrap', // Prevent wrapping of chips
+                                                                        overflow: 'hidden', // Hide overflow
+                                                                    },
+                                                                    '& .MuiAutocomplete-tag': {
+                                                                        height: '24px', // Adjust chip height
+                                                                        display: 'flex',
+                                                                        alignItems: 'center', // Align chip content vertically
+                                                                    },
                                                                 }}
                                                             />
                                                         )}
-                                                        value={glOptions.filter(option => glNumber.includes(option._id)) || []} // Ensure multiple selection works
+                                                        value={glOptions.filter(option => glNumber.includes(option._id)) || []}
                                                         sx={{ width: '400px' }}
                                                     />
 

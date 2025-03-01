@@ -4,7 +4,7 @@ import { saveGoldItems } from '../../services/goldItems/goldItems.service';
 
 const App = () => {
     const [openModal, setOpenModal] = useState(false);
-    const [goldItems, setGoldItems] = useState('');
+    const [goldItem, setGoldItem] = useState('');
     const [error, setError] = useState('');
 
     const handleOpen = () => setOpenModal(true);
@@ -16,7 +16,7 @@ const App = () => {
     const handleSubmit = async () => {
         try {
             // Call the API to save the designation
-            const response = await saveGoldItems(goldItems,);
+            const response = await saveGoldItems(goldItem,);
             console.log("add items", response);
 
             if (response?.isError) {
@@ -34,7 +34,7 @@ const App = () => {
 
 
     const handleDesignationChange = (e) => {
-        setGoldItems(e.target.value);
+        setGoldItem(e.target.value);
 
     };
 
@@ -58,11 +58,11 @@ const App = () => {
                         width: '300px',
                     }}
                 >
-                    <Typography variant="h6" mb={2}>Enter Designation</Typography>
+                    <Typography variant="h6" mb={2}>Add Gold Items</Typography>
                     <TextField
                         label="Add Items"
                         fullWidth
-                        value={goldItems}
+                        value={goldItem}
                         onChange={handleDesignationChange}
                         error={!!error}
                         helperText={error}

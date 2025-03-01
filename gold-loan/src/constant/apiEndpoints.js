@@ -20,8 +20,13 @@ export const API_ENDPOINT = {
     GET_ADDITONAL_FEES: "/settings/view/additional/charges",
     SAVE_GOLDRATE: "/settings/rate",
     GET_GOLDRATE: "/settings/view/rate",
-    SAVE_BANK_DETAILS: "/pledge/bank-nameview/bank-name",
+    SAVE_BANK_DETAILS: "/pledge/add-bank-details",
     SAVE_GOLD_ITEMS: "/gold/add-item",
     GET_BANK_DETAIL: "/pledge/view/bank-name",
+    GET_PLEDGE_NUMBER: "/pledge",
+    GET_PLEDGE_DETAILS: "/pledge/[pledgeId]",
+    SAVE_PLEDGE_TRANSACTION: "/pledge/transaction",
+    SEARCH_PLEDGE_DETAILS: "/pledge/view-all",
+    GET_REPORTS: "/reports/all-loan",
 
 }

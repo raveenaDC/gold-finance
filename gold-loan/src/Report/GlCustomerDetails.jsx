@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     TextField,
     Button,
@@ -15,37 +15,7 @@ import {
     TableRow,
     Paper,
 } from '@mui/material';
-
-const mockData = [
-    {
-        glNo: '001',
-        date: '2023-12-01',
-        name: 'John Doe',
-        address: '123 Main St',
-        phone: '1234567890',
-        email: 'john.doe@example.com',
-        itemsDetails: 'Gold Ring, 2',
-        netWt: '50g',
-        principalAmount: 5000,
-        balanceAmount: 2000,
-        interest: 150,
-        lastTxnDate: '2023-12-15',
-    },
-    {
-        glNo: '002',
-        date: '2023-12-02',
-        name: 'Jane Smith',
-        address: '456 Oak St',
-        phone: '0987654321',
-        email: 'jane.smith@example.com',
-        itemsDetails: 'Gold Chain, 1',
-        netWt: '100g',
-        principalAmount: 10000,
-        balanceAmount: 5000,
-        interest: 200,
-        lastTxnDate: '2023-12-18',
-    },
-];
+import { viewReports } from "../services/system/system.service";
 
 function GlCustomerDetails() {
     const [searchFirstName, setSearchFirstName] = useState('');
@@ -56,21 +26,55 @@ function GlCustomerDetails() {
     const [filteredClosedData, setFilteredClosedData] = useState([]);
     const [filteredNonClosedData, setFilteredNonClosedData] = useState([]);
     const [tabValue, setTabValue] = useState(0);
+    const [customerReports, setCustomerReports] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [filteredData, setFilteredData] = useState([]);
+
+
+
+    const fetchGlLedgerReport = async () => {
+        try {
+            const response = await viewReports();
+            if (!response?.isSuccess) {
+                alert(response.result);
+                return;
+            }
+            console.log("response456", response);
+
+            setCustomerReports(response.result.data.loanDetails);
+            setFilteredData(response.result.data.loanDetails); // Initialize filteredData with all records
+        } catch (error) {
+            console.error("Error fetching GL Ledger Report:", error);
+            alert("Failed to fetch GL Ledger Report. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchGlLedgerReport();
+    }, []);
+
+    useEffect(() => {
+        setFilteredClosedData(filteredData.filter((item) => item.isClosed));
+        setFilteredNonClosedData(filteredData.filter((item) => !item.isClosed));
+    }, [filteredData]); // Runs when filteredData updates
+
 
     const handleSearchSubmit = () => {
-        const filteredData = mockData.filter((item) => {
+        const filteredData = customerReports.filter((item) => {
             const matchesFirstName = searchFirstName
-                ? item.name.toLowerCase().includes(searchFirstName.toLowerCase())
+                ? item.customerData?.firstName.toLowerCase().includes(searchFirstName.toLowerCase())
                 : true;
             const matchesSecondName = searchSecondName
-                ? item.name.toLowerCase().includes(searchSecondName.toLowerCase())
+                ? item.customerData?.lastName.toLowerCase().includes(searchSecondName.toLowerCase())
                 : true;
             const matchesAddress = searchAddress
-                ? item.address.toLowerCase().includes(searchAddress.toLowerCase())
+                ? item.customerData?.address.toLowerCase().includes(searchAddress.toLowerCase())
                 : true;
             const matchesPhoneOrEmail = searchPhoneOrEmail
-                ? item.phone.includes(searchPhoneOrEmail) ||
-                item.email.toLowerCase().includes(searchPhoneOrEmail.toLowerCase())
+                ? item.customerData?.primaryNumber.includes(searchPhoneOrEmail) ||
+                item.customerData?.email.toLowerCase().includes(searchPhoneOrEmail.toLowerCase())
                 : true;
 
             return (
@@ -79,9 +83,13 @@ function GlCustomerDetails() {
         });
 
         // Split data into Closed and Non-Closed for tabs
-        setFilteredClosedData(filteredData.slice(0, Math.ceil(filteredData.length / 2)));
-        setFilteredNonClosedData(filteredData.slice(Math.ceil(filteredData.length / 2)));
+        setFilteredClosedData(filteredData.filter((item) => item.isClosed));
+        setFilteredNonClosedData(filteredData.filter((item) => !item.isClosed));
     };
+
+
+    // Split data into Closed and Non-Closed for tabs
+
 
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
@@ -169,13 +177,19 @@ function GlCustomerDetails() {
                             {filteredClosedData.map((item) => (
                                 <TableRow key={item.glNo}>
                                     <TableCell>{item.glNo}</TableCell>
-                                    <TableCell>{item.date}</TableCell>
-                                    <TableCell>{item.itemsDetails}</TableCell>
-                                    <TableCell>{item.netWt}</TableCell>
-                                    <TableCell>{item.principalAmount}</TableCell>
+                                    <TableCell>{new Date(item.purchaseDate).toLocaleDateString()}</TableCell>
+                                    <TableCell>
+                                        {item.goldItemDetails.map((gold, index) => (
+                                            <div key={index}>
+                                                {gold.goldItem.name} (Net Weight: {gold.netWeight})
+                                            </div>
+                                        ))}
+                                    </TableCell>
+                                    <TableCell>{item.totalNetWeight}</TableCell>
+                                    <TableCell>{item.principleAmount}</TableCell>
                                     <TableCell>{item.balanceAmount}</TableCell>
-                                    <TableCell>{item.interest}</TableCell>
-                                    <TableCell>{item.lastTxnDate}</TableCell>
+                                    <TableCell>{item.totalInterestRate}</TableCell>
+                                    <TableCell>{new Date(item.lastTransactionDate).toLocaleDateString()}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
@@ -203,13 +217,19 @@ function GlCustomerDetails() {
                             {filteredNonClosedData.map((item) => (
                                 <TableRow key={item.glNo}>
                                     <TableCell>{item.glNo}</TableCell>
-                                    <TableCell>{item.date}</TableCell>
-                                    <TableCell>{item.itemsDetails}</TableCell>
-                                    <TableCell>{item.netWt}</TableCell>
-                                    <TableCell>{item.principalAmount}</TableCell>
+                                    <TableCell>{new Date(item.purchaseDate).toLocaleDateString()}</TableCell>
+                                    <TableCell>
+                                        {item.goldItemDetails.map((gold, index) => (
+                                            <div key={index}>
+                                                {gold.goldItem.name} (Net Weight: {gold.netWeight})
+                                            </div>
+                                        ))}
+                                    </TableCell>
+                                    <TableCell>{item.totalNetWeight}</TableCell>
+                                    <TableCell>{item.principleAmount}</TableCell>
                                     <TableCell>{item.balanceAmount}</TableCell>
-                                    <TableCell>{item.interest}</TableCell>
-                                    <TableCell>{item.lastTxnDate}</TableCell>
+                                    <TableCell>{item.totalInterestRate}</TableCell>
+                                    <TableCell>{new Date(item.lastTransactionDate).toLocaleDateString()}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>

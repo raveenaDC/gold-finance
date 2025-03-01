@@ -1390,13 +1390,13 @@ export default function GoldLoanBill() {
                                         >
                                             <TableCell align="center" sx={{ padding: '4px' }}>{new Date(detail.createdAt).toISOString().split('T')[0]} </TableCell>
                                             <TableCell align="center" sx={{ padding: '4px' }}> {new Date(detail.updatedAt).toISOString().split('T')[0]}</TableCell>
-                                            <TableCell align="center" sx={{ padding: '4px' }}></TableCell>
+                                            <TableCell align="center" sx={{ padding: '4px' }}>{detail.fineNumberOfDays}</TableCell>
                                             <TableCell align="center" sx={{ padding: '4px' }}>{detail.balanceAmount}</TableCell>
                                             <TableCell align="center" sx={{ padding: '4px' }}> {detail.interestRate?.toFixed(2)}</TableCell>
                                             <TableCell align="center" sx={{ padding: '4px' }}></TableCell>
                                             <TableCell align="center" sx={{ padding: '4px' }}>{detail.totalChargesAndBalanceAmount}</TableCell>
                                             <TableCell align="center" sx={{ padding: '4px' }}>{detail.amountPaid}</TableCell>
-                                            <TableCell align="center" sx={{ padding: '4px' }}></TableCell>
+                                            <TableCell align="center" sx={{ padding: '4px' }}>{detail.interestPaid}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -1499,11 +1499,11 @@ export default function GoldLoanBill() {
                                             }}
                                         >
                                             <TableCell align="center" sx={{ padding: '4px' }}>{detail.goldLoanId.glNo}</TableCell>
-                                            <TableCell align="center" sx={{ padding: '4px' }}>{detail.billDate}</TableCell>
+                                            <TableCell align="center" sx={{ padding: '4px' }}>{new Date(detail.billDate).toISOString().split("T")[0]}</TableCell>
                                             <TableCell align="center" sx={{ padding: '4px' }}></TableCell>
                                             <TableCell align="center" sx={{ padding: '4px' }}>{detail.payment}</TableCell>
-                                            <TableCell align="center" sx={{ padding: '4px' }}>{detail.principleInterestRate} </TableCell>
-                                            <TableCell align="center" sx={{ padding: '4px' }}>{detail.goldLoanId.principleAmount}</TableCell>
+                                            <TableCell align="center" sx={{ padding: '4px' }}>{Number(detail.principleInterestRate).toFixed(2)} </TableCell>
+                                            <TableCell align="center" sx={{ padding: '4px' }}>{detail.goldLoanId.otherCharges}</TableCell>
                                         </TableRow>
                                     ))}
 

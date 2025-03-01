@@ -19,6 +19,7 @@ import AuthLayout from '../components/AuthLayout';
 import PledgeTransaction from '../pages/Pledge Transaction';
 import FixedRemittanceMaster from '../pages/Fixed Remittence Master';
 import FixedRemittanceTransaction from '../pages/Fixed Remittence Transaction';
+import { RateSetting, InterestPlanModal } from '../components/index';
 
 
 const PageRoutes = () => {
@@ -39,6 +40,7 @@ const PageRoutes = () => {
                     <Route path={ROUTES.PLEDGE_TRANSACTION} element={<PledgeTransaction />} />
                     <Route path={ROUTES.FIXED_MASTER} element={<FixedRemittanceMaster />} />
                     <Route path={ROUTES.FIXED_TRANSACTION} element={<FixedRemittanceTransaction />} />
+                    {/* <Route path={ROUTES.GOLD_RATE_SETUP} element={<RateSetting />} /> */}
                 </Route>
                 <Route path="*" element={<h2>404: Page Not Found</h2>} />
             </Routes>

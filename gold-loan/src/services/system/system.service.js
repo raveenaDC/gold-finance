@@ -79,3 +79,24 @@ export const saveGoldRate = async (goldRate, companyGoldRate, settingsDate) => {
         data: { goldRate, companyGoldRate, settingsDate }
     });
 }
+
+export const viewReports = async () => {
+    try {
+        const response = await requests.get({
+            url: API_ENDPOINT.GET_REPORTS,
+        });
+        console.log("reports1233", response);
+
+        if (response?.status === 200 && !response?.isError) {
+            return { isSuccess: true, result: response }; // Return success response
+        } else {
+            console.error("API response error:", response.statusText);
+            return { isSuccess: false, result: response?.statusText };
+        }
+
+    } catch (error) {
+        console.error("Error in Reports:", error);
+        return { isSuccess: false, result: null }; // Ensure consistent structure for error cases
+    }
+
+}

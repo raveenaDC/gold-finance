@@ -12,4 +12,5 @@ export const ROUTES = {
     PLEDGE_TRANSACTION: "/pledge-transaction",
     FIXED_MASTER: "/fixed-master",
     FIXED_TRANSACTION: "/fixed-transaction",
+    // GOLD_RATE_SETUP: "/gold-rate-setup",
 }

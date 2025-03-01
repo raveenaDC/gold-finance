@@ -27,7 +27,7 @@ export default function GlMaster() {
 
             const response = await fetch(`http://localhost:4000/customer/details/view?${query}`);
             const data = await response.json();
-            console.log(data);
+            console.log("view customers", data);
 
             const itemsWithId = data.data.items.map((item, index) => ({
                 ...item,

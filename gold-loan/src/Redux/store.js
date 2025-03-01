@@ -8,6 +8,7 @@ import storage from 'redux-persist/lib/storage';
 import { combineReducers } from 'redux';
 import billNumberReducer from './billNumberSlice';
 import rateReducer from './rateSlice';
+import pledgeReducer from "./pledgeSlice"; // Import the pledge reducer
 
 // Combine your reducers
 const rootReducer = combineReducers({
@@ -15,6 +16,7 @@ const rootReducer = combineReducers({
     voucherNo: voucherNoReducer,
     billNumber: billNumberReducer,
     rateSetting: rateReducer,
+    pledge: pledgeReducer, // Add the pledge reducer
 });
 
 // Configure persist settings

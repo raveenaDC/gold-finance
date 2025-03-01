@@ -1,129 +1,132 @@
 import React, { useState } from 'react';
 import { Button, Modal, Box, TextField, Typography, Table, TableHead, TableRow, TableCell, TableBody } from '@mui/material';
+import { searchPledgeDetails } from '../../services/pledge/pledge.service';
 
 const SearchModalWithTable = () => {
     const [open, setOpen] = useState(false);
-    const [fromDate, setFromDate] = useState('');
-    const [toDate, setToDate] = useState('');
-    const [bankName, setBankName] = useState('');
+    const [startDate, setstartDate] = useState('');
+    const [endDate, setendDate] = useState('');
+    const [search, setsearch] = useState('');
+    const [result, setresult] = useState([]);
 
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
-    const handleSearch = () => {
-        console.log({ fromDate, toDate, bankName });
-        // Add search logic here
+    const handleSearch = (e) => {
+        e.preventDefault();
+        searchPledgeDetails(startDate, endDate, search)
+            .then((response) => {
+                setresult(response.result.data.items);
+            })
+            .catch((error) => {
+                console.error("Error in handleSearch:", error);
+            });
     };
 
     return (
         <div>
-            {/* Trigger Button */}
-            <Button
-                variant="outlined"
-                color="primary"
-                onClick={handleOpen}
-            >
-                Search
-            </Button>
+            <Button variant="outlined" color="primary" onClick={handleOpen}>Search</Button>
 
-            {/* Modal */}
-            <Modal
-                open={open}
-                onClose={handleClose}
-                aria-labelledby="modal-search-title"
-                aria-describedby="modal-search-description"
-            >
-                <Box
-                    sx={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        width: '80%',
-                        bgcolor: 'background.paper',
-                        border: '2px ',
-                        boxShadow: 24,
-                        p: 4,
-                    }}
-                >
-                    {/* Search Form */}
-                    <Typography id="modal-search-title" variant="h6" mb={2} style={{ color: '#2F2F2F' }}>
+            <Modal open={open} onClose={handleClose}>
+                <Box sx={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: { xs: '95%', sm: '80%', md: '70%' },
+                    bgcolor: 'background.paper',
+                    boxShadow: 24,
+                    p: 4,
+                    overflow: 'auto',
+                    maxHeight: '90vh',
+                }}>
+                    <Typography variant="h6" mb={2} sx={{ color: '#2F2F2F' }}>
                         Search by Date or Bank Name
                     </Typography>
-                    <Box display="flex" gap={2} mb={3}>
+                    <Box display="flex" flexWrap="wrap" gap={2} mb={3}>
                         <TextField
                             type="date"
                             label="From Date"
                             variant="outlined"
                             InputLabelProps={{ shrink: true }}
-                            value={fromDate}
-                            onChange={(e) => setFromDate(e.target.value)}
-                            style={{ flex: 1 }}
+                            value={startDate}
+                            onChange={(e) => setstartDate(e.target.value)}
+                            sx={{ flex: 1, minWidth: '140px', fontFamily: 'inherit', fontWeight: 'inherit' }}
                             size='small'
+                            InputProps={{
+                                style: {
+                                    fontFamily: 'inherit',
+                                    fontWeight: 'inherit',
+                                },
+                            }}
                         />
                         <TextField
                             type="date"
                             label="To Date"
                             variant="outlined"
                             InputLabelProps={{ shrink: true }}
-                            value={toDate}
-                            onChange={(e) => setToDate(e.target.value)}
-                            style={{ flex: 1 }}
+                            value={endDate}
+                            onChange={(e) => setendDate(e.target.value)}
+                            sx={{ flex: 1, minWidth: '140px', fontFamily: 'inherit', fontWeight: 'inherit' }}
                             size='small'
+                            InputProps={{
+                                style: {
+                                    fontFamily: 'inherit',
+                                    fontWeight: 'inherit',
+                                },
+                            }}
                         />
                         <TextField
                             label="Bank Name"
                             variant="outlined"
-                            value={bankName}
-                            onChange={(e) => setBankName(e.target.value)}
-                            style={{ flex: 2 }}
+                            value={search}
+                            onChange={(e) => setsearch(e.target.value)}
+                            sx={{ flex: 2, minWidth: '180px', fontFamily: 'inherit', fontWeight: 'inherit' }}
                             size='small'
+                            InputProps={{
+                                style: {
+                                    fontFamily: 'inherit',
+                                    fontWeight: 'inherit',
+                                },
+                            }}
                         />
                         <Button
                             variant="outlined"
                             onClick={handleSearch}
-                            style={{ flex: 1 }}
+                            sx={{ flex: 1, minWidth: '100px' }}
                             size='small'
-                        >
-                            Search
-                        </Button>
+                        >Search</Button>
                     </Box>
 
-                    {/* Table */}
-                    <Table>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell sx={{ fontSize: '0.675rem', lineHeight: .8 }}>Date</TableCell>
-                                <TableCell sx={{ fontSize: '0.675rem', lineHeight: .8 }}>Pledge No</TableCell>
-                                <TableCell sx={{ fontSize: '0.675rem', lineHeight: .8 }}>Bank Name</TableCell>
-                                <TableCell sx={{ fontSize: '0.675rem', lineHeight: .8 }}>Principal Amount</TableCell>
-                                <TableCell sx={{ fontSize: '0.675rem', lineHeight: .8 }}>Interest</TableCell>
-                                <TableCell sx={{ fontSize: '0.675rem', lineHeight: .8 }}>Other Charges</TableCell>
-                                <TableCell sx={{ fontSize: '0.675rem', lineHeight: .8 }}>Due Date</TableCell>
-                                <TableCell sx={{ fontSize: '0.675rem', lineHeight: .8 }}>Item  Details</TableCell>
-                                <TableCell sx={{ fontSize: '0.675rem', lineHeight: .8 }}>GL No</TableCell>
-                                <TableCell sx={{ fontSize: '0.675rem', lineHeight: .8 }}>Remark</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            <TableRow>
-                                <TableCell sx={{ fontSize: '0.675rem', lineHeight: .1 }}>01/01/2025</TableCell>
-                                <TableCell sx={{ fontSize: '0.675rem', lineHeight: .1 }}>12345</TableCell>
-                                <TableCell sx={{ fontSize: '0.675rem', lineHeight: .1 }}>XYZ Bank</TableCell>
-                                <TableCell sx={{ fontSize: '0.675rem', lineHeight: .1 }}>5000</TableCell>
-                                <TableCell sx={{ fontSize: '0.675rem', lineHeight: .1 }}>5%</TableCell>
-                                <TableCell sx={{ fontSize: '0.675rem', lineHeight: .1 }}>200</TableCell>
-                                <TableCell sx={{ fontSize: '0.675rem', lineHeight: .1 }}>01/07/2025</TableCell>
-                                <TableCell sx={{ fontSize: '0.675rem', lineHeight: .1 }}>Gold Chain</TableCell>
-                                <TableCell sx={{ fontSize: '0.675rem', lineHeight: .1 }}>GL001 (John Doe)</TableCell>
-                                <TableCell sx={{ fontSize: '0.675rem', lineHeight: .1 }}>None</TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
+                    <Box sx={{ overflowX: 'auto' }}>
+                        <Table size="small">
+                            <TableHead>
+                                <TableRow>
+                                    {['Date', 'Pledge No', 'Bank Name', 'Principal Amount', 'Interest', 'Other Charges', 'Due Date', 'Item Details', 'GL No', 'Remark'].map((header) => (
+                                        <TableCell key={header} sx={{ fontSize: '0.75rem', whiteSpace: 'nowrap', fontFamily: 'inherit', fontWeight: 'inherit' }}>{header}</TableCell>
+                                    ))}
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {result.map((row, index) => (
+                                    <TableRow key={index}>
+                                        <TableCell sx={{ fontFamily: 'inherit', fontWeight: 'inherit' }}>{new Date(row.pledgeDate).toLocaleDateString()}</TableCell>
+                                        <TableCell sx={{ fontFamily: 'inherit', fontWeight: 'inherit' }}>{row.bankPledgeNumber}</TableCell>
+                                        <TableCell sx={{ fontFamily: 'inherit', fontWeight: 'inherit' }}>{row.bankName}</TableCell>
+                                        <TableCell sx={{ fontFamily: 'inherit', fontWeight: 'inherit' }}>{row.principleAmount}</TableCell>
+                                        <TableCell sx={{ fontFamily: 'inherit', fontWeight: 'inherit' }}>{row.interestRate}</TableCell>
+                                        <TableCell sx={{ fontFamily: 'inherit', fontWeight: 'inherit' }}>{row.otherCharges}</TableCell>
+                                        <TableCell sx={{ fontFamily: 'inherit', fontWeight: 'inherit' }}>{new Date(row.dueDate).toLocaleDateString()}</TableCell>
+                                        <TableCell sx={{ fontFamily: 'inherit', fontWeight: 'inherit' }}>{row.itemDetails?.map((item) => item.goldItem).join(", ") || "NA"}</TableCell>
+                                        <TableCell sx={{ fontFamily: 'inherit', fontWeight: 'inherit' }}>{row.glNumber?.map((item) => `${item.glNo} (${item.firstName} ${item.lastName})`).join(", ") || "NA"}</TableCell>
+                                        <TableCell sx={{ fontFamily: 'inherit', fontWeight: 'inherit' }}>NA</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </Box>
 
                     <Box mt={3} display="flex" justifyContent="flex-end">
-                        <Button onClick={handleClose} variant="outlined">
-                            Close
-                        </Button>
+                        <Button onClick={handleClose} variant="outlined">Close</Button>
                     </Box>
                 </Box>
             </Modal>

@@ -102,7 +102,7 @@ export async function customerView(req, res, next) {
             }
         }
 
-        let customerList = await models.customerModel.find(query).select(
+        let customerList = await models.customerModel.find().select(
             'firstName lastName  address district place state rating  pin nearBy  primaryNumber dateOfBirth gender upId createdDate passBookImage city secondaryNumber totalCharges panCardName panCardNumber aadhar email image signature aadharImage bankUserName bankAccount ifsc bankName createdAt '
         ).collation({ locale: 'en', strength: 2 });
 

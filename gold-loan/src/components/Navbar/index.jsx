@@ -100,7 +100,7 @@ export default function Navbar({ handleDrawerOpen, open }) {
                         <Button
                             color="inherit"
                             onClick={handleReportsClick}
-                            sx={{ mr: 2, color: 'black' }}
+                            sx={{ mr: 2, color: 'black', marginLeft: 1 }}
                         >
                             Report
                         </Button>
@@ -125,7 +125,7 @@ export default function Navbar({ handleDrawerOpen, open }) {
                         <Button
                             color="inherit"
                             onClick={handleUtilitiesClick}
-                            sx={{ mr: 2, color: 'black' }}
+                            sx={{ mr: 2, color: 'black', marginLeft: -2 }}
                         >
                             SYSTEM
                         </Button>

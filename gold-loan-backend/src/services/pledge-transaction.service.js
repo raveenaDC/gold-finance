@@ -2,7 +2,7 @@ import * as models from '../models/index.js'
 import httpStatus from 'http-status';
 import { responseHelper } from '../utils/response.helper.js';
 import { paginateData } from '../utils/pagination-data.js';
-import { promises } from 'node:dns';
+
 
 const defaultPageLimit = process.env.PAGE_LIMIT;
 
@@ -19,7 +19,8 @@ export async function addPledgeTransactions(req, res, next) {
             principleAmount,
             glNumber,
             paymentMode,
-            itemDetails
+            itemDetails,
+            remarks
         } = req.body;
 
         const pledgeData = await models.pledgeModel.create({
@@ -33,7 +34,8 @@ export async function addPledgeTransactions(req, res, next) {
             principleAmount,
             glNumber,
             paymentMode,
-            itemDetails
+            itemDetails,
+            remarks
         });
 
         await models.goldLoanModel.updateMany(
@@ -128,21 +130,26 @@ export async function pledgeTransactionsBill(req, res, next) {
             paidPrinciple,
             paidOtherCharges,
             paidInterest,
-            paidAmount
+            paidAmount,
+            remarks,
+            transactionDate
         } = req.body;
-        let bank = await models.pledgeModel.findById({ _id: pledgeId })
+
+        let bank = await models.pledgeModel.findById(pledgeId)
         const pledgeData = await models.pledgeTransactionModel.create({
             pledgeId,
             paidPrinciple,
             paidOtherCharges,
             paidInterest,
             paidAmount,
-            bankId: bank.bankId
+            bankId: bank.bankId,
+            remarks,
+            transactionDate
         });
 
         return responseHelper(
             res,
-            httpStatus.CREATED,
+            httpStatus.OK,
             false,
             'Pledge transaction added successfully',
             pledgeData
@@ -185,7 +192,7 @@ export async function getPledgeDetailsById(req, res, next) {
 
         const { pledgeId } = req.params;
 
-        let pledgeNumbers = await models.pledgeModel.findById({ _id: pledgeId }).select('pledgeNumber  pledgeDate bankPledgeNumber bankId interestRate otherCharges dueDate principleAmount glNumber paymentMode itemDetails createdAt')
+        let pledgeNumbers = await models.pledgeModel.findById({ _id: pledgeId }).select('pledgeNumber  pledgeDate bankPledgeNumber totalPaidInterest bankId interestRate otherCharges remarks dueDate principleAmount glNumber paymentMode itemDetails createdAt')
             .populate({
                 path: 'glNumber',
                 select: 'glNo purchaseDate customerId',
@@ -274,7 +281,7 @@ export async function listPledgeDetails(req, res, next) {
             }
         }
 
-        let pledgeLists = await models.pledgeModel.find(query).select('pledgeNumber  pledgeDate bankPledgeNumber bankId interestRate otherCharges dueDate principleAmount glNumber paymentMode itemDetails createdAt')
+        let pledgeLists = await models.pledgeModel.find(query).select('pledgeNumber  pledgeDate bankPledgeNumber remarks bankId totalPaidPrinciple totalPaidInterest totalPaidPrinciple interestRate otherCharges dueDate principleAmount glNumber paymentMode itemDetails createdAt')
             .populate({
                 path: 'glNumber',
                 select: 'glNo purchaseDate customerId',
@@ -370,7 +377,7 @@ export async function listPledgeTransaction(req, res, next) {
             }
         }
 
-        let pledgeBillLists = await models.pledgeTransactionModel.find(query).select('pledgeId paidPrinciple paidOtherCharges paidInterest paidAmount bankId createdAt')
+        let pledgeBillLists = await models.pledgeTransactionModel.find(query).select('pledgeId paidPrinciple paidOtherCharges  remarks paidInterest paidAmount bankId createdAt')
             .populate({
                 path: 'pledgeId',
                 select: 'pledgeNumber pledgeDate bankPledgeNumber pledgeDate',

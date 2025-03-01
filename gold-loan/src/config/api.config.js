@@ -15,9 +15,9 @@ const getRequest = async ({ url, params = {}, headers = {} }) => {
     }
 }
 
-export const postRequest = async ({ url, data = {}, params = {} }) => {
+export const postRequest = async ({ url, data = {}, params = {}, headers = {} }) => {
     try {
-        const res = await axiosInstance.post(url, data, { params });
+        const res = await axiosInstance.post(url, data, { params }, { headers });
         return res.data;
     } catch (err) {
         // return err;

@@ -1,5 +1,7 @@
 import { API_BASE_URL, API_ENDPOINT } from "../../constant/apiEndpoints"
 import { requests } from "../../config/api.config";
+import { getFromLS } from '../../utils/storage.utils';
+import { STORAGE_KEYS } from '../../config/app.config';
 
 export const getgolditemdetails = async () => {
     try {
@@ -63,11 +65,12 @@ export const getgoldbillhistorytable = async (goldLoanId) => {
 
 }
 
-export const saveGoldItems = async () => {
+export const saveGoldItems = async (goldItem) => {
+    const token = getFromLS(STORAGE_KEYS.TOKEN);
     return await requests.post({
         url: API_ENDPOINT.SAVE_GOLD_ITEMS, data: {
-
-        }
+            goldItem
+        }, headers: { "Content-Type": "application/json", "accesstoken": token }
     })
 }
 
