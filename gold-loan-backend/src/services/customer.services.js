@@ -17,7 +17,7 @@ const transFormImageUploadResponseArray = (imageResponseArray) => {
 export async function customerView(req, res, next) {
     try {
 
-        let { pageLimit, orderBy = 'createdAt', search = null, order, phone, firstName, lastName, address, startYear, endYear } = req.query;
+        let { pageLimit, orderBy = 'createdAt', order, phone, firstName, lastName, location, address, startYear, endYear } = req.query;
         pageLimit = parseInt(pageLimit || defaultPageLimit);
         const page = parseInt(req.query.page) || 1;
         order = order == 'asc' ? 1 : -1;
@@ -26,75 +26,52 @@ export async function customerView(req, res, next) {
         let sort = {};
 
         // Sort by financial year
+        let query = {};
 
         if (startYear && endYear) {
-            startDate = new Date(`${startYear}-03-01`);
-            endDate = new Date(`${endYear}-03-31`);
-        } else {
-            const currentYear = currentDate.getFullYear();
-            const currentMonth = currentDate.getMonth() + 1;
+            const startDate = new Date(`${startYear}-04-01T00:00:00.000Z`);
+            const endDate = new Date(`${endYear}-03-31T23:59:59.999Z`);
 
-            const defaultStartingYear = currentMonth >= 3 ? currentYear : currentYear - 1;
-            const defaultEndingYear = defaultStartingYear + 1;
-
-            startDate = new Date(`${defaultStartingYear}-03-01`);
-            endDate = new Date(`${defaultEndingYear}-03-31`);
+            query.createdAt = { $gte: startDate, $lte: endDate };
         }
 
-        const query = { createdAt: { $gte: startDate, $lte: endDate } };
-
-        if (phone && search && address) {
-
+        if (phone && address && location && firstName && lastName) {
             query.$and = [
-                {
-                    $expr: {
-                        $regexMatch: {
-                            input: { $concat: ['$firstName', ' ', '$lastName'] },
-                            regex: new RegExp(search, 'i')
-                        }
-                    }
-                },
                 { address: { $regex: new RegExp(address, 'i') } },
-                { primaryNumber: { $regex: new RegExp(phone, 'i') } }
-
+                { place: { $regex: new RegExp(location, 'i') } },
+                { city: { $regex: new RegExp(location, 'i') } },
+                { firstName: { $regex: new RegExp(firstName, 'i') } },
+                { lastName: { $regex: new RegExp(lastName, 'i') } },
+                {
+                    $or: [
+                        { primaryNumber: { $regex: new RegExp(phone, 'i') } },
+                        { secondaryNumber: { $regex: new RegExp(phone, 'i') } }
+                    ]
+                }
             ];
         } else {
-            // Flexible search when not all fields are provided
             let conditions = [];
 
-            // if (search) {
-            //     conditions.push(
-            //         { firstName: { $regex: new RegExp(search, 'i') } },
-            //         {
-            //             $expr: {
-            //                 $regexMatch: {
-            //                     input: { $concat: ['$firstName', ' ', '$lastName'] },
-            //                     regex: new RegExp(search, 'i')
-            //                 }
-            //             }
-            //         },
-            //         { lastName: { $regex: new RegExp(search, 'i') } }
-            //     );
-            // }
-            if (search) {
-                conditions.push({ firstName: { $regex: new RegExp(search, 'i') } },
-                    {
-                        $expr: {
-                            $regexMatch: {
-                                input: { $concat: ['$firstName', ' ', '$lastName'] },
-                                regex: new RegExp(search, 'i')
-                            }
-                        }
-                    },
-                    { lastName: { $regex: new RegExp(search, 'i') } }
-                )
-            }
             if (phone) {
-                conditions.push({ primaryNumber: { $regex: new RegExp(phone, 'i') } });
+                conditions.push(
+                    { primaryNumber: { $regex: new RegExp(phone, 'i') } },
+                    { secondaryNumber: { $regex: new RegExp(phone, 'i') } }
+                );
             }
-
+            if (location) {
+                conditions.push(
+                    { city: { $regex: new RegExp(location, 'i') } },
+                    { place: { $regex: new RegExp(location, 'i') } }
+                );
+            }
             if (address) {
                 conditions.push({ address: { $regex: new RegExp(address, 'i') } });
+            }
+            if (firstName) {
+                conditions.push({ firstName: { $regex: new RegExp(firstName, 'i') } });
+            }
+            if (lastName) {
+                conditions.push({ lastName: { $regex: new RegExp(lastName, 'i') } });
             }
 
             if (conditions.length > 0) {
@@ -104,18 +81,7 @@ export async function customerView(req, res, next) {
 
         let customerList = await models.customerModel.find(query).select(
             'firstName lastName  address district place state rating  pin nearBy  primaryNumber dateOfBirth gender upId createdDate passBookImage city secondaryNumber totalCharges panCardName panCardNumber aadhar email image signature aadharImage bankUserName bankAccount ifsc bankName createdAt '
-        ).collation({ locale: 'en', strength: 2 });
-
-        if (orderBy === 'firstName') {
-            customerList.sort((a, b) => a.firstName.localeCompare(b.firstName) * order);
-        } else if (orderBy === 'lastName') {
-            customerList.sort((a, b) => a.lastName.localeCompare(b.lastName) * order);
-        } else if (orderBy === 'date') {
-            customerList.sort((a, b) => a.createdAt.localeCompare(b.createdAt) * order);
-        } else {
-            customerList.sort((a, b) => (a.createdDate - b.createdDate) * order); // Default sorting by createdAt
-        }
-
+        ).collation({ locale: 'en', strength: 2 }).sort({ createdDate: -1 });
         if (customerList.length == 0) {
             return responseHelper(
                 res,
@@ -177,6 +143,26 @@ export async function createCustomer(req, res, next) {
                 httpStatus.CONFLICT,
                 true,
                 'This email already exist.',
+
+            );
+        }
+        const existPrimePhone = await models.customerModel.findOne({ primaryNumber })
+        if (existPrimePhone) {
+            return responseHelper(
+                res,
+                httpStatus.CONFLICT,
+                true,
+                'This phone number already exist.',
+
+            );
+        }
+        const existSecondaryNumber = await models.customerModel.findOne({ secondaryNumber })
+        if (existSecondaryNumber) {
+            return responseHelper(
+                res,
+                httpStatus.CONFLICT,
+                true,
+                'This secondary number already exist.',
 
             );
         }

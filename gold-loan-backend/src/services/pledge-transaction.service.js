@@ -2,7 +2,7 @@ import * as models from '../models/index.js'
 import httpStatus from 'http-status';
 import { responseHelper } from '../utils/response.helper.js';
 import { paginateData } from '../utils/pagination-data.js';
-import { promises } from 'node:dns';
+
 
 const defaultPageLimit = process.env.PAGE_LIMIT;
 
@@ -130,7 +130,9 @@ export async function pledgeTransactionsBill(req, res, next) {
             paidInterest,
             paidAmount
         } = req.body;
-        let bank = await models.pledgeModel.findById({ _id: pledgeId })
+
+        let bank = await models.pledgeModel.findById(pledgeId)
+
         const pledgeData = await models.pledgeTransactionModel.create({
             pledgeId,
             paidPrinciple,
@@ -142,7 +144,7 @@ export async function pledgeTransactionsBill(req, res, next) {
 
         return responseHelper(
             res,
-            httpStatus.CREATED,
+            httpStatus.OK,
             false,
             'Pledge transaction added successfully',
             pledgeData

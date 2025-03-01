@@ -15,12 +15,12 @@ const additionalSettingSchema = new Schema(
             default: 0
         },
         firstLetter: {
-            type: Boolean,
-            default: false
+            type: Number,
+            default: 0
         },
         secondLetter: {
-            type: Boolean,
-            default: false
+            type: Number,
+            default: 0
         },
         appraiser: {
             type: Number,
