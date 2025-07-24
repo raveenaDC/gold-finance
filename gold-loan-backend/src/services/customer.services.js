@@ -2,10 +2,6 @@ import * as models from '../models/index.js'
 import httpStatus from 'http-status';
 import { responseHelper } from '../utils/response.helper.js';
 import { paginateData } from '../utils/pagination-data.js';
-import { generatePasswordHash } from '../utils/encryption.helper.js';
-import { generateRandomPassword } from '../utils/generate-random-password.helper.js';
-import { sendMail } from '../utils/mail.helper.js';
-import { createAccountTemplate } from '../registry/mail-templates/create-account.template.js';
 
 const defaultPageLimit = process.env.PAGE_LIMIT;
 
@@ -18,65 +14,75 @@ const transFormImageUploadResponseArray = (imageResponseArray) => {
     }));
 };
 
-export async function customerView(req, res) {
+export async function customerView(req, res, next) {
     try {
 
-        let { pageLimit, orderBy = 'createdAt', search = null, order } = req.query;
+        let { pageLimit, orderBy = 'createdAt', order, phone, firstName, lastName, location, address, startYear, endYear } = req.query;
         pageLimit = parseInt(pageLimit || defaultPageLimit);
         const page = parseInt(req.query.page) || 1;
         order = order == 'asc' ? 1 : -1;
+        const currentDate = new Date();
+        let startDate, endDate;
         let sort = {};
-        const query = {};
-        if (search) {
-            query.$or = [
-                { firstName: { $regex: new RegExp(search, 'i') } },
+
+        // Sort by financial year
+        let query = {};
+
+        if (startYear && endYear) {
+            const startDate = new Date(`${startYear}-04-01T00:00:00.000Z`);
+            const endDate = new Date(`${endYear}-03-31T23:59:59.999Z`);
+
+            query.createdAt = { $gte: startDate, $lte: endDate };
+        }
+
+        if (phone && address && location && firstName && lastName) {
+            query.$and = [
+                { address: { $regex: new RegExp(address, 'i') } },
+                { place: { $regex: new RegExp(location, 'i') } },
+                { city: { $regex: new RegExp(location, 'i') } },
+                { firstName: { $regex: new RegExp(firstName, 'i') } },
+                { lastName: { $regex: new RegExp(lastName, 'i') } },
                 {
-                    $expr: {
-                        $regexMatch: {
-                            input: { $concat: ['$firstName', ' ', '$lastName'] },
-                            regex: new RegExp(search, 'i'),
-                        },
-                    },
-                },
-                { lastName: { $regex: new RegExp(search, 'i') } },
-                { email: { $regex: new RegExp(search, 'i') } },
-                { primaryNumber: { $regex: new RegExp(search, 'i') } },
-                { secondaryNumber: { $regex: new RegExp(search, 'i') } }
+                    $or: [
+                        { primaryNumber: { $regex: new RegExp(phone, 'i') } },
+                        { secondaryNumber: { $regex: new RegExp(phone, 'i') } }
+                    ]
+                }
             ];
-        }
-
-        let customerList = await models.customerModel.find(query).select(
-            'firstName lastName  address place state  pin nearBy  primaryNumber careOf secondaryNumber aadhar email image signature createdAt'
-        ).collation({ locale: 'en', strength: 2 });
-
-        if (orderBy === 'firstName') {
-            customerList.sort((a, b) => a.firstName.localeCompare(b.firstName) * order);
-        } else if (orderBy === 'lastName') {
-            customerList.sort((a, b) => a.lastName.localeCompare(b.lastName) * order);
-        } else if (orderBy === 'date') {
-            customerList.sort((a, b) => a.createdAt.localeCompare(b.createdAt) * order);
         } else {
-            customerList.sort((a, b) => (a.createdAt - b.createdAt) * order); // Default sorting by createdAt
+            let conditions = [];
+
+            if (phone) {
+                conditions.push(
+                    { primaryNumber: { $regex: new RegExp(phone, 'i') } },
+                    { secondaryNumber: { $regex: new RegExp(phone, 'i') } }
+                );
+            }
+            if (location) {
+                conditions.push(
+                    { city: { $regex: new RegExp(location, 'i') } },
+                    { place: { $regex: new RegExp(location, 'i') } }
+                );
+            }
+            if (address) {
+                conditions.push({ address: { $regex: new RegExp(address, 'i') } });
+            }
+            if (firstName) {
+                conditions.push({ firstName: { $regex: new RegExp(firstName, 'i') } });
+            }
+            if (lastName) {
+                conditions.push({ lastName: { $regex: new RegExp(lastName, 'i') } });
+            }
+
+            if (conditions.length > 0) {
+                query.$or = conditions;
+            }
         }
 
-        if (search) {
-            // Define a function to calculate relevance score
-            const calculateRelevance = (memberSet) => {
-                const fields = ['firstName lastName email'];
-                let relevance = 0;
-                fields.forEach((field) => {
-                    if (
-                        memberSet[field] &&
-                        memberSet[field].toLowerCase().startsWith(search.toLowerCase())
-                    ) {
-                        relevance++;
-                    }
-                });
-                return relevance;
-            };
-            customerList.sort((a, b) => calculateRelevance(b) - calculateRelevance(a));
-        }
-        if (!customerList) {
+        let customerList = await models.customerModel.find().select(
+            'firstName lastName  address district place state rating  pin nearBy  primaryNumber dateOfBirth gender upId createdDate passBookImage city secondaryNumber totalCharges panCardName panCardNumber aadhar email image signature aadharImage bankUserName bankAccount ifsc bankName createdAt '
+        ).collation({ locale: 'en', strength: 2 }).sort({ createdDate: -1 });
+        if (customerList.length == 0) {
             return responseHelper(
                 res,
                 httpStatus.NOT_FOUND,
@@ -96,7 +102,7 @@ export async function customerView(req, res) {
             pagination: paginationResult.pagination,
         });
 
-    } catch {
+    } catch (error) {
         return next(new Error(error));
     }
 
@@ -108,18 +114,27 @@ export async function createCustomer(req, res, next) {
             lastName,
             address,
             place,
+            district,
             state,
             pin,
             nearBy,
             primaryNumber,
-            careOf,
+            city,
             secondaryNumber,
             aadhar,
             gst,
-            email, } = req.body;
+            email,
+            dateOfBirth,
+            gender,
+            upId,
+            totalCharges, panCardName, panCardNumber,
+            createdDate,
+            bankUserName,
+            bankAccount,
+            ifsc,
+            bankName } = req.body;
 
-        let { image, signature } = req.files;
-
+        let { image, signature, aadharImage, passBookImage } = req.files;
 
         const existCustomer = await models.customerModel.findOne({ email: email })
         if (existCustomer) {
@@ -131,26 +146,70 @@ export async function createCustomer(req, res, next) {
 
             );
         }
+        const existPrimePhone = await models.customerModel.findOne({ primaryNumber })
+        if (existPrimePhone) {
+            return responseHelper(
+                res,
+                httpStatus.CONFLICT,
+                true,
+                'This phone number already exist.',
+
+            );
+        }
+        const existSecondaryNumber = await models.customerModel.findOne({ secondaryNumber })
+        if (existSecondaryNumber) {
+            return responseHelper(
+                res,
+                httpStatus.CONFLICT,
+                true,
+                'This secondary number already exist.',
+
+            );
+        }
+        const existAadhar = await models.customerModel.findOne({ aadhar: aadhar })
+        if (existAadhar) {
+            return responseHelper(
+                res,
+                httpStatus.CONFLICT,
+                true,
+                'This aadhar has already exist.',
+
+            );
+        }
         const member = await models.customerModel.create({
             firstName,
             lastName,
             address,
             place,
+            district,
             state,
             pin,
             nearBy,
             primaryNumber,
-            careOf,
+            city,
+            dateOfBirth,
+            gender,
+            upId,
+            createdDate,
             gst,
+            totalCharges, panCardName, panCardNumber,
             secondaryNumber,
             aadhar,
             email,
+            bankUserName,
+            bankAccount,
+            ifsc,
+            bankName
         });
 
         if (signature && signature.length > 0) {
             member.signature = transFormImageUploadResponseArray(signature)[0];
         } if (image && image.length > 0) {
             member.image = transFormImageUploadResponseArray(image)[0];
+        } if (aadharImage && aadharImage.length > 0) {
+            member.aadharImage = transFormImageUploadResponseArray(aadharImage);
+        } if (passBookImage && passBookImage.length > 0) {
+            member.passBookImage = transFormImageUploadResponseArray(passBookImage)[0];
         }
 
         await member.save();
@@ -167,47 +226,111 @@ export async function createCustomer(req, res, next) {
 
 }
 
-export async function updateCustomer(req, res) {
+export async function updateCustomer(req, res, next) {
     try {
-        let { name,
-            role,
+        let { firstName,
+            lastName,
             address,
-            aadhar,
-            phone,
+            place,
+            district,
+            state,
             pin,
+            nearBy,
+            primaryNumber,
             city,
-            landMark } = req.body;
-        let { memberImage } = req.files;
-        const { memberId } = req.params;
-        let images = {};
+            secondaryNumber,
+            aadhar,
+            gst,
+            dateOfBirth,
+            gender,
+            upId,
+            createdDate,
+            rating,
+            email,
+            totalCharges, panCardName, panCardNumber,
+            bankUserName,
+            bankAccount,
+            ifsc,
+            bankName } = req.body;
 
-        const member = await models.memberModel.findById(memberId);
-        if (!member) {
-            return responseHelper(res, httpStatus.NOT_FOUND, true, 'Member not found');
+        let { image, signature, aadharImage, passBookImage } = req.files;
+
+        const { customerId } = req.params;
+        let images = {}, sign = {}, document = {}, passBook = {};
+
+        const customer = await models.customerModel.findById(customerId);
+        if (!customer) {
+            return responseHelper(res, httpStatus.NOT_FOUND, true, 'Customer not found');
         }
 
 
         if (
-            (memberImage && memberImage[0])
+            (image && image[0])
         ) {
             images = {
-                item: req.files.memberImage
-                    ? transFormImageUploadResponseArray(memberImage)[0]
-                    : member.memberImage,
+                item: req.files.image
+                    ? transFormImageUploadResponseArray(image)[0]
+                    : customer.image,
+            };
+        }
+        if (
+            (signature && signature[0])
+        ) {
+            sign = {
+                item: req.files.signature
+                    ? transFormImageUploadResponseArray(signature)[0]
+                    : customer.signature,
+            };
+        }
+        if (
+            (aadharImage && aadharImage[0])
+        ) {
+            document = {
+                item: req.files.aadharImage
+                    ? transFormImageUploadResponseArray(aadharImage)
+                    : customer.aadharImage,
+            };
+        }
+        if (
+            (passBookImage && passBookImage[0])
+        ) {
+            passBook = {
+                item: req.files.passBookImage
+                    ? transFormImageUploadResponseArray(passBookImage)[0]
+                    : customer.passBookImage,
             };
         }
 
-        const updateItem = await models.memberModel.findByIdAndUpdate(
-            memberId,
+        const updateItem = await models.customerModel.findByIdAndUpdate(
+            customerId,
             {
-                name,
-                role,
+                firstName,
+                lastName,
                 address,
-                aadhar,
-                phone,
+                place,
+                district,
+                state,
                 pin,
+                nearBy,
+                primaryNumber,
                 city,
-                landMark, memberImage: images.item
+                secondaryNumber,
+                aadhar,
+                gst,
+                totalCharges, panCardName, panCardNumber,
+                dateOfBirth,
+                gender,
+                upId,
+                createdDate,
+                rating,
+                email, image: images.item,
+                signature: sign.item,
+                aadharImage: document.item,
+                bankUserName,
+                bankAccount,
+                ifsc,
+                bankName,
+                passBookImage: passBook.item
             },
             {
                 new: true,
@@ -217,7 +340,7 @@ export async function updateCustomer(req, res) {
             res,
             httpStatus.OK,
             false,
-            'Member is updated successfully',
+            'Customer is updated successfully',
             { item: updateItem }
         );
     } catch (error) {
@@ -226,53 +349,33 @@ export async function updateCustomer(req, res) {
 
 }
 
-// export async function denyMember(req, res) {
-//     try {
-//         const { memberId } = req.params
-//         const { access } = req.body;
-//         let member = await models.memberModel.findById(memberId);
-//         if (!member) {
-//             return responseHelper(
-//                 res, httpStatus.NOT_FOUND,
-//                 true,
-//                 'Member not found',
-//             )
-//         }
 
-//         member.isAccess = access
-//         await member.save();
-//         let message = ''
-//         if (access) message = 'Access enabled';
-//         else message = 'Access denied'
-//         return responseHelper(
-//             res, httpStatus.OK,
-//             false,
-//             message,
-//         )
-
-//     } catch {
-//         return next(new Error(error));
-//     }
-// }
 
 export async function customerViewById(req, res) {
     try {
-        const { memberId } = req.params
-        const member = await models.memberModel.findById(memberId).select(
-            'name email memberImage role address aadhar phone pin city landMark loginDetails isAccess state'
-        );
-        if (!member) {
+        const { customerId } = req.params
+        if (!customerId) {
             return responseHelper(
                 res, httpStatus.NOT_FOUND,
                 true,
-                'Member not found',
+                'Customer Id is required',
+            )
+        }
+        const customer = await models.customerModel.findById(customerId).select(
+            'firstName lastName  address place district state rating pin nearBy  primaryNumber dateOfBirth gender upId createdDate totalCharges panCardName panCardNumber passBookImage city secondaryNumber aadhar email image signature aadharImage bankUserName bankAccount ifsc  bankName createdAt'
+        );
+        if (!customer) {
+            return responseHelper(
+                res, httpStatus.NOT_FOUND,
+                true,
+                'Customer not found',
             )
         }
         return responseHelper(
             res, httpStatus.OK,
             false,
-            'Member details',
-            member
+            'Customer details',
+            customer
         )
 
     } catch {

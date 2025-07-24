@@ -4,13 +4,51 @@ const billingSchema = new Schema(
     {
         billNo: String,
         billDate: Date,
-        gst: Types.Decimal128,
         goldLoanId: { type: Schema.Types.ObjectId, ref: 'goldLoan' },
-        // amountPaid: Types.Decimal128,
-        // memberId: { type: Schema.Types.ObjectId, ref: 'customer' },
+        paymentSection: {
+            paymentMode: String,
+            paymentName: String,
+            paymentNumber: String,
+        },
+        isCanceled: {
+            type: Boolean,
+            default: false
+        },
+        principleInterestRate: {
+            type: Number,
+            default: 0
+        },
+        insurance: {
+            type: Number,
+            default: 0
+        },
+        processingFee: {
+            type: Number,
+            default: 0
+        },
+        packingFee: {
+            type: Number,
+            default: 0
+        },
+        appraiser: {
+            type: Number,
+            default: 0
+        },
+        otherCharges: {
+            type: Number,
+            default: 0
+        },
+        payment: {
+            type: Number,
+            default: 0,
+        },
+        memberId: { type: Schema.Types.ObjectId, ref: 'member' },
 
     },
-    { timestamps: true }
+    {
+        timestamps: true,
+        //id: false
+    }
 );
 
 export default model('billing', billingSchema);

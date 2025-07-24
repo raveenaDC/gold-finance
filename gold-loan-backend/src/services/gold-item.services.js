@@ -14,7 +14,7 @@ const transFormImageUploadResponseArray = (imageResponseArray) => {
     }));
 };
 
-export async function viewGoldItem(req, res) {
+export async function viewGoldItem(req, res, next) {
     try {
 
         let { pageLimit, orderBy = 'createdAt', search = null, order } = req.query;

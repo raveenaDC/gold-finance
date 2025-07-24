@@ -1,67 +1,35 @@
-// src/App.js
-
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import { Box, CssBaseline } from '@mui/material'; // Keep 'Box' and 'CssBaseline' as they are used
-import { styled, useTheme } from '@mui/material/styles';
-import Navbar from './Dashboard/Navbar';
-import DrawerLeft from './Dashboard/DrawerLeft';
-import MainPage from './Dashboard/MainPage';
-import GlMaster from './Forms/GlMaster';
-import Typography from '@mui/material/Typography';
-import { submitCustomerData } from './api'; // Import your API function
-
-
-
-
-const drawerWidth = 240;
-
-const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(({ theme, open }) => ({
-  flexGrow: 1,
-  padding: theme.spacing(3),
-  transition: theme.transitions.create('margin', {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen,
-  }),
-  marginLeft: open ? 0 : `-${drawerWidth}px`,
-}));
-
-const DrawerHeader = styled('div')(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  padding: theme.spacing(0, 1),
-  ...theme.mixins.toolbar,
-  justifyContent: 'flex-end',
-}));
+import { Box, CssBaseline } from '@mui/material';
+import { ThemeProvider } from '@mui/material/styles';
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router } from 'react-router-dom';
+import { NomineeProvider } from './configure/NomineeContext';
+import PageRoutes from './routes';
+import appTheme from './theme/appTheme';
 
 export default function App() {
-  const theme = useTheme();
-  const [open, setOpen] = React.useState(false);
 
-  const handleDrawerOpen = () => {
-    setOpen(true);
-  };
+  const [isAuthenticated, setIsAuthenticated] = useState(false); // Authentication state
 
-  const handleDrawerClose = () => {
-    setOpen(false);
-  };
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+
+  // Handle successful login
 
   return (
     <Router>
-      <Box sx={{ display: 'flex' }}>
-        <CssBaseline />
-        <Navbar handleDrawerOpen={handleDrawerOpen} open={open} />
-        <DrawerLeft open={open} handleDrawerClose={handleDrawerClose} theme={theme} drawerWidth={drawerWidth} />
-        <Main open={open}>
-          <Typography sx={{ marginTop: 6 }}>
-
-            <Routes>
-              <Route path="/" element={<MainPage />} />
-              <Route path="/gl-master" element={<GlMaster />} />
-            </Routes>
-          </Typography>
-        </Main>
-      </Box>
+      <ThemeProvider theme={appTheme}>
+        <NomineeProvider>
+          <Box sx={{ display: 'flex' }}>
+            <CssBaseline />
+            <PageRoutes />
+          </Box>
+        </NomineeProvider>
+      </ThemeProvider>
     </Router>
   );
 }
