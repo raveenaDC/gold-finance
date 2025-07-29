@@ -20,7 +20,14 @@ async function main() {
         app.use(express.json());
         app.use(express.urlencoded({ extended: true }));
 
-        app.use(cors({ origin: '*' }));
+        // app.use(cors({ origin: '*' }));
+
+        // const cors = require('cors');
+
+        app.use(cors({
+            origin: ['https://gold-finance-v554.vercel.app/', 'https://gold-finance.onrender.com']
+        }));
+
 
         //   Initialize  express.static(path.join(dirname, '../', 'public')) before the app.all('*', ...)  (initializeRoutes(app);)
 
