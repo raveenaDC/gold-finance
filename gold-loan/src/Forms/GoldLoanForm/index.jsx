@@ -240,6 +240,7 @@ const GoldLoanForm = () => {
     };
 
     const handleInterestChange = (event, newType) => {
+
         setInterestType(newType);
         if (newType === 'multiple') {
             setForm(prevState => ({
@@ -477,6 +478,9 @@ const GoldLoanForm = () => {
         formData.append("purchaseDate", purchaseDate);
         formData.append("goldRate", goldRate);
         formData.append("totalCharges", totalCharges);
+
+        console.log("interestType", form.interestMode);
+
 
         if (fileImage.capture) {
             let blob = base64ToBlob(fileImage.capture, 'image/jpeg');
@@ -1005,7 +1009,7 @@ const GoldLoanForm = () => {
                         >
                             <Avatar
                                 alt="Profile"
-                                src={`http://localhost:4000${customerData.image.path}`}
+                                src={`https://gold-finance.onrender.com${customerData.image.path}`}
                                 sx={{
                                     width: { xs: 80, sm: 90 }, // Smaller avatar on mobile
                                     height: { xs: 80, sm: 100 },

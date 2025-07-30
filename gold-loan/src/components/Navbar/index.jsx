@@ -14,6 +14,7 @@ import StaffModal from '../Add Member Role';
 import Designation from '../Add Designation';
 import Fee from '../Fee';
 import AddGoldItem from '../Add Items';
+import GForm from '../../pages/G Form';
 
 
 const drawerWidth = 240;
@@ -115,8 +116,11 @@ export default function Navbar({ handleDrawerOpen, open }) {
                             <MenuItem onClick={handleClose}>GL Registered Letter </MenuItem>
                             <MenuItem onClick={handleClose} component={Link} to={ROUTES.GL_Transaction_Report}>GL Transaction Report </MenuItem>
                             <MenuItem onClick={handleClose} component={Link} to={ROUTES.GL_Customer_Details} >Gl Customer Details</MenuItem>
-                            <MenuItem onClick={handleClose}>GL Closed /Non-Closed Details </MenuItem>
+                            <MenuItem onClick={handleClose} component={Link} to={ROUTES.GL_CLOSED_NON_CLOSED_DETAILS}>GL Closed/Non-Closed Details </MenuItem>
                             <MenuItem onClick={handleClose}>GL Closed / Non-Closed Details </MenuItem>
+                            <MenuItem > <GForm /> </MenuItem>
+                            <MenuItem onClick={handleClose} component={Link} to={ROUTES.DAY_BOOKS}> Day Book </MenuItem>
+
 
 
                         </Menu>

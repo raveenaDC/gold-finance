@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:4000/'; // Replace with your actual API endpoint
+const API_URL = 'https://gold-finance.onrender.com/'; // Replace with your actual API endpoint
 
 export const submitData = async (data) => {
     try {

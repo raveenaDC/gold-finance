@@ -19,6 +19,8 @@ import AuthLayout from '../components/AuthLayout';
 import PledgeTransaction from '../pages/Pledge Transaction';
 import FixedRemittanceMaster from '../pages/Fixed Remittence Master';
 import FixedRemittanceTransaction from '../pages/Fixed Remittence Transaction';
+import GlClosedNonClosed from '../Report/GlClosedNonClosed';
+import DayBook from '../pages/Day Book';
 import { RateSetting, InterestPlanModal } from '../components/index';
 
 
@@ -40,6 +42,8 @@ const PageRoutes = () => {
                     <Route path={ROUTES.PLEDGE_TRANSACTION} element={<PledgeTransaction />} />
                     <Route path={ROUTES.FIXED_MASTER} element={<FixedRemittanceMaster />} />
                     <Route path={ROUTES.FIXED_TRANSACTION} element={<FixedRemittanceTransaction />} />
+                    <Route path={ROUTES.GL_CLOSED_NON_CLOSED_DETAILS} element={<GlClosedNonClosed />} />
+                    <Route path={ROUTES.DAY_BOOKS} element={<DayBook />} />
                     {/* <Route path={ROUTES.GOLD_RATE_SETUP} element={<RateSetting />} /> */}
                 </Route>
                 <Route path="*" element={<h2>404: Page Not Found</h2>} />
