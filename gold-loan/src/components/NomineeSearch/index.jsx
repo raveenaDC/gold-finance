@@ -20,7 +20,7 @@ function NomineeSearch({ onClose }) {
         const fetchNominees = async () => {
             setLoading(true);
             try {
-                const response = await fetch('http://localhost:4000/customer/details/view');
+                const response = await fetch('https://gold-finance.onrender.com/customer/details/view');
                 const data = await response.json();
                 setNominees(data.data.items);
             } catch (error) {

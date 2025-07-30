@@ -34,15 +34,13 @@ export default function GoldLoanBill() {
     const [formData, setFormData] = useState({
         interestRate: "",
         principlePaid: "",
-
         totalAmount: "",
         insurance: "",
         processingFee: "",
         packingFee: "",
         appraiser: "",
         otherCharges: "",
-
-        paymentMode: "cash",
+        paymentMode: "null",
         paymentName: "",
         paymentNumber: "",
     });
@@ -116,8 +114,9 @@ export default function GoldLoanBill() {
     };
     const handlePaymentModeChange = (event, value) => {
         setSelectedPaymentMode(value);
-        if (value) {
-            setIsModalOpen(true); // Open the modal when a payment mode is selected
+        setFormData({ ...formData, paymentMode: value }); // Update formData with the selected mode
+        if (value && (value === 'Cheque' || value === 'Credit Card' || value === 'Debit Card')) {
+            setIsModalOpen(true); // Open modal only for modes that need additional details
         }
     };
 
@@ -270,7 +269,7 @@ export default function GoldLoanBill() {
     const fetchGoldNoData = async () => {
         try {
             const response = await fetch(
-                `http://localhost:4000/customer/gold/loan/number/view?search=${glNumber}`
+                `https://gold-finance.onrender.com/customer/gold/loan/number/view?search=${glNumber}`
             );
             const data = await response.json();
             setGlOptions(data.data.loanDetails || []); // Populate dropdown options
@@ -373,9 +372,8 @@ export default function GoldLoanBill() {
         }
     }, [goldLoanId]);
 
-    // Handle form submission
     const handleSubmit = async (event) => {
-        event.preventDefault(); // Prevent default form submission behavior
+        event.preventDefault();
 
         if (!goldLoanId || !billDate) {
             alert('Please fill in all required fields.');
@@ -388,8 +386,6 @@ export default function GoldLoanBill() {
             billNo,
             ...formData,
         };
-        console.log("payment name", formData.paymentName);
-
 
         const customerData = {
             info: data,
@@ -399,9 +395,42 @@ export default function GoldLoanBill() {
 
         try {
             setLoading(true);
-            await submitData(customerData); // Assuming submitData is defined elsewhere
+            await submitData(customerData);
             dispatch(incrementBillNumber());
             alert('Transaction submitted successfully!');
+
+            // Reset all form fields and states
+            setGlNumber('');
+            setCustomerId('');
+            setGoldLoanId('');
+            setBillDate('');
+            setCustomerData(null);
+            setLoanDetails([]);
+            setItemDetails([]);
+            setSingleloanDetails([]);
+            setFineDetails([]);
+            setHistoryDetails([]);
+            setShowTable(false);
+            setShowPledgeTable(false);
+            setShowHistoryTable(false);
+            setIsModalOpen(false);
+            setSelectedPaymentMode('');  // Add this line to reset payment mode
+
+
+
+            setFormData({
+                interestRate: "",
+                principlePaid: "",
+                totalAmount: "",
+                insurance: "",
+                processingFee: "",
+                packingFee: "",
+                appraiser: "",
+                otherCharges: "",
+                paymentMode: "Null",
+                paymentName: "",
+                paymentNumber: "",
+            });
 
         } catch (error) {
             console.error('Error submitting transaction:', error);
@@ -410,11 +439,10 @@ export default function GoldLoanBill() {
             setLoading(false);
         }
     };
-
     // Handle date change
-    const handleDateChange = (event) => {
-        setBillDate(event.target.value);
-    };
+    // const handleDateChange = (event) => {
+    //     setBillDate(event.target.value);
+    // };
 
     const diffDays = differenceInDays(new Date(billDate), new Date(singleloanDetails.lastTransaction),);
     formData.totalAmount = parseFloat(formData.interestRate || 0) + parseFloat(formData.principlePaid || 0);
@@ -528,6 +556,8 @@ export default function GoldLoanBill() {
                                 />
                             </Grid>
 
+
+
                             {/* Date */}
                             <Grid item xs={6} md={3}>
 
@@ -592,6 +622,7 @@ export default function GoldLoanBill() {
                                 {/* <Typography variant="body2" fontWeight="bold">Payment Mode</Typography> */}
                                 <Autocomplete
                                     options={paymentModes}
+                                    value={selectedPaymentMode}
                                     onChange={handlePaymentModeChange}
                                     renderInput={(params) => (
                                         <TextField
@@ -1100,7 +1131,7 @@ export default function GoldLoanBill() {
                             >
                                 <Avatar
                                     alt="Profile"
-                                    src={customerData?.image?.path ? `http://localhost:4000${customerData.image.path}` : '/default.jpg'}
+                                    src={customerData?.image?.path ? `https://gold-finance.onrender.com${customerData.image.path}` : '/default.jpg'}
                                     sx={{
                                         width: 90,
                                         height: 100,

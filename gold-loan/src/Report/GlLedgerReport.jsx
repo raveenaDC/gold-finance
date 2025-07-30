@@ -29,6 +29,8 @@ function GlLedgerReport() {
     const fetchGlLedgerReport = async () => {
         try {
             const response = await viewReports();
+            console.log(response, "response in gl ledger report");
+
             if (!response?.isSuccess) {
                 alert(response.result);
                 return;

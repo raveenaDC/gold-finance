@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Button,
     TextField,
@@ -14,6 +14,8 @@ import {
     Box,
 } from '@mui/material';
 
+import { viewReports } from "../services/system/system.service";
+
 // Mock Data
 const mockData = [
     { glNo: '001', date: '2023-12-01', txnDate: '2023-12-15', fullName: 'John Doe', paidAmount: 5000, remittedAmount: 2000, interest: 200 },
@@ -26,6 +28,30 @@ function GlTransactionReport() {
     const [fromDate, setFromDate] = useState('');
     const [toDate, setToDate] = useState('');
     const [filteredData, setFilteredData] = useState([]);
+    const [transactionData, setTransactionData] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    const fetchGlLedgerReport = async () => {
+        try {
+            const response = await viewReports();
+            console.log("response in transaction data", response);
+
+            if (!response?.isSuccess) {
+                alert(response.result);
+                return;
+            }
+            setTransactionData(response.result.data.loanDetails);
+        } catch (error) {
+            console.error("Error fetching GL Ledger Report:", error);
+            alert("Failed to fetch GL Ledger Report. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchGlLedgerReport();
+    }, []);
 
     const handleSubmit = () => {
         if (!fromDate || !toDate) {
@@ -104,16 +130,17 @@ function GlTransactionReport() {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {filteredData.length > 0 ? (
-                            filteredData.map((item) => (
+                        {transactionData.length > 0 ? (
+                            transactionData.map((item) => (
                                 <TableRow key={item.glNo}>
                                     <TableCell>{item.glNo}</TableCell>
-                                    <TableCell>{item.date}</TableCell>
-                                    <TableCell>{item.txnDate}</TableCell>
-                                    <TableCell>{item.fullName}</TableCell>
-                                    <TableCell>{item.paidAmount}</TableCell>
-                                    <TableCell>{item.remittedAmount}</TableCell>
-                                    <TableCell>{item.interest}</TableCell>
+                                    <TableCell>{item.purchaseDate}</TableCell>
+                                    <TableCell>{item.lastTransactionDate}</TableCell>
+                                    <TableCell>{(item.customerData?.firstName || '') + ' ' + (item.customerData?.lastName || '')}</TableCell>
+
+                                    <TableCell>{item.amountPaid_totalPrinciplePaid}</TableCell>
+                                    <TableCell>{item.balanceAmount}</TableCell>
+                                    <TableCell>{item.interestPaid}</TableCell>
                                 </TableRow>
                             ))
                         ) : (

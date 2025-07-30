@@ -244,7 +244,7 @@ const PledgeMasterPage = () => {
     const fetchGoldNoData = async () => {
         try {
             const response = await fetch(
-                `http://localhost:4000/customer/gold/loan/number/view?search=${goldNumber}`
+                `https://gold-finance.onrender.com/customer/gold/loan/number/view?search=${goldNumber}`
             );
             const data = await response.json();
             setGlOptions(data.data.loanDetails || []); // Populate dropdown options

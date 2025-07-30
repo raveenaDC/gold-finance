@@ -12,5 +12,8 @@ export const ROUTES = {
     PLEDGE_TRANSACTION: "/pledge-transaction",
     FIXED_MASTER: "/fixed-master",
     FIXED_TRANSACTION: "/fixed-transaction",
+    GL_CLOSED_NON_CLOSED_DETAILS: "/gl-closed-non-closed-details",
+    DAY_BOOKS: '/day_book',
+
     // GOLD_RATE_SETUP: "/gold-rate-setup",
 }

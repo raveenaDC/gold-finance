@@ -8,9 +8,11 @@ export default function GlMaster() {
     const [customers, setCustomers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchParams, setSearchParams] = useState({
+        firstName: '',
+        lastName: '',
         address: '',
         phone: '',
-        search: '',
+        location: '',
     });
 
     const navigate = useNavigate();
@@ -18,14 +20,16 @@ export default function GlMaster() {
     // Fetch customer data from the API with search parameters
     const fetchCustomers = async () => {
         try {
-            const { address, phone, search } = searchParams;
-            const query = new URLSearchParams({
-                address,
-                phone,
-                search,
-            }).toString();
+            const { firstName, lastName, address, phone, location } = searchParams;
+            const params = new URLSearchParams();
 
-            const response = await fetch(`http://localhost:4000/customer/details/view?${query}`);
+            if (firstName) params.append("firstName", firstName);
+            if (lastName) params.append("lastName", lastName);
+            if (address) params.append("address", address);
+            if (phone) params.append("phone", phone);
+            if (location) params.append("location", location);
+
+            const response = await fetch(`https://gold-finance.onrender.com/customer/details/view?${params.toString()}`);
             const data = await response.json();
             console.log("view customers", data);
 
@@ -96,8 +100,8 @@ export default function GlMaster() {
                         fullWidth
                         label="Search by First Name"
                         variant="outlined"
-                        name="search"
-                        value={searchParams.search}
+                        name="firstName"
+                        value={searchParams.firstName}
                         onChange={handleSearchChange}
                         sx={{
                             '& .MuiOutlinedInput-root': {
@@ -123,8 +127,8 @@ export default function GlMaster() {
                         fullWidth
                         label="Search by Last Name"
                         variant="outlined"
-                        name="search"
-                        value={searchParams.search}
+                        name="lastName"
+                        value={searchParams.lastName}
                         onChange={handleSearchChange}
                         sx={{
                             '& .MuiOutlinedInput-root': {
@@ -176,8 +180,8 @@ export default function GlMaster() {
                         fullWidth
                         label="Search by Location"
                         variant="outlined"
-                        name="Location"
-                        value={searchParams.address}
+                        name="location"
+                        value={searchParams.location}
                         onChange={handleSearchChange}
                         sx={{
                             '& .MuiOutlinedInput-root': {
@@ -270,7 +274,7 @@ export default function GlMaster() {
                             }}
                         >
                             <img
-                                src={customer?.image?.path ? `http://localhost:4000${customer.image.path}` : 'https://via.placeholder.com/120'}
+                                src={customer?.image?.path ? `https://gold-finance.onrender.com${customer.image.path}` : 'https://via.placeholder.com/120'}
                                 alt={`${customer.firstName} ${customer.lastName}`}
                                 style={{
                                     width: '100%',
