@@ -39,8 +39,9 @@ export async function cronFineCalculation() {
                 nextDueDate.setDate(nextDueDate.getDate() + modeDays);
 
                 if (currentDate > nextDueDate && latestLoanAmount > 0) {
-                    const interestCalculation = latestLoanAmount * (loan.interestPercentage / 100);
-                    const dailyInterest = (interestCalculation * 12) / 365;
+                    const interestCalculations = latestLoanAmount * (loan.interestPercentage / 100);
+                    let interestCalculation = interestCalculations.toFixed(2);
+                    const dailyInterest = ((interestCalculation) / 365).toFixed(2);
                     let fineBalancePrice = 0;
                     let totalInterestRate = 0;
 
@@ -80,7 +81,7 @@ export async function cronFineCalculation() {
                             continue;
                     }
 
-                    fineBalancePrice = parseFloat(fineBalancePrice.toFixed(3));
+                    fineBalancePrice = parseFloat(fineBalancePrice.toFixed(2));
 
                     await models.fineGoldLoanModel.create({
                         goldLoanId: loan._id,

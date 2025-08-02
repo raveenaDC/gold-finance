@@ -6,6 +6,8 @@ const router = express.Router();
 
 router.get('/loan-details/customer/:customerId', goldLoanServices.viewGoldLoan)
 router.get('/loan/:loanId', goldLoanServices.viewGoldLoanById)
+router.get('/loan/approvals', goldLoanServices.viewGoldLoanApprovals)
+router.post('/loan/make/approvals', validator.goldLoanApprovalValidation, middlewares.validationCheckMiddleWare, goldLoanServices.makeGoldLoanApprovals)
 router.get('/loan/number/view', goldLoanServices.viewGoldLoanByGoldNumber)
 //router.delete('/remove/item/:itemId', goldItemServices.removeGoldLoan)
 router.patch('/loan/:loanId/update', middlewares.handleMulterErrors(

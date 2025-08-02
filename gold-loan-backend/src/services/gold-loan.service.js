@@ -230,8 +230,10 @@ export async function addGoldLoan(req, res, next) {
         }
 
         let profitLossAmount = totalNetWeight * goldRate
-        let interestCalculation = principleAmount * (interestPercentage / 100);
-        let day = (interestCalculation * 12) / 365;
+        let interestCalculations = principleAmount * (interestPercentage / 100);
+        let interestCalculation = interestCalculations.toFixed(2);
+        let dayValue = (interestCalculation) / 365;
+        let day = dayValue.toFixed(2);
         //BALANCE AMOUNT CALCULATION
         let balancePrice, tInterestRate;
         let endDate = new Date(purchaseDate);
@@ -279,7 +281,7 @@ export async function addGoldLoan(req, res, next) {
             default:
                 throw new Error("Invalid interest mode");
         }
-        let cutBalancePrice = parseFloat(balancePrice.toFixed(3));
+        let cutBalancePrice = parseFloat(balancePrice.toFixed(2));
 
         const loan = await models.goldLoanModel.create({
             glNo,
@@ -300,7 +302,7 @@ export async function addGoldLoan(req, res, next) {
             insurance,
             processingFee,
             packingFee,
-            totalInterestRate: parseFloat(tInterestRate.toFixed(3)),
+            totalInterestRate: parseFloat(tInterestRate.toFixed(2)),
             otherCharges,
             appraiser,
             totalCharges,
@@ -329,7 +331,7 @@ export async function addGoldLoan(req, res, next) {
                 processingFee,
                 dayAmount: day,
                 packingFee,
-                totalInterestRate: parseFloat(tInterestRate.toFixed(3)),
+                totalInterestRate: parseFloat(tInterestRate.toFixed(2)),
                 otherCharges,
                 totalCharges,
                 appraiser,
@@ -396,7 +398,7 @@ export async function updateGoldLoanById(req, res) {
         }
         let profitLossAmount = totalNetWeight * goldRate
         let interestCalculation = principleAmount * (interestPercentage / 100);
-        let day = (interestCalculation * 12) / 365;
+        let day = (interestCalculation) / 365;
         //BALANCE AMOUNT CALCULATION
         let balancePrice;
 
@@ -679,3 +681,60 @@ export async function viewGoldLoanByGoldNumber(req, res, next) {
     }
 
 }
+export async function viewGoldLoanApprovals(req, res, next) {
+    try {
+
+
+        let loanList = await models.goldLoanModel.find(query).select(
+            'glNo purchaseDate customerId isApproved createdAt'
+        ).collation({ locale: 'en', strength: 2 });
+
+        if (loanList.length == 0) {
+            return responseHelper(
+                res,
+                httpStatus.NOT_FOUND,
+                true,
+                'Gold loan details are empty'
+            );
+        }
+
+        return responseHelper(res, httpStatus.OK, false, 'Gold loan list', {
+            loanDetails: loanList,
+        });
+
+    } catch (error) {
+        return next(new Error(error));
+    }
+
+}
+export async function makeGoldLoanApprovals(req, res, next) {
+    try {
+
+        let { goldLoanId, isApproved } = req.body;
+        const loanList = await models.goldLoanModel.findById(goldLoanId);
+        if (!loanList) {
+            return responseHelper(res, httpStatus.NOT_FOUND, true, 'Gold loan not found');
+        }
+
+        const updatedStatus = await models.goldLoanModel.findByIdAndUpdate(
+            goldLoanId,
+            { isApproved },
+            {
+                new: true,
+            }
+        );
+
+        return responseHelper(
+            res,
+            httpStatus.OK,
+            false,
+            'Approval status updated successfully',
+            { status: updatedStatus }
+        );
+    } catch (error) {
+        return next(new Error(error));
+    }
+
+}
+
+

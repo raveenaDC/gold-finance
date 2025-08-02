@@ -109,10 +109,12 @@ export async function viewAllGoldLoan(req, res, next) {
                 //To Find Balance Interest To Pay Till Today
                 interestDays = Math.ceil((new Date() - lastTransactionDate) / (1000 * 60 * 60 * 24)) - 1;
 
-                let interestCalculation = loanDetails.principleAmount * (loan.interestPercentage / 100);
-                let day = (interestCalculation * 12) / 365;
+                let interestCalculations = loanDetails.principleAmount * (loan.interestPercentage / 100);
+                let interestCalculation = interestCalculations.toFixed(2);
+                let datValue = (interestCalculation) / 365;
+                let day = datValue.toFixed(2);
                 if (loan.interestMode == 'yearly') {
-                    interestDaysAmount = (interestDays * (interestCalculation * 12))
+                    interestDaysAmount = (interestDays * (interestCalculation))
                 }
                 else { interestDaysAmount = day * interestDays }
 

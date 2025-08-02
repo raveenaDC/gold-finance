@@ -134,6 +134,10 @@ const goldLoanSchema = new Schema(
             type: Number,
             default: 0,
         },
+        isApproved: {
+            type: Number,
+            default: 2,//pending 0 not approved ,1 approved
+        },
         sgst: {
             type: Number,
             default: 0,

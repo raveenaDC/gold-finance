@@ -4,6 +4,7 @@ import customerValidation from './customer.validation.js';
 import customerGetValidation from './customer-get-validation.js';
 import goldLoanStatusValidation from './gold-loan-status-update.validation.js';
 import loanDocumentValidation from './loan-document.validation.js';
+import goldLoanApprovalValidation from './gold-loan-approval-validation.js';
 
 export {
     customerValidation,
@@ -11,5 +12,6 @@ export {
     customerGetValidation,
     goldLoanPostValidation,
     goldLoanStatusValidation,
-    loanDocumentValidation
+    loanDocumentValidation,
+    goldLoanApprovalValidation
 }

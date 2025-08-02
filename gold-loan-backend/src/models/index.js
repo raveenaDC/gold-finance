@@ -13,6 +13,8 @@ import roleModel from "./roleModel.js";
 import bankPledgeDataModel from "./bankPledgeDataModel.js";
 import pledgeModel from "./pledgeModel.js";
 import pledgeTransactionModel from "./pledgeTransactionModel.js";
+import basicPlansModel from "./basicPlansModel.js";
+
 export {
     billingModel,
     customerModel,
@@ -28,5 +30,6 @@ export {
     roleModel,
     bankPledgeDataModel,
     pledgeModel,
-    pledgeTransactionModel
+    pledgeTransactionModel,
+    basicPlansModel
 };
