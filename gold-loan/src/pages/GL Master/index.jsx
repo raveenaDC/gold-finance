@@ -29,7 +29,7 @@ export default function GlMaster() {
             if (phone) params.append("phone", phone);
             if (location) params.append("location", location);
 
-            const response = await fetch(`https://gold-finance.onrender.com/customer/details/view?${params.toString()}`);
+            const response = await fetch(`http://localhost:4000/customer/details/view?${params.toString()}`);
             const data = await response.json();
             console.log("view customers", data);
 
@@ -274,12 +274,12 @@ export default function GlMaster() {
                             }}
                         >
                             <img
-                                src={customer?.image?.path ? `https://gold-finance.onrender.com${customer.image.path}` : 'https://via.placeholder.com/120'}
+                                src={customer?.image?.path ? `http://localhost:4000${customer.image.path}` : 'https://via.placeholder.com/120'}
                                 alt={`${customer.firstName} ${customer.lastName}`}
                                 style={{
                                     width: '100%',
                                     height: '100%',
-                                    objectFit: 'cover', // Ensures the image maintains a good aspect ratio
+                                    objectFit: 'cover',
                                 }}
                             />
                         </Box>

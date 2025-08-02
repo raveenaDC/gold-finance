@@ -1009,7 +1009,7 @@ const GoldLoanForm = () => {
                         >
                             <Avatar
                                 alt="Profile"
-                                src={`https://gold-finance.onrender.com${customerData.image.path}`}
+                                src={`http://localhost:4000${customerData.image.path}`}
                                 sx={{
                                     width: { xs: 80, sm: 90 }, // Smaller avatar on mobile
                                     height: { xs: 80, sm: 100 },

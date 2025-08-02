@@ -1,4 +1,4 @@
-export const API_BASE_URL = "https://gold-finance.onrender.com";
+export const API_BASE_URL = " http://localhost:4000";
 export const API_ENDPOINT = {
     GET_DASHBOARD_DETAILS: "/dashboard/count/view/details",
     GET_CUSTOMER_DETAILS: "/customer/[customerId]/details/view",

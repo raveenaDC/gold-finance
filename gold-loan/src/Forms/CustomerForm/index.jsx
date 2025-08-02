@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback } from 'react';
 import Webcam from 'react-webcam';
 import { Box, Button, TextField, Grid, Typography, Modal, IconButton, Container, MenuItem, } from '@mui/material';
 
+
 import CloseIcon from '@mui/icons-material/Close';
 import signatureIcon from '../../assets/signatureIcon.png';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
@@ -60,6 +61,58 @@ export default function CustomerForm({ onCustomerAdded }) {
 
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
+
+    // Clear form function
+    const handleClearForm = () => {
+        setFormData({
+            firstName: '',
+            lastName: '',
+            address: '',
+            city: '',
+            place: '',
+            state: '',
+            district: '',
+            pin: '',
+            aadhar: '',
+            primaryNumber: '',
+            secondaryNumber: '',
+            gst: '',
+            nearBy: '',
+            bankUserName: '',
+            bankAccount: '',
+            ifsc: '',
+            bankName: '',
+            upId: '',
+            gender: '',
+            email: '', // Add email field       
+            dateOfBirth: '',
+            createdDate: '',
+            panCardName: '',
+            panCardNumber: '',
+        });
+
+        setFileImage({
+            image: null,
+            signature: null,
+            aadharImage: [],
+            capture: null,
+            sCapture: null,
+            aCapture: [],
+            passBookImage: null
+        });
+        setErrors({});
+
+        // Clear file input values
+        if (fileInputcamRef.current) fileInputcamRef.current.value = '';
+        if (fileInputSignRef.current) fileInputSignRef.current.value = '';
+        if (fileInputaadharRef.current) fileInputaadharRef.current.value = '';
+        if (fileInputpassBookRef.current) fileInputpassBookRef.current.value = '';
+
+        // Turn off all webcams
+        setUsingWebcam(false);
+        setUsingSigncam(false);
+        setUsingAadharcam(false);
+    };
 
     // Handle webcam capture
     const captureImage = useCallback(() => {
@@ -214,8 +267,8 @@ export default function CustomerForm({ onCustomerAdded }) {
         // First Name validation
         if (!formData.firstName.trim()) {
             formErrors.firstName = "First Name is required";
-        } else if (formData.firstName.length < 3 || formData.firstName.length > 30) {
-            formErrors.firstName = "First name must be between 3 and 30 characters";
+        } else if (formData.firstName.length < 2 || formData.firstName.length > 30) {
+            formErrors.firstName = "First name must be between 2 and 30 characters";
         } else if (!/^[a-zA-Z\s.]+$/.test(formData.firstName)) {
             formErrors.firstName = "First name is invalid";
         }
@@ -233,75 +286,72 @@ export default function CustomerForm({ onCustomerAdded }) {
         }
 
         // Address validation
-        if (!formData.address.trim()) formErrors.address = "Address is required";
+        // if (!formData.address.trim()) formErrors.address = "Address is required";
 
         // Near by validation
-        if (!formData.nearBy.trim()) formErrors.nearBy = "Near By location  is required";
+        // if (!formData.nearBy.trim()) formErrors.nearBy = "Near By location  is required";
 
         // Care of validation
-        if (!formData.city.trim()) formErrors.city = "City is required";
+        // if (!formData.city.trim()) formErrors.city = "City is required";
 
         // place validation
-        if (!formData.place.trim()) formErrors.place = "Place is required";
+        // if (!formData.place.trim()) formErrors.place = "Place is required";
 
         // State validation
-        if (!formData.state.trim()) formErrors.state = "State is required";
+        // if (!formData.state.trim()) formErrors.state = "State is required";
 
         // State validation
-        if (!formData.district.trim()) formErrors.district = "District is required";
+        // if (!formData.district.trim()) formErrors.district = "District is required";
 
 
         // Zip Code validation
-        if (!formData.pin.trim()) {
-            formErrors.pin = "Zip Code is required";
-        } else if (!/^\d{6}$/.test(formData.pin)) {
+        // if (!formData.pin.trim()) {
+        //     formErrors.pin = "Zip Code is required";
+        // } else if (!/^\d{6}$/.test(formData.pin)) {
+        //     formErrors.pin = "Zip Code must be 6 digits";
+        // }      
+
+
+        if (formData.pin !== "" && !/^\d{6}$/.test(formData.pin)) {
             formErrors.pin = "Zip Code must be 6 digits";
         }
 
         // Aadhar Number verification
-        if (!formData.aadhar) {
-            formErrors.aadhar = "Aadhar number is required";
-        } else if (!/^\d{12}$/.test(formData.aadhar)) {
+        if (formData.aadhar !== "" && !/^\d{12}$/.test(formData.aadhar)) {
             formErrors.aadhar = "Aadhar number must be exactly 12 digits";
         }
 
         // Bank Account Number Verification
-        if (!formData.bankAccount) {
-            formErrors.bankAccount = "Bank account number is required";
-        } else if (!/^\d{9,18}$/.test(formData.bankAccount)) {
+        if (formData.bankAccount !== "" && !/^\d{9,18}$/.test(formData.bankAccount)) {
             formErrors.bankAccount = "Bank account number must be between 9 and 18 digits";
         }
 
         // IFSC Code Verification
-        if (!formData.ifsc) {
-            formErrors.ifsc = "IFSC code is required";
-        } else if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(formData.ifsc)) {
+        if (formData.ifsc !== "" && !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(formData.ifsc)) {
             formErrors.ifsc = "Invalid IFSC code format";
         }
 
         // Bank Username Verification
-        if (!formData.bankUserName) {
-            formErrors.bankUserName = "Bank username is required";
-        } else if (!/^[a-zA-Z\s]{3,50}$/.test(formData.bankUserName)) {
+        if (formData.bankUserName !== "" && !/^[a-zA-Z\s]{3,50}$/.test(formData.bankUserName)) {
             formErrors.bankUserName = "Bank username must be 3 to 50 characters long and contain only alphabets and spaces";
         }
         // Bank Name Verification
-        if (!formData.bankName) {
-            formErrors.bankName = "Bank name is required";
-        } else if (!/^[a-zA-Z\s]{3,50}$/.test(formData.bankName)) {
+        if (formData.bankName !== "" && !/^[a-zA-Z\s]{3,50}$/.test(formData.bankName)) {
             formErrors.bankName = "Bank name must be 3 to 50 characters long and contain only alphabets and spaces";
         }
-        if (!formData.upId) {
-            formErrors.upId = "UPID is required";
-        } else if (!/^[a-zA-Z0-9.\-_]{2,}@[a-zA-Z]{2,}$/.test(formData.upId)) {
+        if (formData.upId !== "" && !/^[a-zA-Z0-9.\-_]{2,}@[a-zA-Z]{2,}$/.test(formData.upId)) {
             formErrors.upId = "UPID must be contain only alphabets and spaces";
         }
 
         // Primary Mobile Number validation
-        if (!formData.primaryNumber) {
-            formErrors.primaryNumber = "Primary mobile number is required";
-        } else if (!/^\d{10}$/.test(formData.primaryNumber)) {
-            formErrors.primaryNumber = "Primary mobile number must be exactly 10 digits";
+        // if (!formData.primaryNumber) {
+        //     formErrors.primaryNumber = "Primary mobile number is required";
+        // } else if (!/^\d{10}$/.test(formData.primaryNumber)) {
+        //     formErrors.primaryNumber = "Primary mobile number must be exactly 10 digits";
+        // }
+
+        if (formData.primaryNumber !== "" && !/^\d{10}$/.test(formData.primaryNumber)) {
+            formErrors.primaryNumber = "mobile number must be exactly 10 digits";
         }
 
         // Validate if secondary number is provided and correctly formatted
@@ -310,36 +360,32 @@ export default function CustomerForm({ onCustomerAdded }) {
         }
 
         // Email validation
-        if (!formData.email) {
-            formErrors.email = "Email is required";
-        } else if (!emailRegex.test(formData.email)) {
+
+
+        if (!emailRegex.test(formData.email.trim())) {
             formErrors.email = "Email address is invalid";
         }
 
         // Conditional validation for image and signature
-        if (!fileImage.image && !fileImage.capture) {
-            formErrors.image = "Either upload an image or capture one with the webcam";
-        }
+        // if (!fileImage.image && !fileImage.capture) {
+        //     formErrors.image = "Either upload an image or capture one with the webcam";
+        // }
 
-        if (!fileImage.signature && !fileImage.sCapture) {
-            formErrors.signature = "Either upload a signature or capture one with the webcam";
-        }
+        // if (!fileImage.signature && !fileImage.sCapture) {
+        //     formErrors.signature = "Either upload a signature or capture one with the webcam";
+        // }
 
         // if (!fileImage.aadharImage && !fileImage.aCapture) {
         //     formErrors.aadharImage = "Either upload an Aadhar image or capture one with the webcam";
         // }
 
         // Pan card Name Verification
-        if (!formData.panCardName) {
-            formErrors.panCardName = "Pan card name is required";
-        } else if (!/^[a-zA-Z\s]{3,50}$/.test(formData.panCardName)) {
+        if (formData.panCardName !== "" && !/^[a-zA-Z\s]{3,50}$/.test(formData.panCardName)) {
             formErrors.bankName = "Pan Cad name must be 3 to 50 characters long and contain only alphabets and spaces";
         }
 
         // PAN Card Number Validation
-        if (!formData.panCardNumber) {
-            formErrors.panCardNumber = "PAN card number is required";
-        } else if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.panCardNumber)) {
+        if (formData.panCardNumber !== "" && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.panCardNumber)) {
             formErrors.panCardNumber = "Invalid PAN card number format. It should be in the format ABCDE1234F";
         }
 
@@ -440,42 +486,7 @@ export default function CustomerForm({ onCustomerAdded }) {
 
 
             // Clear form data after successful submission
-            setFormData({
-                firstName: '',
-                lastName: '',
-                address: '',
-                city: '',
-                place: '',
-                district: '',
-                state: '',
-                pin: '',
-                aadhar: '',
-                primaryNumber: '',
-                secondaryNumber: '',
-                nearBy: '',
-                gst: '',
-                bankUserName: '',
-                bankAccount: '',
-                ifsc: '',
-                bankName: '',
-                panCardName: '',
-                panCardNumber: '',
-                email: '', // Clear email field
-
-            });
-            setFileImage({
-                image: null,
-                signature: null,
-                capture: null,
-                sCapture: null,
-                aadharImage: [],
-                aCapture: [],
-                passBookImage: null
-            }); // Clear uploaded image
-            // setFileSignature(null); // Clear uploaded signature
-            // if (onCustomerAdded) {
-            //     onCustomerAdded();
-            // }
+            handleClearForm();
             onCustomerAdded?.();
             handleClose(); // Close the form after submission
         } catch (error) {
@@ -506,22 +517,21 @@ export default function CustomerForm({ onCustomerAdded }) {
                 <Container maxWidth="md" >
                     <Box
                         sx={{
-                            width: '49%',
+                            width: '80%',
                             maxHeight: '88vh', // Set a maximum height for the modal
                             backgroundColor: 'rgb(255, 255, 255)',
                             borderRadius: 2,
                             p: 3,
                             boxShadow: 24,
                             position: 'relative',
-                            left: '20%',
+                            left: '10%',
                             marginTop: '10vh',
-
                             overflowY: 'auto', // Enable vertical scrolling if content overflows
 
                             // opacity: 0.6, // Slight transparency on the modal content itself
                             // Custom scrollbar styles
                             '&::-webkit-scrollbar': {
-                                width: '2px', // Width of the scrollbar
+                                width: '5px', // Width of the scrollbar
                             },
                             '&::-webkit-scrollbar-thumb': {
                                 backgroundColor: '#888', // Color of the scrollbar thumb
@@ -562,7 +572,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         name="firstName"
                                         label="First Name"
                                         variant="outlined"
-                                        required
+                                        // required
                                         value={formData.firstName}
                                         onChange={handleChange}
                                         error={!!errors.firstName} // Add error prop
@@ -580,7 +590,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         name="lastName"
                                         label="Last Name"
                                         variant="outlined"
-                                        required
+                                        // required
                                         value={formData.lastName}
                                         onChange={handleChange}
                                         error={!!errors.lastName} // Add error prop
@@ -598,7 +608,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         name="address"
                                         label="Address"
                                         variant="outlined"
-                                        required
+                                        // required
                                         value={formData.address}
                                         onChange={handleChange}
                                         error={!!errors.address} // Add error prop
@@ -615,7 +625,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         name="place"
                                         label="place "
                                         variant="outlined"
-                                        required
+                                        // required
                                         value={formData.place}
                                         onChange={handleChange}
                                         error={!!errors.place} // Add error prop
@@ -632,7 +642,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         name="city"
                                         label="City"
                                         variant="outlined"
-                                        required
+                                        // required
                                         value={formData.city}
                                         onChange={handleChange}
                                         error={!!errors.city} // Add error prop
@@ -650,7 +660,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         name="district"
                                         label="District"
                                         variant="outlined"
-                                        required
+                                        // required
                                         value={formData.district}
                                         onChange={handleChange}
                                         error={!!errors.district} // Add error prop
@@ -668,7 +678,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         name="state"
                                         label="State"
                                         variant="outlined"
-                                        required
+                                        // required
                                         value={formData.state}
                                         onChange={handleChange}
                                         error={!!errors.state} // Add error prop
@@ -686,7 +696,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         name="pin"
                                         label="Zip Code"
                                         variant="outlined"
-                                        required
+                                        // required
                                         value={formData.pin}
                                         onChange={handleChange}
                                         error={!!errors.pin} // Add error prop
@@ -723,7 +733,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         label="Date of Birth"
                                         type="date" // Enables both typing and picking a date
                                         variant="outlined"
-                                        required
+                                        // required
                                         value={formData.dateOfBirth} // Controlled component value
                                         onChange={handleChange} // Update state on change
                                         error={!!errors.dob} // Display error state if applicable
@@ -745,7 +755,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         name="gender"
                                         label="Gender"
                                         variant="outlined"
-                                        required
+                                        // required
                                         value={formData.gender} // Controlled component value
                                         onChange={handleGenderChange} // Update state on change
                                         error={!!errors.gender} // Display error state if applicable
@@ -769,7 +779,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         name="primaryNumber"
                                         label="Primary Mobile Number"
                                         variant="outlined"
-                                        required
+                                        // required
                                         value={formData.primaryNumber}
                                         onChange={handleChange}
                                         error={!!errors.primaryNumber}
@@ -805,7 +815,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         name="email"
                                         label="Email"
                                         variant="outlined"
-                                        required
+                                        // required
                                         type="email"
                                         value={formData.email}
                                         onChange={handleChange}
@@ -839,7 +849,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         label="created Date"
                                         type="date" // Enables both typing and picking a date
                                         variant="outlined"
-                                        required
+                                        // required
                                         value={formData.createdDate} // Controlled component value
                                         onChange={handleChange} // Update state on change
                                         error={!!errors.dob} // Display error state if applicable
@@ -867,7 +877,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                         name="aadhar"
                                         label="Aadhar Number"
                                         variant="outlined"
-                                        required
+                                        // required
                                         value={formData.aadhar}
                                         onChange={handleChange}
                                         error={!!errors.aadhar}
@@ -992,7 +1002,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                                         name="bankUserName"
                                                         label="Account Namee"
                                                         variant="outlined"
-                                                        required
+                                                        // required
                                                         value={formData.bankUserName}
                                                         onChange={handleChange}
                                                         error={!!errors.bankUserName} // Add error prop
@@ -1009,7 +1019,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                                         name="bankName"
                                                         label="Bank name"
                                                         variant="outlined"
-                                                        required
+                                                        // required
                                                         value={formData.bankName}
                                                         onChange={handleChange}
                                                         error={!!errors.bankName} // Add error prop
@@ -1026,7 +1036,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                                         name="ifsc"
                                                         label="IFSC Code"
                                                         variant="outlined"
-                                                        required
+                                                        // required
                                                         value={formData.ifsc}
                                                         onChange={handleChange}
                                                         error={!!errors.ifsc} // Add error prop
@@ -1043,7 +1053,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                                         name="bankAccount"
                                                         label="Account Number"
                                                         variant="outlined"
-                                                        required
+                                                        // required
                                                         value={formData.bankAccount}
                                                         onChange={handleChange}
                                                         error={!!errors.bankAccount} // Add error prop
@@ -1102,7 +1112,7 @@ export default function CustomerForm({ onCustomerAdded }) {
                                                         name="panCardName"
                                                         label="Pan Card Name"
                                                         variant="outlined"
-                                                        required
+                                                        // required
                                                         value={formData.panCardName}
                                                         onChange={handleChange}
                                                         error={!!errors.panCardName} // Add error prop
@@ -1288,11 +1298,30 @@ export default function CustomerForm({ onCustomerAdded }) {
                                 </Grid>
 
                                 {/* Submit Button */}
-                                <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
+
+                                <Grid item xs={8} sx={{ display: 'flex', justifyContent: 'center' }}>
                                     <Button variant="contained" color="primary" type="submit">
                                         Submit
                                     </Button>
                                 </Grid>
+
+                                <Grid item xs={4} sx={{ display: 'flex', justifyContent: 'center' }}>
+                                    <Button
+                                        variant="contained"
+                                        onClick={handleClearForm}
+                                        sx={{
+                                            backgroundColor: 'transparent',
+                                            color: '#000',
+                                            border: '1px solid #ccc',
+                                            '&:hover': {
+                                                backgroundColor: '#f0f0f0',
+                                            },
+                                        }}
+                                    >
+                                        Clear
+                                    </Button>
+                                </Grid>
+
                             </Grid>
                         </form>
                     </Box>
