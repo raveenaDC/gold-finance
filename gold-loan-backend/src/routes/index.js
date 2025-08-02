@@ -9,6 +9,7 @@ import reportRouter from './reports.router.js';
 import chartOfAccountRouter from './chart-account-head.router.js';
 import settingsRouter from './settings.router.js'
 import pledgeRouter from './pledge-transaction.router.js'
+import planRouter from './basic-plan.router.js'
 
 import httpStatus from 'http-status';
 import { responseHelper } from '../utils/response.helper.js';
@@ -47,6 +48,9 @@ export default function initializeRoutes(app) {
 
     //PLEDGE ROUTER
     app.use('/pledge', pledgeRouter);
+
+    //PLAN SETTINGS ROUTER
+    app.use('/plans', planRouter);
 
     app.use(errorHandleMiddleware);
     //index route

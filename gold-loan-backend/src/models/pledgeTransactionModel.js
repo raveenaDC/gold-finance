@@ -6,6 +6,8 @@ const pledgeTransactionSchema = new Schema(
             type: Number,
             default: 0
         },
+        remarks: String,
+        transactionDate: Date,
         paidInterest: {
             type: Number,
             default: 0
