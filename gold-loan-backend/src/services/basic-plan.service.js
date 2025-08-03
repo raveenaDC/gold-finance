@@ -6,15 +6,13 @@ export async function createBasicPlan(req, res, next) {
     try {
         let { planName,
             interestPlan,
-            interstRate,
+            interestRate,
             minimumDays,
             minimumAmount,
             interestType
         } = req.body;
 
-        const existPlan = await models.basicPlansModel.findOne({ planName: planName })
-        console.log(existPlan);
-
+        const existPlan = await models.basicPlansModel.findOne({ planName: planName });
         if (existPlan) {
             return responseHelper(
                 res,
@@ -25,7 +23,7 @@ export async function createBasicPlan(req, res, next) {
             );
         }
 
-        const existType = await models.basicPlansModel.findOne({ interestPlan: interestPlan, interestType: interestType })
+        const existType = await models.basicPlansModel.findOne({ interestPlan: interestPlan, interestType: interestType, interestRate: interestRate })
         if (existType) {
             return responseHelper(
                 res,
@@ -39,13 +37,13 @@ export async function createBasicPlan(req, res, next) {
                 res,
                 httpStatus.CONFLICT,
                 true,
-                'Please choose the correct interst plan',
+                'Please choose the correct interest plan',
             );
         }
         const plan = await models.basicPlansModel.create({
             planName,
             interestPlan,
-            interstRate,
+            interestRate,
             minimumDays,
             minimumAmount,
             interestType

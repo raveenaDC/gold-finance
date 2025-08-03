@@ -8,7 +8,7 @@ const basicPlanSettingSchema = new Schema(
         interestPlan: {
             type: String
         },
-        InterstRate: {
+        interestRate: {
             type: Number,
             default: 0
         },
